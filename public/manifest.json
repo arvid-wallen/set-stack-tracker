@@ -1,0 +1,17 @@
+{
+  "name": "Gym Tracker",
+  "short_name": "Gym",
+  "description": "Din personliga gym-tracker för styrketräning",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0a0b0d",
+  "theme_color": "#0a0b0d",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "64x64",
+      "type": "image/x-icon"
+    }
+  ]
+}
