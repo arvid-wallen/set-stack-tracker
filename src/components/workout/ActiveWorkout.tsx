@@ -8,41 +8,34 @@ import { RestTimer } from './RestTimer';
 import { ExerciseCard } from './ExerciseCard';
 import { ExerciseSearch } from './ExerciseSearch';
 import { EndWorkoutSheet } from './EndWorkoutSheet';
-import { WorkoutSession, WorkoutExercise, WORKOUT_TYPE_LABELS, Exercise } from '@/types/workout';
-import { cn } from '@/lib/utils';
+import { useWorkout } from '@/hooks/useWorkout';
+import { WORKOUT_TYPE_LABELS, Exercise } from '@/types/workout';
 
-interface ActiveWorkoutProps {
-  workout: WorkoutSession;
-  exercises: WorkoutExercise[];
-  onAddExercise: (exerciseId: string) => Promise<WorkoutExercise | null>;
-  onRemoveExercise: (workoutExerciseId: string) => void;
-  onAddSet: (workoutExerciseId: string, data: any) => void;
-  onDeleteSet: (setId: string, workoutExerciseId: string) => void;
-  onEndWorkout: (rating?: number, notes?: string) => void;
-}
-
-export function ActiveWorkout({
-  workout,
-  exercises,
-  onAddExercise,
-  onRemoveExercise,
-  onAddSet,
-  onDeleteSet,
-  onEndWorkout,
-}: ActiveWorkoutProps) {
+export function ActiveWorkout() {
+  const { 
+    activeWorkout, 
+    exercises: workoutExercises, 
+    addExercise, 
+    removeExercise, 
+    addSet, 
+    deleteSet, 
+    endWorkout 
+  } = useWorkout();
+  
   const [showRestTimer, setShowRestTimer] = useState(false);
   const [showEndSheet, setShowEndSheet] = useState(false);
 
   const totalSets = useMemo(() => {
-    return exercises.reduce((acc, ex) => acc + (ex.sets?.length || 0), 0);
-  }, [exercises]);
+    return workoutExercises.reduce((acc, ex) => acc + (ex.sets?.length || 0), 0);
+  }, [workoutExercises]);
 
   const handleExerciseSelect = async (exercise: Exercise) => {
-    await onAddExercise(exercise.id);
+    await addExercise(exercise.id);
   };
 
   const formatDuration = () => {
-    const start = new Date(workout.started_at);
+    if (!activeWorkout) return '0 min';
+    const start = new Date(activeWorkout.started_at);
     const now = new Date();
     const diff = Math.floor((now.getTime() - start.getTime()) / 1000);
     const hours = Math.floor(diff / 3600);
@@ -53,6 +46,10 @@ export function ActiveWorkout({
     }
     return `${minutes} min`;
   };
+
+  if (!activeWorkout) {
+    return null;
+  }
 
   return (
     <div className="fixed inset-0 bg-background z-50 flex flex-col safe-top safe-bottom">
@@ -68,11 +65,11 @@ export function ActiveWorkout({
           </Button>
           <div>
             <h1 className="font-heading font-semibold">
-              {workout.custom_type_name || WORKOUT_TYPE_LABELS[workout.workout_type]}
+              {activeWorkout.custom_type_name || WORKOUT_TYPE_LABELS[activeWorkout.workout_type]}
             </h1>
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <Clock className="h-3 w-3" />
-              <WorkoutTimer startedAt={workout.started_at} className="text-sm !text-muted-foreground" />
+              <WorkoutTimer startedAt={activeWorkout.started_at} className="text-sm !text-muted-foreground" />
             </div>
           </div>
         </div>
@@ -87,7 +84,7 @@ export function ActiveWorkout({
       {/* Exercise list */}
       <ScrollArea className="flex-1 p-4">
         <div className="space-y-4 pb-32">
-          {exercises.length === 0 ? (
+          {workoutExercises.length === 0 ? (
             <div className="text-center py-12">
               <Dumbbell className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
               <h3 className="font-medium text-lg mb-2">Lägg till din första övning</h3>
@@ -96,13 +93,13 @@ export function ActiveWorkout({
               </p>
             </div>
           ) : (
-            exercises.map((workoutExercise) => (
+            workoutExercises.map((workoutExercise) => (
               <ExerciseCard
                 key={workoutExercise.id}
                 workoutExercise={workoutExercise}
-                onAddSet={(data) => onAddSet(workoutExercise.id, data)}
-                onDeleteSet={(setId) => onDeleteSet(setId, workoutExercise.id)}
-                onRemoveExercise={() => onRemoveExercise(workoutExercise.id)}
+                onAddSet={(data) => addSet(workoutExercise.id, data)}
+                onDeleteSet={(setId) => deleteSet(setId, workoutExercise.id)}
+                onRemoveExercise={() => removeExercise(workoutExercise.id)}
                 onStartRest={() => setShowRestTimer(true)}
                 supersetBadge={workoutExercise.superset_group || undefined}
               />
@@ -147,7 +144,7 @@ export function ActiveWorkout({
         isOpen={showEndSheet}
         onClose={() => setShowEndSheet(false)}
         onConfirm={(rating, notes) => {
-          onEndWorkout(rating, notes);
+          endWorkout(rating, notes);
           setShowEndSheet(false);
         }}
         totalSets={totalSets}
