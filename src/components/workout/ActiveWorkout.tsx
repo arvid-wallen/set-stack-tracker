@@ -10,6 +10,7 @@ import { ExerciseCard } from './ExerciseCard';
 import { ExerciseSearch } from './ExerciseSearch';
 import { EndWorkoutSheet } from './EndWorkoutSheet';
 import { useWorkout } from '@/hooks/useWorkout';
+import { useRoutines } from '@/hooks/useRoutines';
 import { WORKOUT_TYPE_LABELS, Exercise } from '@/types/workout';
 import { cn } from '@/lib/utils';
 
@@ -29,6 +30,7 @@ export function ActiveWorkout() {
   } = useWorkout();
   
   const navigate = useNavigate();
+  const { createRoutine } = useRoutines();
   const [showRestTimer, setShowRestTimer] = useState(false);
   const [showEndSheet, setShowEndSheet] = useState(false);
 
@@ -161,13 +163,29 @@ export function ActiveWorkout() {
       <EndWorkoutSheet
         isOpen={showEndSheet}
         onClose={() => setShowEndSheet(false)}
-        onConfirm={async (rating, notes) => {
+        onConfirm={async (rating, notes, templateData) => {
+          // Save as template if requested
+          if (templateData) {
+            await createRoutine({
+              name: templateData.name,
+              folder: templateData.folder,
+              is_favorite: templateData.isFavorite,
+              workout_type: activeWorkout.workout_type,
+              exercises: workoutExercises.map(we => ({
+                exercise_id: we.exercise_id,
+                default_sets: we.sets?.filter(s => !s.is_warmup).length || 3,
+              })),
+            });
+          }
+          
           await endWorkout(rating, notes);
           setShowEndSheet(false);
           navigate('/');
         }}
         totalSets={totalSets}
         duration={formatDuration()}
+        workoutType={activeWorkout.custom_type_name || WORKOUT_TYPE_LABELS[activeWorkout.workout_type]}
+        exerciseCount={workoutExercises.length}
       />
     </div>
   );

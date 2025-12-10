@@ -1,7 +1,10 @@
 import { useState } from 'react';
-import { Star } from 'lucide-react';
+import { Star, Save } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
 import {
   Sheet,
   SheetContent,
@@ -14,9 +17,11 @@ import { cn } from '@/lib/utils';
 interface EndWorkoutSheetProps {
   isOpen: boolean;
   onClose: () => void;
-  onConfirm: (rating: number, notes: string) => void;
+  onConfirm: (rating: number, notes: string, saveAsTemplate?: { name: string; folder?: string; isFavorite: boolean }) => void;
   totalSets: number;
   duration: string;
+  workoutType: string;
+  exerciseCount: number;
 }
 
 export function EndWorkoutSheet({ 
@@ -24,18 +29,37 @@ export function EndWorkoutSheet({
   onClose, 
   onConfirm, 
   totalSets,
-  duration 
+  duration,
+  workoutType,
+  exerciseCount
 }: EndWorkoutSheetProps) {
   const [rating, setRating] = useState(0);
   const [notes, setNotes] = useState('');
+  const [saveAsTemplate, setSaveAsTemplate] = useState(false);
+  const [templateName, setTemplateName] = useState('');
+  const [templateFolder, setTemplateFolder] = useState('');
+  const [templateFavorite, setTemplateFavorite] = useState(false);
 
   const handleConfirm = () => {
-    onConfirm(rating || 3, notes);
+    const templateData = saveAsTemplate && templateName.trim() 
+      ? { name: templateName.trim(), folder: templateFolder.trim() || undefined, isFavorite: templateFavorite }
+      : undefined;
+    
+    onConfirm(rating || 3, notes, templateData);
+  };
+
+  const handleClose = () => {
+    // Reset template state when closing
+    setSaveAsTemplate(false);
+    setTemplateName('');
+    setTemplateFolder('');
+    setTemplateFavorite(false);
+    onClose();
   };
 
   return (
-    <Sheet open={isOpen} onOpenChange={onClose}>
-      <SheetContent side="bottom" className="h-auto rounded-t-3xl">
+    <Sheet open={isOpen} onOpenChange={handleClose}>
+      <SheetContent side="bottom" className="h-auto max-h-[90vh] rounded-t-3xl overflow-y-auto">
         <SheetHeader className="pb-4">
           <SheetTitle>Avsluta pass</SheetTitle>
           <SheetDescription>
@@ -78,22 +102,79 @@ export function EndWorkoutSheet({
               placeholder="Hur kändes det? Energi, sömn, stress..."
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              className="min-h-[100px]"
+              className="min-h-[80px]"
             />
           </div>
+
+          {/* Save as template */}
+          {exerciseCount > 0 && (
+            <div className="space-y-4 p-4 rounded-xl bg-muted/50 border border-border">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Save className="h-4 w-4 text-muted-foreground" />
+                  <Label htmlFor="saveTemplate" className="font-medium">
+                    Spara som mall
+                  </Label>
+                </div>
+                <Switch
+                  id="saveTemplate"
+                  checked={saveAsTemplate}
+                  onCheckedChange={setSaveAsTemplate}
+                />
+              </div>
+
+              {saveAsTemplate && (
+                <div className="space-y-3 pt-2">
+                  <div className="space-y-2">
+                    <Label htmlFor="templateName" className="text-sm">Namn på rutin *</Label>
+                    <Input
+                      id="templateName"
+                      placeholder={`${workoutType} rutin`}
+                      value={templateName}
+                      onChange={(e) => setTemplateName(e.target.value)}
+                      className="h-10"
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="templateFolder" className="text-sm">Mapp (valfritt)</Label>
+                    <Input
+                      id="templateFolder"
+                      placeholder="T.ex. PPL Split"
+                      value={templateFolder}
+                      onChange={(e) => setTemplateFolder(e.target.value)}
+                      className="h-10"
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-between pt-1">
+                    <Label htmlFor="templateFavorite" className="text-sm">
+                      Lägg till som favorit
+                    </Label>
+                    <Switch
+                      id="templateFavorite"
+                      checked={templateFavorite}
+                      onCheckedChange={setTemplateFavorite}
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Actions */}
           <div className="flex gap-3">
             <Button 
               variant="outline" 
               className="flex-1 h-12"
-              onClick={onClose}
+              onClick={handleClose}
             >
               Fortsätt träna
             </Button>
             <Button 
               className="flex-1 h-12"
               onClick={handleConfirm}
+              disabled={saveAsTemplate && !templateName.trim()}
             >
               Spara pass
             </Button>
