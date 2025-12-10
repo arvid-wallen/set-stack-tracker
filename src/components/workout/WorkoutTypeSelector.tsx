@@ -21,8 +21,8 @@ import { WorkoutType, WORKOUT_TYPE_LABELS } from '@/types/workout';
 import { cn } from '@/lib/utils';
 
 interface WorkoutTypeSelectorProps {
-  isOpen: boolean;
-  onClose: () => void;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
   onSelect: (type: WorkoutType, customName?: string) => void;
 }
 
@@ -37,7 +37,7 @@ const WORKOUT_TYPES: { type: WorkoutType; icon: React.ReactNode; color: string }
   { type: 'custom', icon: <Dumbbell className="h-6 w-6" />, color: 'text-muted-foreground' },
 ];
 
-export function WorkoutTypeSelector({ isOpen, onClose, onSelect }: WorkoutTypeSelectorProps) {
+export function WorkoutTypeSelector({ open, onOpenChange, onSelect }: WorkoutTypeSelectorProps) {
   const [showCustomInput, setShowCustomInput] = useState(false);
   const [customName, setCustomName] = useState('');
 
@@ -46,7 +46,7 @@ export function WorkoutTypeSelector({ isOpen, onClose, onSelect }: WorkoutTypeSe
       setShowCustomInput(true);
     } else {
       onSelect(type);
-      onClose();
+      onOpenChange(false);
     }
   };
 
@@ -54,11 +54,11 @@ export function WorkoutTypeSelector({ isOpen, onClose, onSelect }: WorkoutTypeSe
     onSelect('custom', customName || 'Anpassat pass');
     setShowCustomInput(false);
     setCustomName('');
-    onClose();
+    onOpenChange(false);
   };
 
   return (
-    <Sheet open={isOpen} onOpenChange={onClose}>
+    <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent side="bottom" className="h-auto rounded-t-3xl">
         <SheetHeader className="pb-6">
           <SheetTitle>
