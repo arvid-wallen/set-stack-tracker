@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { X, Clock, Dumbbell } from 'lucide-react';
+import { X, Clock, Dumbbell, Wifi, WifiOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -10,23 +10,27 @@ import { ExerciseSearch } from './ExerciseSearch';
 import { EndWorkoutSheet } from './EndWorkoutSheet';
 import { useWorkout } from '@/hooks/useWorkout';
 import { WORKOUT_TYPE_LABELS, Exercise } from '@/types/workout';
+import { cn } from '@/lib/utils';
 
 export function ActiveWorkout() {
   const { 
     activeWorkout, 
     exercises: workoutExercises, 
+    isOnline,
     addExercise, 
     removeExercise, 
     addSet, 
     deleteSet, 
-    endWorkout 
+    endWorkout,
+    linkToSuperset,
+    unlinkFromSuperset,
   } = useWorkout();
   
   const [showRestTimer, setShowRestTimer] = useState(false);
   const [showEndSheet, setShowEndSheet] = useState(false);
 
   const totalSets = useMemo(() => {
-    return workoutExercises.reduce((acc, ex) => acc + (ex.sets?.length || 0), 0);
+    return workoutExercises.reduce((acc, ex) => acc + (ex.sets?.filter(s => !s.is_warmup).length || 0), 0);
   }, [workoutExercises]);
 
   const handleExerciseSelect = async (exercise: Exercise) => {
@@ -59,6 +63,7 @@ export function ActiveWorkout() {
           <Button 
             variant="ghost" 
             size="icon"
+            className="touch-target"
             onClick={() => setShowEndSheet(true)}
           >
             <X className="h-5 w-5" />
@@ -75,6 +80,13 @@ export function ActiveWorkout() {
         </div>
 
         <div className="flex items-center gap-2">
+          {/* Offline indicator */}
+          {!isOnline && (
+            <Badge variant="outline" className="text-warning border-warning">
+              <WifiOff className="h-3 w-3 mr-1" />
+              Offline
+            </Badge>
+          )}
           <Badge variant="secondary" className="font-mono">
             {totalSets} set
           </Badge>
@@ -93,7 +105,7 @@ export function ActiveWorkout() {
               </p>
             </div>
           ) : (
-            workoutExercises.map((workoutExercise) => (
+            workoutExercises.map((workoutExercise, index) => (
               <ExerciseCard
                 key={workoutExercise.id}
                 workoutExercise={workoutExercise}
@@ -101,6 +113,8 @@ export function ActiveWorkout() {
                 onDeleteSet={(setId) => deleteSet(setId, workoutExercise.id)}
                 onRemoveExercise={() => removeExercise(workoutExercise.id)}
                 onStartRest={() => setShowRestTimer(true)}
+                onLinkSuperset={index > 0 ? () => linkToSuperset(index) : undefined}
+                onUnlinkSuperset={workoutExercise.superset_group ? () => unlinkFromSuperset(workoutExercise.id) : undefined}
                 supersetBadge={workoutExercise.superset_group || undefined}
               />
             ))
@@ -114,7 +128,7 @@ export function ActiveWorkout() {
           <ExerciseSearch 
             onSelect={handleExerciseSelect}
             trigger={
-              <Button className="flex-1 h-14 text-base">
+              <Button className="flex-1 h-14 text-base touch-target">
                 <Dumbbell className="h-5 w-5 mr-2" />
                 Lägg till övning
               </Button>
@@ -122,7 +136,7 @@ export function ActiveWorkout() {
           />
           <Button 
             variant="destructive" 
-            className="h-14 px-6"
+            className="h-14 px-6 touch-target"
             onClick={() => setShowEndSheet(true)}
           >
             Avsluta

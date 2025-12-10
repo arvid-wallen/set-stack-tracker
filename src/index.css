@@ -152,4 +152,24 @@
   .safe-top {
     padding-top: env(safe-area-inset-top);
   }
+
+  /* Set save animation */
+  @keyframes set-saved {
+    0% {
+      transform: scale(1);
+      background-color: transparent;
+    }
+    50% {
+      transform: scale(1.02);
+      background-color: hsl(var(--success) / 0.2);
+    }
+    100% {
+      transform: scale(1);
+      background-color: transparent;
+    }
+  }
+
+  .animate-set-saved {
+    animation: set-saved 0.3s ease-out;
+  }
 }

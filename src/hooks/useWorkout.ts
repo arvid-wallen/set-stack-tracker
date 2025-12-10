@@ -2,21 +2,76 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { WorkoutSession, WorkoutExercise, ExerciseSet, WorkoutType } from '@/types/workout';
 import { useToast } from '@/hooks/use-toast';
+import { saveWorkoutToLocal, getLocalWorkout, clearLocalWorkout, hasPendingSync, getPendingActions, clearPendingActions, queueAction } from '@/lib/offline-storage';
 
 export function useWorkout() {
   const [activeWorkout, setActiveWorkout] = useState<WorkoutSession | null>(null);
   const [exercises, setExercises] = useState<WorkoutExercise[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [isOnline, setIsOnline] = useState(navigator.onLine);
   const { toast } = useToast();
+
+  // Online/offline detection
+  useEffect(() => {
+    const handleOnline = () => {
+      setIsOnline(true);
+      syncPendingActions();
+    };
+    const handleOffline = () => setIsOnline(false);
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
+
+  // Sync pending actions when coming online
+  const syncPendingActions = async () => {
+    if (!hasPendingSync()) return;
+    
+    const actions = getPendingActions();
+    for (const action of actions) {
+      try {
+        if (action.type === 'addSet') {
+          await supabase.from('exercise_sets').insert(action.data);
+        } else if (action.type === 'deleteSet') {
+          await supabase.from('exercise_sets').delete().eq('id', action.data.id);
+        }
+      } catch (error) {
+        console.error('Sync error:', error);
+      }
+    }
+    clearPendingActions();
+    checkActiveWorkout();
+    toast({ title: 'Synkroniserat!' });
+  };
 
   // Check for active workout on mount
   useEffect(() => {
     checkActiveWorkout();
   }, []);
 
+  // Save workout state to local storage for offline support
+  useEffect(() => {
+    if (activeWorkout) {
+      saveWorkoutToLocal(activeWorkout, exercises);
+    }
+  }, [activeWorkout, exercises]);
+
   const checkActiveWorkout = async () => {
     const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
+    if (!user) {
+      // Check for local workout if offline
+      const localWorkout = getLocalWorkout();
+      if (localWorkout) {
+        setActiveWorkout(localWorkout.session);
+        setExercises(localWorkout.exercises);
+      }
+      return;
+    }
 
     const { data, error } = await supabase
       .from('workout_sessions')
@@ -36,7 +91,19 @@ export function useWorkout() {
 
     if (data && !error) {
       setActiveWorkout(data as unknown as WorkoutSession);
-      setExercises((data.workout_exercises || []) as unknown as WorkoutExercise[]);
+      const workoutExercises = (data.workout_exercises || []).map((we: any) => ({
+        ...we,
+        exercise: we.exercises,
+        sets: we.exercise_sets || [],
+      })) as WorkoutExercise[];
+      setExercises(workoutExercises);
+    } else {
+      // Check for local workout
+      const localWorkout = getLocalWorkout();
+      if (localWorkout) {
+        setActiveWorkout(localWorkout.session);
+        setExercises(localWorkout.exercises);
+      }
     }
   };
 
@@ -97,6 +164,7 @@ export function useWorkout() {
 
       if (error) throw error;
 
+      clearLocalWorkout();
       setActiveWorkout(null);
       setExercises([]);
       toast({ title: 'Pass avslutat! Bra jobbat! 🎉' });
@@ -129,7 +197,11 @@ export function useWorkout() {
 
       if (error) throw error;
 
-      const newExercise = { ...data, sets: [] } as unknown as WorkoutExercise;
+      const newExercise = { 
+        ...data, 
+        exercise: data.exercises,
+        sets: [] 
+      } as unknown as WorkoutExercise;
       setExercises(prev => [...prev, newExercise]);
       return newExercise;
     } catch (error) {
@@ -163,19 +235,40 @@ export function useWorkout() {
       const exercise = exercises.find(e => e.id === workoutExerciseId);
       const setNumber = (exercise?.sets?.length || 0) + 1;
 
+      const insertData = {
+        workout_exercise_id: workoutExerciseId,
+        set_number: setNumber,
+        weight_kg: setData.weight_kg ?? null,
+        reps: setData.reps ?? null,
+        is_warmup: setData.is_warmup ?? false,
+        is_bodyweight: setData.is_bodyweight ?? false,
+        rpe: setData.rpe ?? null,
+        rir: setData.rir ?? null,
+        notes: setData.notes ?? null,
+      };
+
+      if (!isOnline) {
+        // Queue for later sync
+        queueAction({ type: 'addSet', data: insertData });
+        
+        // Optimistic update
+        const tempId = `temp-${Date.now()}`;
+        const tempSet = { ...insertData, id: tempId, completed_at: new Date().toISOString() } as ExerciseSet;
+        
+        setExercises(prev => prev.map(e => {
+          if (e.id === workoutExerciseId) {
+            return { ...e, sets: [...(e.sets || []), tempSet] };
+          }
+          return e;
+        }));
+        
+        toast({ title: 'Set sparat lokalt' });
+        return tempSet;
+      }
+
       const { data, error } = await supabase
         .from('exercise_sets')
-        .insert({
-          workout_exercise_id: workoutExerciseId,
-          set_number: setNumber,
-          weight_kg: setData.weight_kg ?? null,
-          reps: setData.reps ?? null,
-          is_warmup: setData.is_warmup ?? false,
-          is_bodyweight: setData.is_bodyweight ?? false,
-          rpe: setData.rpe ?? null,
-          rir: setData.rir ?? null,
-          notes: setData.notes ?? null,
-        })
+        .insert(insertData)
         .select()
         .single();
 
@@ -222,12 +315,16 @@ export function useWorkout() {
 
   const deleteSet = async (setId: string, workoutExerciseId: string) => {
     try {
-      const { error } = await supabase
-        .from('exercise_sets')
-        .delete()
-        .eq('id', setId);
+      if (!isOnline) {
+        queueAction({ type: 'deleteSet', data: { id: setId } });
+      } else {
+        const { error } = await supabase
+          .from('exercise_sets')
+          .delete()
+          .eq('id', setId);
 
-      if (error) throw error;
+        if (error) throw error;
+      }
 
       setExercises(prev => prev.map(exercise => {
         if (exercise.id === workoutExerciseId) {
@@ -244,10 +341,47 @@ export function useWorkout() {
     }
   };
 
+  const updateSupersetGroup = async (workoutExerciseId: string, groupNumber: number | null) => {
+    try {
+      const { error } = await supabase
+        .from('workout_exercises')
+        .update({ superset_group: groupNumber })
+        .eq('id', workoutExerciseId);
+
+      if (error) throw error;
+
+      setExercises(prev => prev.map(e => 
+        e.id === workoutExerciseId ? { ...e, superset_group: groupNumber } : e
+      ));
+    } catch (error) {
+      console.error('Error updating superset:', error);
+      toast({ title: 'Kunde inte uppdatera superset', variant: 'destructive' });
+    }
+  };
+
+  const linkToSuperset = async (exerciseIndex: number) => {
+    if (exerciseIndex <= 0 || exerciseIndex >= exercises.length) return;
+    
+    const currentExercise = exercises[exerciseIndex];
+    const previousExercise = exercises[exerciseIndex - 1];
+    
+    // Use existing group or create new one
+    const groupNumber = previousExercise.superset_group || 
+      Math.max(...exercises.map(e => e.superset_group || 0)) + 1;
+    
+    await updateSupersetGroup(previousExercise.id, groupNumber);
+    await updateSupersetGroup(currentExercise.id, groupNumber);
+  };
+
+  const unlinkFromSuperset = async (workoutExerciseId: string) => {
+    await updateSupersetGroup(workoutExerciseId, null);
+  };
+
   return {
     activeWorkout,
     exercises,
     isLoading,
+    isOnline,
     startWorkout,
     endWorkout,
     addExercise,
@@ -255,6 +389,8 @@ export function useWorkout() {
     addSet,
     updateSet,
     deleteSet,
+    linkToSuperset,
+    unlinkFromSuperset,
     refreshWorkout: checkActiveWorkout,
   };
 }
