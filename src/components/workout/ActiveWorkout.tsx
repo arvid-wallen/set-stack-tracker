@@ -24,6 +24,7 @@ export function ActiveWorkout() {
     endWorkout,
     linkToSuperset,
     unlinkFromSuperset,
+    markExerciseComplete,
   } = useWorkout();
   
   const [showRestTimer, setShowRestTimer] = useState(false);
@@ -115,6 +116,7 @@ export function ActiveWorkout() {
                 onStartRest={() => setShowRestTimer(true)}
                 onLinkSuperset={index > 0 ? () => linkToSuperset(index) : undefined}
                 onUnlinkSuperset={workoutExercise.superset_group ? () => unlinkFromSuperset(workoutExercise.id) : undefined}
+                onMarkComplete={(completed) => markExerciseComplete(workoutExercise.id, completed)}
                 supersetBadge={workoutExercise.superset_group || undefined}
               />
             ))

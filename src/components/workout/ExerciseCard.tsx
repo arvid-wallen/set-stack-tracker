@@ -1,5 +1,5 @@
-import { useState, useCallback } from 'react';
-import { Plus, ChevronDown, ChevronUp, Trash2, MoreVertical, Link2, Unlink } from 'lucide-react';
+import { useState, useCallback, useEffect } from 'react';
+import { ChevronDown, ChevronUp, Trash2, MoreVertical, Link2, Unlink, Circle, CheckCircle2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -22,6 +22,7 @@ interface ExerciseCardProps {
   onStartRest: () => void;
   onLinkSuperset?: () => void;
   onUnlinkSuperset?: () => void;
+  onMarkComplete?: (completed: boolean) => void;
   supersetBadge?: number;
 }
 
@@ -33,15 +34,28 @@ export function ExerciseCard({
   onStartRest,
   onLinkSuperset,
   onUnlinkSuperset,
+  onMarkComplete,
   supersetBadge,
 }: ExerciseCardProps) {
   const [isExpanded, setIsExpanded] = useState(true);
   const [newSetKey, setNewSetKey] = useState(0);
 
   const exercise = workoutExercise.exercise;
+  const isCompleted = workoutExercise.is_completed;
   const sets = workoutExercise.sets || [];
   const workingSets = sets.filter(s => !s.is_warmup);
   const warmupSets = sets.filter(s => s.is_warmup);
+
+  // Auto-collapse when marked complete
+  useEffect(() => {
+    if (isCompleted) {
+      setIsExpanded(false);
+    }
+  }, [isCompleted]);
+
+  const handleToggleComplete = useCallback(() => {
+    onMarkComplete?.(!isCompleted);
+  }, [onMarkComplete, isCompleted]);
 
   const lastWorkingSet = workingSets[workingSets.length - 1];
 
@@ -65,11 +79,25 @@ export function ExerciseCard({
 
   return (
     <Card className={cn(
-      "workout-card overflow-hidden",
-      supersetBadge && "border-l-4 border-l-primary"
+      "workout-card overflow-hidden transition-all duration-300",
+      supersetBadge && "border-l-4 border-l-primary",
+      isCompleted && "opacity-60 bg-muted/30"
     )}>
       {/* Header */}
       <div className="flex items-center gap-3">
+        {/* Complete toggle */}
+        <button
+          className="touch-target flex items-center justify-center"
+          onClick={handleToggleComplete}
+          aria-label={isCompleted ? "Markera som ej klar" : "Markera som klar"}
+        >
+          {isCompleted ? (
+            <CheckCircle2 className="h-6 w-6 text-green-500" />
+          ) : (
+            <Circle className="h-6 w-6 text-muted-foreground" />
+          )}
+        </button>
+
         {supersetBadge && (
           <Badge variant="outline" className="rounded-full w-6 h-6 p-0 flex items-center justify-center text-xs border-primary text-primary">
             {supersetBadge}
@@ -81,7 +109,17 @@ export function ExerciseCard({
           onClick={() => setIsExpanded(!isExpanded)}
         >
           <div className="flex-1">
-            <h3 className="font-semibold">{exercise.name}</h3>
+            <div className="flex items-center gap-2">
+              <h3 className={cn(
+                "font-semibold",
+                isCompleted && "line-through text-muted-foreground"
+              )}>{exercise.name}</h3>
+              {isCompleted && (
+                <Badge variant="secondary" className="text-xs bg-green-500/20 text-green-500 border-green-500/30">
+                  ✓ Klar
+                </Badge>
+              )}
+            </div>
             <div className="flex gap-1 mt-1 flex-wrap">
               {exercise.muscle_groups.slice(0, 2).map(mg => (
                 <Badge key={mg} variant="secondary" className="text-xs">
