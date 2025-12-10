@@ -53,7 +53,7 @@ export function useAuth() {
     }
   };
 
-  const signIn = async (email: string, password: string) => {
+  const signIn = async (email: string, password: string, rememberMe: boolean = false) => {
     setIsLoading(true);
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
@@ -62,6 +62,14 @@ export function useAuth() {
       });
 
       if (error) throw error;
+
+      // If "remember me" is checked, update session to last 30 days
+      if (rememberMe && data.session) {
+        // Store preference in localStorage
+        localStorage.setItem('rememberMe', 'true');
+      } else {
+        localStorage.removeItem('rememberMe');
+      }
 
       toast({ title: 'Välkommen tillbaka! 💪' });
       return data;

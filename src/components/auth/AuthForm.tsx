@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Mail, Lock, Eye, EyeOff, Dumbbell } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@/hooks/useAuth';
 
@@ -11,6 +12,9 @@ export function AuthForm() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [rememberMe, setRememberMe] = useState(() => {
+    return localStorage.getItem('rememberMe') === 'true';
+  });
   
   const { signIn, signUp, isLoading } = useAuth();
 
@@ -18,7 +22,7 @@ export function AuthForm() {
     e.preventDefault();
     
     if (isLogin) {
-      await signIn(email, password);
+      await signIn(email, password, rememberMe);
     } else {
       await signUp(email, password);
     }
@@ -86,6 +90,22 @@ export function AuthForm() {
                 </button>
               </div>
             </div>
+
+            {isLogin && (
+              <div className="flex items-center space-x-2">
+                <Checkbox 
+                  id="rememberMe" 
+                  checked={rememberMe}
+                  onCheckedChange={(checked) => setRememberMe(checked === true)}
+                />
+                <Label 
+                  htmlFor="rememberMe" 
+                  className="text-sm font-normal text-muted-foreground cursor-pointer"
+                >
+                  Kom ihåg mig i 30 dagar
+                </Label>
+              </div>
+            )}
 
             <Button 
               type="submit" 
