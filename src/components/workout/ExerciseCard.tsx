@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Plus, ChevronDown, ChevronUp, Trash2, MoreVertical } from 'lucide-react';
+import { useState, useCallback } from 'react';
+import { Plus, ChevronDown, ChevronUp, Trash2, MoreVertical, Link2, Unlink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -7,6 +7,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { SetRow } from './SetRow';
@@ -19,6 +20,8 @@ interface ExerciseCardProps {
   onDeleteSet: (setId: string) => void;
   onRemoveExercise: () => void;
   onStartRest: () => void;
+  onLinkSuperset?: () => void;
+  onUnlinkSuperset?: () => void;
   supersetBadge?: number;
 }
 
@@ -28,10 +31,12 @@ export function ExerciseCard({
   onDeleteSet,
   onRemoveExercise,
   onStartRest,
+  onLinkSuperset,
+  onUnlinkSuperset,
   supersetBadge,
 }: ExerciseCardProps) {
   const [isExpanded, setIsExpanded] = useState(true);
-  const [showNewSet, setShowNewSet] = useState(true);
+  const [newSetKey, setNewSetKey] = useState(0);
 
   const exercise = workoutExercise.exercise;
   const sets = workoutExercise.sets || [];
@@ -40,25 +45,39 @@ export function ExerciseCard({
 
   const lastWorkingSet = workingSets[workingSets.length - 1];
 
-  const handleSaveNewSet = (data: { weight_kg: number; reps: number; is_warmup: boolean; is_bodyweight: boolean }) => {
-    onAddSet(data);
+  const handleSaveNewSet = useCallback((data: { 
+    weight_kg: number; 
+    reps: number; 
+    is_warmup: boolean; 
+    is_bodyweight: boolean;
+    rpe?: number;
+  }) => {
+    onAddSet({
+      ...data,
+      rpe: data.rpe ?? null,
+    });
+    // Force new SetRow component by changing key
+    setNewSetKey(prev => prev + 1);
     onStartRest();
-  };
+  }, [onAddSet, onStartRest]);
 
   if (!exercise) return null;
 
   return (
-    <Card className="workout-card overflow-hidden">
+    <Card className={cn(
+      "workout-card overflow-hidden",
+      supersetBadge && "border-l-4 border-l-primary"
+    )}>
       {/* Header */}
       <div className="flex items-center gap-3">
         {supersetBadge && (
-          <Badge variant="outline" className="rounded-full w-6 h-6 p-0 flex items-center justify-center text-xs">
+          <Badge variant="outline" className="rounded-full w-6 h-6 p-0 flex items-center justify-center text-xs border-primary text-primary">
             {supersetBadge}
           </Badge>
         )}
         
         <button 
-          className="flex-1 flex items-center gap-3 text-left"
+          className="flex-1 flex items-center gap-3 text-left touch-target"
           onClick={() => setIsExpanded(!isExpanded)}
         >
           <div className="flex-1">
@@ -72,6 +91,7 @@ export function ExerciseCard({
               {sets.length > 0 && (
                 <span className="text-xs text-muted-foreground ml-1">
                   {workingSets.length} set{workingSets.length !== 1 ? 's' : ''}
+                  {warmupSets.length > 0 && ` + ${warmupSets.length} uppv.`}
                 </span>
               )}
             </div>
@@ -85,11 +105,24 @@ export function ExerciseCard({
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-8 w-8">
+            <Button variant="ghost" size="icon" className="h-10 w-10 touch-target">
               <MoreVertical className="h-4 w-4" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
+            {onLinkSuperset && (
+              <DropdownMenuItem onClick={onLinkSuperset}>
+                <Link2 className="h-4 w-4 mr-2" />
+                Länka till superset
+              </DropdownMenuItem>
+            )}
+            {supersetBadge && onUnlinkSuperset && (
+              <DropdownMenuItem onClick={onUnlinkSuperset}>
+                <Unlink className="h-4 w-4 mr-2" />
+                Ta bort från superset
+              </DropdownMenuItem>
+            )}
+            {(onLinkSuperset || supersetBadge) && <DropdownMenuSeparator />}
             <DropdownMenuItem 
               className="text-destructive focus:text-destructive"
               onClick={onRemoveExercise}
@@ -105,12 +138,12 @@ export function ExerciseCard({
       {isExpanded && (
         <div className="mt-4">
           {/* Header row */}
-          <div className="flex items-center gap-3 pb-2 border-b border-border text-xs text-muted-foreground">
-            <div className="w-8 text-center">SET</div>
-            <div className="w-16 text-center">FÖRRA</div>
-            <div className="flex-1 text-center">KG</div>
-            <div className="flex-1 text-center">REPS</div>
-            <div className="w-[88px]"></div>
+          <div className="flex items-center gap-3 pb-2 border-b border-border text-xs text-muted-foreground uppercase tracking-wide">
+            <div className="w-8 text-center">Set</div>
+            <div className="w-16 text-center">Förra</div>
+            <div className="flex-1 text-center">Kg</div>
+            <div className="flex-1 text-center">Reps</div>
+            <div className="w-[176px]"></div>
           </div>
 
           {/* Warmup sets */}
@@ -130,35 +163,32 @@ export function ExerciseCard({
               key={set.id}
               set={set}
               setNumber={i + 1}
+              previousSet={i > 0 ? {
+                weight_kg: workingSets[i - 1].weight_kg,
+                reps: workingSets[i - 1].reps,
+              } : undefined}
               onSave={() => {}}
               onDelete={() => onDeleteSet(set.id)}
             />
           ))}
 
-          {/* New set row */}
-          {showNewSet && (
-            <SetRow
-              setNumber={workingSets.length + 1}
-              isNew
-              previousSet={lastWorkingSet ? {
-                weight_kg: lastWorkingSet.weight_kg,
-                reps: lastWorkingSet.reps,
-              } : undefined}
-              onSave={handleSaveNewSet}
-              onStartRest={onStartRest}
-            />
-          )}
+          {/* New set row - key changes force remount after save */}
+          <SetRow
+            key={`new-${newSetKey}`}
+            setNumber={workingSets.length + 1}
+            isNew
+            previousSet={lastWorkingSet ? {
+              weight_kg: lastWorkingSet.weight_kg,
+              reps: lastWorkingSet.reps,
+            } : undefined}
+            onSave={handleSaveNewSet}
+            onStartRest={onStartRest}
+          />
 
-          {/* Add set button */}
-          <Button
-            variant="ghost"
-            size="sm"
-            className="w-full mt-2 text-muted-foreground"
-            onClick={() => setShowNewSet(true)}
-          >
-            <Plus className="h-4 w-4 mr-2" />
-            Lägg till set
-          </Button>
+          {/* Add set hint */}
+          <p className="text-xs text-muted-foreground text-center mt-3 py-2">
+            Fyll i och tryck ✓ för att logga set
+          </p>
         </div>
       )}
     </Card>
