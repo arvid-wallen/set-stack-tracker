@@ -377,6 +377,29 @@ export function useWorkout() {
     await updateSupersetGroup(workoutExerciseId, null);
   };
 
+  const markExerciseComplete = async (workoutExerciseId: string, completed: boolean) => {
+    try {
+      // Optimistic update
+      setExercises(prev => prev.map(e => 
+        e.id === workoutExerciseId ? { ...e, is_completed: completed } : e
+      ));
+
+      const { error } = await supabase
+        .from('workout_exercises')
+        .update({ is_completed: completed })
+        .eq('id', workoutExerciseId);
+
+      if (error) throw error;
+    } catch (error) {
+      console.error('Error marking exercise complete:', error);
+      // Revert on error
+      setExercises(prev => prev.map(e => 
+        e.id === workoutExerciseId ? { ...e, is_completed: !completed } : e
+      ));
+      toast({ title: 'Kunde inte uppdatera övning', variant: 'destructive' });
+    }
+  };
+
   return {
     activeWorkout,
     exercises,
@@ -391,6 +414,7 @@ export function useWorkout() {
     deleteSet,
     linkToSuperset,
     unlinkFromSuperset,
+    markExerciseComplete,
     refreshWorkout: checkActiveWorkout,
   };
 }

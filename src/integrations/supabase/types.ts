@@ -292,6 +292,7 @@ export type Database = {
           created_at: string
           exercise_id: string
           id: string
+          is_completed: boolean
           notes: string | null
           order_index: number
           superset_group: number | null
@@ -301,6 +302,7 @@ export type Database = {
           created_at?: string
           exercise_id: string
           id?: string
+          is_completed?: boolean
           notes?: string | null
           order_index?: number
           superset_group?: number | null
@@ -310,6 +312,7 @@ export type Database = {
           created_at?: string
           exercise_id?: string
           id?: string
+          is_completed?: boolean
           notes?: string | null
           order_index?: number
           superset_group?: number | null

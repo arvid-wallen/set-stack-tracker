@@ -34,6 +34,7 @@ export interface WorkoutExercise {
   exercise_id: string;
   order_index: number;
   superset_group: number | null;
+  is_completed: boolean;
   notes: string | null;
   exercise?: Exercise;
   sets?: ExerciseSet[];
