@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { X, Clock, Dumbbell, Wifi, WifiOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -27,6 +28,7 @@ export function ActiveWorkout() {
     markExerciseComplete,
   } = useWorkout();
   
+  const navigate = useNavigate();
   const [showRestTimer, setShowRestTimer] = useState(false);
   const [showEndSheet, setShowEndSheet] = useState(false);
 
@@ -159,9 +161,10 @@ export function ActiveWorkout() {
       <EndWorkoutSheet
         isOpen={showEndSheet}
         onClose={() => setShowEndSheet(false)}
-        onConfirm={(rating, notes) => {
-          endWorkout(rating, notes);
+        onConfirm={async (rating, notes) => {
+          await endWorkout(rating, notes);
           setShowEndSheet(false);
+          navigate('/');
         }}
         totalSets={totalSets}
         duration={formatDuration()}
