@@ -138,7 +138,7 @@ const Index = () => {
           <img 
             src={hausLogo} 
             alt="Haus" 
-            className="h-6 invert"
+            className="h-6 dark:invert"
           />
         </div>
       </header>
