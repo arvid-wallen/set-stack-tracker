@@ -14,8 +14,9 @@ export default {
     },
     extend: {
       fontFamily: {
-        heading: ['Space Grotesk', 'sans-serif'],
-        body: ['Inter', 'sans-serif'],
+        heading: ['Seriguela', 'serif'],
+        body: ['Seriguela', 'serif'],
+        display: ['Seriguela Display', 'serif'],
       },
       colors: {
         border: "hsl(var(--border))",
