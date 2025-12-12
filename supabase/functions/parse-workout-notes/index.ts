@@ -68,13 +68,12 @@ Returnera ENDAST giltig JSON i detta format:
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4o-mini',
+        model: 'gpt-5-nano-2025-08-07',
         messages: [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: `Tolka följande träningsanteckningar och extrahera all data:\n\n${text}` }
         ],
-        max_tokens: 4000,
-        temperature: 0.3,
+        max_completion_tokens: 4000,
       }),
     });
 
