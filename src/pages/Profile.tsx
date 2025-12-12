@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { useAuth } from '@/hooks/useAuth';
@@ -18,6 +19,13 @@ export default function Profile() {
   const { user, signOut, isLoading: authLoading } = useAuth();
   const { profile, isLoading: profileLoading, isSaving, updateProfile, uploadAvatar } = useProfile(user?.id);
   const { workouts } = useWorkoutHistory();
+
+  // Redirect to auth if not logged in (using useEffect to avoid render-phase navigation)
+  useEffect(() => {
+    if (!authLoading && !user) {
+      navigate('/auth');
+    }
+  }, [authLoading, user, navigate]);
 
   const handleSignOut = async () => {
     await signOut();
@@ -47,7 +55,6 @@ export default function Profile() {
   }
 
   if (!user || !profile) {
-    navigate('/auth');
     return null;
   }
 

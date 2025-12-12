@@ -11,6 +11,7 @@ import History from "./pages/History";
 import Stats from "./pages/Stats";
 import ExerciseStats from "./pages/ExerciseStats";
 import Profile from "./pages/Profile";
+import { AuthForm } from "./components/auth/AuthForm";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -25,6 +26,7 @@ const App = () => (
           <BrowserRouter>
             <Routes>
               <Route path="/" element={<Index />} />
+              <Route path="/auth" element={<AuthForm />} />
               <Route path="/library" element={<Library />} />
               <Route path="/calendar" element={<History />} />
               <Route path="/stats" element={<Stats />} />
