@@ -28,10 +28,33 @@ export function useProfile(userId: string | undefined) {
         .from('profiles')
         .select('*')
         .eq('id', userId)
-        .single();
+        .maybeSingle();
 
-      if (!error && data) {
+      if (error) {
+        console.error('Error fetching profile:', error);
+        setIsLoading(false);
+        return;
+      }
+
+      if (data) {
         setProfile(data);
+      } else {
+        // Profile doesn't exist yet - create a basic one
+        const { data: userData } = await supabase.auth.getUser();
+        const firstName = userData?.user?.user_metadata?.first_name || 'Användare';
+        
+        const { data: newProfile, error: createError } = await supabase
+          .from('profiles')
+          .insert({
+            id: userId,
+            first_name: firstName,
+          })
+          .select()
+          .single();
+        
+        if (!createError && newProfile) {
+          setProfile(newProfile);
+        }
       }
       setIsLoading(false);
     };
