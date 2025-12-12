@@ -1,23 +1,10 @@
+import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
-
-interface ParsedWorkout {
-  date: string;
-  workoutType: string;
-  exercises: {
-    name: string;
-    sets: {
-      weight: number | null;
-      reps: number | null;
-      isWarmup: boolean;
-    }[];
-  }[];
-  notes?: string;
-}
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -34,11 +21,11 @@ serve(async (req) => {
       );
     }
 
-    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
-    if (!LOVABLE_API_KEY) {
-      console.error('LOVABLE_API_KEY is not configured');
+    const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY');
+    if (!OPENAI_API_KEY) {
+      console.error('OPENAI_API_KEY is not configured');
       return new Response(
-        JSON.stringify({ error: 'AI service not configured' }),
+        JSON.stringify({ error: 'OpenAI API key not configured' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -72,40 +59,30 @@ Returnera ENDAST giltig JSON i detta format:
   ]
 }`;
 
-    console.log('Calling Lovable AI to parse workout notes...');
+    console.log('Calling OpenAI API to parse workout notes...');
     
-    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+        'Authorization': `Bearer ${OPENAI_API_KEY}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'google/gemini-2.5-flash',
+        model: 'gpt-4o-mini',
         messages: [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: `Tolka följande träningsanteckningar och extrahera all data:\n\n${text}` }
         ],
+        max_tokens: 4000,
+        temperature: 0.3,
       }),
     });
 
     if (!response.ok) {
-      if (response.status === 429) {
-        return new Response(
-          JSON.stringify({ error: 'Rate limit exceeded. Please try again later.' }),
-          { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
-      }
-      if (response.status === 402) {
-        return new Response(
-          JSON.stringify({ error: 'Payment required. Please add credits to continue.' }),
-          { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
-      }
       const errorText = await response.text();
-      console.error('AI gateway error:', response.status, errorText);
+      console.error('OpenAI API error:', response.status, errorText);
       return new Response(
-        JSON.stringify({ error: 'AI service error' }),
+        JSON.stringify({ error: 'OpenAI API error' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -114,14 +91,14 @@ Returnera ENDAST giltig JSON i detta format:
     const content = aiResponse.choices?.[0]?.message?.content;
     
     if (!content) {
-      console.error('No content in AI response');
+      console.error('No content in OpenAI response');
       return new Response(
         JSON.stringify({ error: 'Failed to parse workout notes' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    console.log('AI response content:', content);
+    console.log('OpenAI response content:', content);
 
     // Extract JSON from the response (handle markdown code blocks)
     let jsonContent = content;
@@ -134,7 +111,7 @@ Returnera ENDAST giltig JSON i detta format:
     try {
       parsedData = JSON.parse(jsonContent);
     } catch (parseError) {
-      console.error('Failed to parse JSON from AI response:', parseError);
+      console.error('Failed to parse JSON from OpenAI response:', parseError);
       console.error('Content was:', jsonContent);
       return new Response(
         JSON.stringify({ error: 'Failed to parse AI response as JSON', rawContent: content }),
