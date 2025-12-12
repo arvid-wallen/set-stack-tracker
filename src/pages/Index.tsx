@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { AuthForm } from '@/components/auth/AuthForm';
 import { ActiveWorkout } from '@/components/workout/ActiveWorkout';
 import { WorkoutTypeSelector } from '@/components/workout/WorkoutTypeSelector';
+import { BottomNav } from '@/components/layout/BottomNav';
 import { useAuth } from '@/hooks/useAuth';
 import { useWorkout } from '@/hooks/useWorkout';
 import { WorkoutType, WORKOUT_TYPE_LABELS } from '@/types/workout';
@@ -232,6 +233,8 @@ const Index = () => {
         onOpenChange={setShowTypeSelector}
         onSelect={handleStartWorkout}
       />
+
+      <BottomNav />
     </div>
   );
 };
