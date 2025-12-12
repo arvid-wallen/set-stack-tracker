@@ -12,6 +12,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { SetRow } from './SetRow';
 import { CardioLogRow } from './CardioLogRow';
+import { ProgressiveOverloadSuggestion } from './ProgressiveOverloadSuggestion';
 import { WorkoutExercise, ExerciseSet, CardioLog, MUSCLE_GROUP_LABELS, CardioType } from '@/types/workout';
 import { cn } from '@/lib/utils';
 
@@ -208,6 +209,13 @@ export function ExerciseCard({
       {/* Content: Cardio or Sets */}
       {isExpanded && (
         <div className="mt-4">
+          {/* Progressive Overload Suggestion */}
+          {!isCardio && !isCompleted && (
+            <div className="mb-4">
+              <ProgressiveOverloadSuggestion exerciseId={workoutExercise.exercise_id} />
+            </div>
+          )}
+
           {isCardio ? (
             /* Cardio log input */
             <CardioLogRow
