@@ -15,7 +15,7 @@ export default {
     extend: {
       fontFamily: {
         heading: ['Seriguela', 'serif'],
-        body: ['Seriguela', 'serif'],
+        body: ['Apercu', 'sans-serif'],
         display: ['Seriguela Display', 'serif'],
       },
       colors: {

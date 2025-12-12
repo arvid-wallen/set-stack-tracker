@@ -4,7 +4,7 @@
 
 /* Gym Tracker Design System - Dark mode first */
 
-/* Seriguela Font Family */
+/* Seriguela Font Family - Headlines */
 @font-face {
   font-family: 'Seriguela';
   src: url('@/assets/fonts/Seriguela-Regular.otf') format('opentype');
@@ -33,6 +33,31 @@
   font-family: 'Seriguela Display';
   src: url('@/assets/fonts/Seriguela-Display-Black.otf') format('opentype');
   font-weight: 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Apercu Font Family - Body text */
+@font-face {
+  font-family: 'Apercu';
+  src: url('@/assets/fonts/Apercu-Regular.otf') format('opentype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Apercu';
+  src: url('@/assets/fonts/Apercu-Medium.otf') format('opentype');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Apercu';
+  src: url('@/assets/fonts/Apercu-Bold.otf') format('opentype');
+  font-weight: 700;
   font-style: normal;
   font-display: swap;
 }
@@ -76,7 +101,7 @@
     --radius: 0.75rem;
 
     --font-heading: 'Seriguela', serif;
-    --font-body: 'Seriguela', serif;
+    --font-body: 'Apercu', sans-serif;
     --font-display: 'Seriguela Display', serif;
   }
 
