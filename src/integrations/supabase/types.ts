@@ -199,22 +199,55 @@ export type Database = {
       }
       profiles: {
         Row: {
+          avatar_url: string | null
           created_at: string
           first_name: string
           id: string
+          last_name: string | null
           updated_at: string
         }
         Insert: {
+          avatar_url?: string | null
           created_at?: string
           first_name: string
           id: string
+          last_name?: string | null
           updated_at?: string
         }
         Update: {
+          avatar_url?: string | null
           created_at?: string
           first_name?: string
           id?: string
+          last_name?: string | null
           updated_at?: string
+        }
+        Relationships: []
+      }
+      progress_photos: {
+        Row: {
+          created_at: string
+          id: string
+          notes: string | null
+          photo_url: string
+          taken_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          notes?: string | null
+          photo_url: string
+          taken_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          notes?: string | null
+          photo_url?: string
+          taken_at?: string
+          user_id?: string
         }
         Relationships: []
       }
