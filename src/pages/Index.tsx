@@ -14,7 +14,7 @@ import { format } from 'date-fns';
 import { sv } from 'date-fns/locale';
 
 const Index = () => {
-  const { user, isLoading: authLoading } = useAuth();
+  const { user, profile, isLoading: authLoading } = useAuth();
   const { activeWorkout, startWorkout, isLoading: workoutLoading } = useWorkout();
   const [showTypeSelector, setShowTypeSelector] = useState(false);
   const [recentWorkouts, setRecentWorkouts] = useState<any[]>([]);
@@ -135,9 +135,11 @@ const Index = () => {
       <header className="sticky top-0 z-10 bg-background/95 backdrop-blur border-b border-border px-4 py-4">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="font-heading text-2xl font-bold">Gym Tracker</h1>
+            <h1 className="font-heading text-xl font-bold">
+              Tjena, {profile?.first_name || 'du'}! 👋
+            </h1>
             <p className="text-sm text-muted-foreground">
-              {format(new Date(), 'EEEE d MMMM', { locale: sv })}
+              Redo att slakta gymmet idag?
             </p>
           </div>
           <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">

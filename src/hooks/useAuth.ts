@@ -3,11 +3,29 @@ import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
+interface Profile {
+  id: string;
+  first_name: string;
+}
+
 export function useAuth() {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
+  const [profile, setProfile] = useState<Profile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
+
+  const fetchProfile = async (userId: string) => {
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('id, first_name')
+      .eq('id', userId)
+      .single();
+    
+    if (!error && data) {
+      setProfile(data);
+    }
+  };
 
   useEffect(() => {
     // Get initial session
@@ -15,6 +33,10 @@ export function useAuth() {
       setSession(session);
       setUser(session?.user ?? null);
       setIsLoading(false);
+      
+      if (session?.user) {
+        setTimeout(() => fetchProfile(session.user.id), 0);
+      }
     });
 
     // Listen for auth changes
@@ -23,18 +45,28 @@ export function useAuth() {
         setSession(session);
         setUser(session?.user ?? null);
         setIsLoading(false);
+        
+        if (session?.user) {
+          setTimeout(() => fetchProfile(session.user.id), 0);
+        } else {
+          setProfile(null);
+        }
       }
     );
 
     return () => subscription.unsubscribe();
   }, []);
 
-  const signUp = async (email: string, password: string) => {
+  const signUp = async (email: string, password: string, firstName: string) => {
     setIsLoading(true);
     try {
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
+        options: {
+          data: { first_name: firstName },
+          emailRedirectTo: `${window.location.origin}/`
+        }
       });
 
       if (error) throw error;
@@ -88,6 +120,7 @@ export function useAuth() {
   const signOut = async () => {
     try {
       await supabase.auth.signOut();
+      setProfile(null);
       toast({ title: 'Du är nu utloggad' });
     } catch (error: any) {
       toast({ 
@@ -100,6 +133,7 @@ export function useAuth() {
   return {
     user,
     session,
+    profile,
     isLoading,
     signUp,
     signIn,
