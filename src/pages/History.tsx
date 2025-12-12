@@ -1,14 +1,16 @@
 import { useState } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Button } from '@/components/ui/button';
 import { BottomNav } from '@/components/layout/BottomNav';
 import { HistoryFilters } from '@/components/history/HistoryFilters';
 import { WorkoutCalendar } from '@/components/history/WorkoutCalendar';
 import { WorkoutHistoryList } from '@/components/history/WorkoutHistoryList';
 import { WorkoutDetailSheet } from '@/components/history/WorkoutDetailSheet';
+import { ImportWorkoutSheet } from '@/components/import/ImportWorkoutSheet';
 import { useWorkoutHistory, WorkoutWithDetails } from '@/hooks/useWorkoutHistory';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Calendar, List } from 'lucide-react';
+import { Calendar, List, Sparkles } from 'lucide-react';
 
 export default function History() {
   const { 
@@ -23,6 +25,7 @@ export default function History() {
 
   const [selectedWorkout, setSelectedWorkout] = useState<WorkoutWithDetails | null>(null);
   const [detailOpen, setDetailOpen] = useState(false);
+  const [importOpen, setImportOpen] = useState(false);
 
   const handleWorkoutSelect = (workout: WorkoutWithDetails) => {
     setSelectedWorkout(workout);
@@ -38,7 +41,18 @@ export default function History() {
 
       <div className="min-h-screen bg-background pb-24">
         <div className="px-4 pt-6 pb-4">
-          <h1 className="text-2xl font-bold mb-4">Historik</h1>
+          <div className="flex items-center justify-between mb-4">
+            <h1 className="text-2xl font-bold">Historik</h1>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setImportOpen(true)}
+              className="gap-2"
+            >
+              <Sparkles className="h-4 w-4" />
+              AI Import
+            </Button>
+          </div>
 
           <Tabs defaultValue="calendar" className="w-full">
             <TabsList className="grid w-full grid-cols-2 mb-4">
@@ -92,6 +106,11 @@ export default function History() {
           workout={selectedWorkout}
           open={detailOpen}
           onOpenChange={setDetailOpen}
+        />
+
+        <ImportWorkoutSheet
+          open={importOpen}
+          onOpenChange={setImportOpen}
         />
 
         <BottomNav />

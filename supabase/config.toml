@@ -1,1 +1,4 @@
 project_id = "aoibiphmvcffolrznqmn"
+
+[functions.parse-workout-notes]
+verify_jwt = true
