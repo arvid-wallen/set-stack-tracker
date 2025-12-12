@@ -38,6 +38,7 @@ export interface WorkoutExercise {
   notes: string | null;
   exercise?: Exercise;
   sets?: ExerciseSet[];
+  cardioLog?: CardioLog;
 }
 
 export interface WorkoutSession {

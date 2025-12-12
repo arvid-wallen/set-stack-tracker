@@ -1,9 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { WorkoutSession, WorkoutExercise, ExerciseSet, WorkoutType } from '@/types/workout';
+import { WorkoutSession, WorkoutExercise, ExerciseSet, WorkoutType, CardioLog } from '@/types/workout';
 import { useToast } from '@/hooks/use-toast';
 import { saveWorkoutToLocal, getLocalWorkout, clearLocalWorkout, hasPendingSync, getPendingActions, clearPendingActions, queueAction } from '@/lib/offline-storage';
-
 export function useWorkout() {
   const [activeWorkout, setActiveWorkout] = useState<WorkoutSession | null>(null);
   const [exercises, setExercises] = useState<WorkoutExercise[]>([]);
@@ -80,7 +79,8 @@ export function useWorkout() {
         workout_exercises (
           *,
           exercises (*),
-          exercise_sets (*)
+          exercise_sets (*),
+          cardio_logs (*)
         )
       `)
       .eq('user_id', user.id)
@@ -95,6 +95,7 @@ export function useWorkout() {
         ...we,
         exercise: we.exercises,
         sets: we.exercise_sets || [],
+        cardioLog: we.cardio_logs?.[0] || null,
       })) as WorkoutExercise[];
       setExercises(workoutExercises);
     } else {
@@ -400,6 +401,89 @@ export function useWorkout() {
     }
   };
 
+  // Cardio functions
+  const addCardioLog = async (
+    workoutExerciseId: string,
+    logData: Partial<CardioLog>
+  ) => {
+    try {
+      const insertData = {
+        workout_exercise_id: workoutExerciseId,
+        cardio_type: logData.cardio_type || 'running',
+        duration_seconds: logData.duration_seconds ?? null,
+        distance_km: logData.distance_km ?? null,
+        calories: logData.calories ?? null,
+        notes: logData.notes ?? null,
+      };
+
+      const { data, error } = await supabase
+        .from('cardio_logs')
+        .insert(insertData)
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      setExercises(prev => prev.map(e => {
+        if (e.id === workoutExerciseId) {
+          return { ...e, cardioLog: data as unknown as CardioLog };
+        }
+        return e;
+      }));
+
+      return data;
+    } catch (error) {
+      console.error('Error adding cardio log:', error);
+      toast({ title: 'Kunde inte spara cardio', variant: 'destructive' });
+      return null;
+    }
+  };
+
+  const updateCardioLog = async (logId: string, workoutExerciseId: string, updates: Partial<CardioLog>) => {
+    try {
+      const { error } = await supabase
+        .from('cardio_logs')
+        .update(updates)
+        .eq('id', logId);
+
+      if (error) throw error;
+
+      setExercises(prev => prev.map(exercise => {
+        if (exercise.id === workoutExerciseId && exercise.cardioLog) {
+          return {
+            ...exercise,
+            cardioLog: { ...exercise.cardioLog, ...updates },
+          };
+        }
+        return exercise;
+      }));
+    } catch (error) {
+      console.error('Error updating cardio log:', error);
+      toast({ title: 'Kunde inte uppdatera cardio', variant: 'destructive' });
+    }
+  };
+
+  const deleteCardioLog = async (logId: string, workoutExerciseId: string) => {
+    try {
+      const { error } = await supabase
+        .from('cardio_logs')
+        .delete()
+        .eq('id', logId);
+
+      if (error) throw error;
+
+      setExercises(prev => prev.map(exercise => {
+        if (exercise.id === workoutExerciseId) {
+          return { ...exercise, cardioLog: undefined };
+        }
+        return exercise;
+      }));
+    } catch (error) {
+      console.error('Error deleting cardio log:', error);
+      toast({ title: 'Kunde inte ta bort cardio', variant: 'destructive' });
+    }
+  };
+
   return {
     activeWorkout,
     exercises,
@@ -415,6 +499,9 @@ export function useWorkout() {
     linkToSuperset,
     unlinkFromSuperset,
     markExerciseComplete,
+    addCardioLog,
+    updateCardioLog,
+    deleteCardioLog,
     refreshWorkout: checkActiveWorkout,
   };
 }
