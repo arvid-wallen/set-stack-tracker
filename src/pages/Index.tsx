@@ -167,21 +167,21 @@ const Index = () => {
         <div className="grid grid-cols-3 gap-3">
           <Card className="bg-card/50">
             <CardContent className="p-4 text-center">
-              <Calendar className="h-5 w-5 mx-auto mb-2 text-primary" />
+              <Calendar className="h-5 w-5 mx-auto mb-2 text-foreground" />
               <p className="text-2xl font-bold">{stats.thisWeek}</p>
               <p className="text-xs text-muted-foreground">Pass denna vecka</p>
             </CardContent>
           </Card>
           <Card className="bg-card/50">
             <CardContent className="p-4 text-center">
-              <TrendingUp className="h-5 w-5 mx-auto mb-2 text-primary" />
+              <TrendingUp className="h-5 w-5 mx-auto mb-2 text-foreground" />
               <p className="text-2xl font-bold">{stats.totalSets}</p>
               <p className="text-xs text-muted-foreground">Set denna vecka</p>
             </CardContent>
           </Card>
           <Card className="bg-card/50">
             <CardContent className="p-4 text-center">
-              <Clock className="h-5 w-5 mx-auto mb-2 text-primary" />
+              <Clock className="h-5 w-5 mx-auto mb-2 text-foreground" />
               <p className="text-2xl font-bold">{stats.avgDuration}</p>
               <p className="text-xs text-muted-foreground">Min snitt/pass</p>
             </CardContent>
