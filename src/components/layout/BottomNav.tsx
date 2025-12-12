@@ -25,10 +25,10 @@ export function BottomNav() {
               to={path}
               className={cn(
                 "flex flex-col items-center justify-center flex-1 h-full transition-colors",
-                isActive ? "text-primary" : "text-muted-foreground"
+                isActive ? "text-foreground" : "text-muted-foreground"
               )}
             >
-              <Icon className={cn("h-5 w-5 mb-1", isActive && "text-primary")} />
+              <Icon className="h-5 w-5 mb-1" />
               <span className="text-xs font-medium">{label}</span>
             </Link>
           );
