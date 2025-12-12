@@ -143,16 +143,11 @@ const Index = () => {
 
       <main className="px-4 py-6 space-y-6">
         {/* Hero Greeting */}
-        <div className="w-full text-center py-8">
-          <h2 className="font-display text-4xl md:text-5xl font-black leading-tight tracking-tight">
-            <span className="text-foreground">Tjena, </span>
-            <span className="relative inline-block">
-              <span className="relative z-10 text-primary-foreground">{profile?.first_name || 'du'}</span>
-              <span className="absolute inset-0 bg-primary rounded-md -rotate-1 scale-105" />
-            </span>
-            <span className="text-foreground">!</span>
+        <div className="w-full text-center py-6">
+          <h2 className="font-display text-3xl md:text-4xl font-black leading-tight">
+            Tjena, {profile?.first_name || 'du'}! 👋
           </h2>
-          <p className="text-xl text-muted-foreground mt-4 font-heading">
+          <p className="text-lg text-muted-foreground mt-2">
             Redo att slakta gymmet idag?
           </p>
         </div>
