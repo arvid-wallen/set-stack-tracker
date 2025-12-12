@@ -21,6 +21,18 @@ serve(async (req) => {
       );
     }
 
+    // Input size validation to prevent API abuse
+    const MAX_TEXT_LENGTH = 50000; // ~10k tokens for GPT
+    if (text.length > MAX_TEXT_LENGTH) {
+      console.warn(`Text too long: ${text.length} characters (max: ${MAX_TEXT_LENGTH})`);
+      return new Response(
+        JSON.stringify({ 
+          error: `Text too long. Maximum ${MAX_TEXT_LENGTH} characters allowed.` 
+        }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY');
     if (!OPENAI_API_KEY) {
       console.error('OPENAI_API_KEY is not configured');
