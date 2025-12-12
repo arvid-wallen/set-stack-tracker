@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { Search, Plus, X, Dumbbell } from 'lucide-react';
+import { Search, Plus, X, Dumbbell, Activity } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -20,19 +20,26 @@ interface ExerciseSearchProps {
   trigger?: React.ReactNode;
 }
 
-const MUSCLE_FILTERS: MuscleGroup[] = ['chest', 'back', 'shoulders', 'biceps', 'triceps', 'quads', 'hamstrings', 'glutes', 'core'];
+const MUSCLE_FILTERS: (MuscleGroup | 'cardio')[] = ['cardio', 'chest', 'back', 'shoulders', 'biceps', 'triceps', 'quads', 'hamstrings', 'glutes', 'core'];
 
 export function ExerciseSearch({ onSelect, trigger }: ExerciseSearchProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [query, setQuery] = useState('');
-  const [selectedMuscle, setSelectedMuscle] = useState<MuscleGroup | null>(null);
+  const [selectedMuscle, setSelectedMuscle] = useState<MuscleGroup | 'cardio' | null>(null);
   
   const { exercises, isLoading, searchExercises } = useExercises();
 
   const filteredExercises = useMemo(() => {
-    return searchExercises(query, {
-      muscleGroup: selectedMuscle || undefined,
+    let results = searchExercises(query, {
+      muscleGroup: selectedMuscle === 'cardio' ? undefined : selectedMuscle || undefined,
     });
+    
+    // Filter by cardio if selected
+    if (selectedMuscle === 'cardio') {
+      results = results.filter(e => e.is_cardio);
+    }
+    
+    return results;
   }, [query, selectedMuscle, exercises]);
 
   const handleSelect = (exercise: Exercise) => {
@@ -91,10 +98,21 @@ export function ExerciseSearch({ onSelect, trigger }: ExerciseSearchProps) {
             <Badge
               key={muscle}
               variant={selectedMuscle === muscle ? "default" : "outline"}
-              className="cursor-pointer shrink-0"
+              className={cn(
+                "cursor-pointer shrink-0",
+                muscle === 'cardio' && selectedMuscle === 'cardio' && "bg-orange-500 hover:bg-orange-600",
+                muscle === 'cardio' && selectedMuscle !== 'cardio' && "border-orange-500/50 text-orange-500"
+              )}
               onClick={() => setSelectedMuscle(muscle)}
             >
-              {MUSCLE_GROUP_LABELS[muscle]}
+              {muscle === 'cardio' ? (
+                <>
+                  <Activity className="h-3 w-3 mr-1" />
+                  Cardio
+                </>
+              ) : (
+                MUSCLE_GROUP_LABELS[muscle]
+              )}
             </Badge>
           ))}
         </div>
@@ -118,13 +136,27 @@ export function ExerciseSearch({ onSelect, trigger }: ExerciseSearchProps) {
                   onClick={() => handleSelect(exercise)}
                 >
                   <div className="flex items-start gap-3">
-                    <div className="h-10 w-10 rounded-lg bg-muted flex items-center justify-center shrink-0">
-                      <Dumbbell className="h-5 w-5 text-muted-foreground" />
+                    <div className={cn(
+                      "h-10 w-10 rounded-lg flex items-center justify-center shrink-0",
+                      exercise.is_cardio ? "bg-orange-500/20" : "bg-muted"
+                    )}>
+                      {exercise.is_cardio ? (
+                        <Activity className="h-5 w-5 text-orange-500" />
+                      ) : (
+                        <Dumbbell className="h-5 w-5 text-muted-foreground" />
+                      )}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <h4 className="font-medium truncate">{exercise.name}</h4>
+                      <div className="flex items-center gap-2">
+                        <h4 className="font-medium truncate">{exercise.name}</h4>
+                        {exercise.is_cardio && (
+                          <Badge variant="secondary" className="text-xs bg-orange-500/20 text-orange-500 border-orange-500/30">
+                            Cardio
+                          </Badge>
+                        )}
+                      </div>
                       <div className="flex gap-1 mt-1 flex-wrap">
-                        {exercise.muscle_groups.slice(0, 2).map(mg => (
+                        {!exercise.is_cardio && exercise.muscle_groups.slice(0, 2).map(mg => (
                           <Badge key={mg} variant="secondary" className="text-xs">
                             {MUSCLE_GROUP_LABELS[mg]}
                           </Badge>

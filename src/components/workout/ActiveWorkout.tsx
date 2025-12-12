@@ -27,6 +27,9 @@ export function ActiveWorkout() {
     linkToSuperset,
     unlinkFromSuperset,
     markExerciseComplete,
+    addCardioLog,
+    updateCardioLog,
+    deleteCardioLog,
   } = useWorkout();
   
   const navigate = useNavigate();
@@ -121,6 +124,9 @@ export function ActiveWorkout() {
                 onLinkSuperset={index > 0 ? () => linkToSuperset(index) : undefined}
                 onUnlinkSuperset={workoutExercise.superset_group ? () => unlinkFromSuperset(workoutExercise.id) : undefined}
                 onMarkComplete={(completed) => markExerciseComplete(workoutExercise.id, completed)}
+                onAddCardioLog={(data) => addCardioLog(workoutExercise.id, data)}
+                onUpdateCardioLog={(logId, data) => updateCardioLog(logId, workoutExercise.id, data)}
+                onDeleteCardioLog={(logId) => deleteCardioLog(logId, workoutExercise.id)}
                 supersetBadge={workoutExercise.superset_group || undefined}
               />
             ))
