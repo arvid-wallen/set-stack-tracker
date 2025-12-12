@@ -8,6 +8,7 @@ import { WorkoutCalendar } from '@/components/history/WorkoutCalendar';
 import { WorkoutHistoryList } from '@/components/history/WorkoutHistoryList';
 import { WorkoutDetailSheet } from '@/components/history/WorkoutDetailSheet';
 import { ImportWorkoutSheet } from '@/components/import/ImportWorkoutSheet';
+import { ExportButton } from '@/components/export/ExportButton';
 import { useWorkoutHistory, WorkoutWithDetails } from '@/hooks/useWorkoutHistory';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Calendar, List, Sparkles } from 'lucide-react';
@@ -43,15 +44,18 @@ export default function History() {
         <div className="px-4 pt-6 pb-4">
           <div className="flex items-center justify-between mb-4">
             <h1 className="text-2xl font-bold">Historik</h1>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setImportOpen(true)}
-              className="gap-2"
-            >
-              <Sparkles className="h-4 w-4" />
-              AI Import
-            </Button>
+            <div className="flex items-center gap-2">
+              <ExportButton workouts={workouts} disabled={isLoading} />
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setImportOpen(true)}
+                className="gap-2"
+              >
+                <Sparkles className="h-4 w-4" />
+                AI Import
+              </Button>
+            </div>
           </div>
 
           <Tabs defaultValue="calendar" className="w-full">

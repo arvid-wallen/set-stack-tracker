@@ -9,6 +9,7 @@ import { ExerciseProgressChart } from '@/components/stats/ExerciseProgressChart'
 import { PersonalRecords } from '@/components/stats/PersonalRecords';
 import { OneRMCalculator } from '@/components/stats/OneRMCalculator';
 import { ExerciseGoals } from '@/components/stats/ExerciseGoals';
+import { ProgressiveOverloadSuggestion } from '@/components/workout/ProgressiveOverloadSuggestion';
 import { useExerciseStats } from '@/hooks/useExerciseStats';
 import { useExercises } from '@/hooks/useExercises';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -88,6 +89,9 @@ export default function ExerciseStats() {
                 </div>
               ) : (
                 <div className="space-y-4">
+                  {/* Progressive Overload Suggestion */}
+                  <ProgressiveOverloadSuggestion exerciseId={selectedExerciseId} />
+
                   {/* Progress Chart */}
                   <ExerciseProgressChart 
                     data={history} 
