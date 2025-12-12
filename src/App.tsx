@@ -10,6 +10,7 @@ import Library from "./pages/Library";
 import History from "./pages/History";
 import Stats from "./pages/Stats";
 import ExerciseStats from "./pages/ExerciseStats";
+import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -28,6 +29,7 @@ const App = () => (
               <Route path="/calendar" element={<History />} />
               <Route path="/stats" element={<Stats />} />
               <Route path="/stats/exercise" element={<ExerciseStats />} />
+              <Route path="/profile" element={<Profile />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>
