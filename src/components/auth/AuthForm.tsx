@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { Mail, Lock, Eye, EyeOff, Dumbbell } from 'lucide-react';
+import { useState } from 'react';
+import { Mail, Lock, Eye, EyeOff, Dumbbell, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -11,6 +11,7 @@ export function AuthForm() {
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [firstName, setFirstName] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(() => {
     return localStorage.getItem('rememberMe') === 'true';
@@ -24,7 +25,7 @@ export function AuthForm() {
     if (isLogin) {
       await signIn(email, password, rememberMe);
     } else {
-      await signUp(email, password);
+      await signUp(email, password, firstName);
     }
   };
 
@@ -47,6 +48,26 @@ export function AuthForm() {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
+            {!isLogin && (
+              <div className="space-y-2">
+                <Label htmlFor="firstName">Förnamn</Label>
+                <div className="relative">
+                  <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    id="firstName"
+                    type="text"
+                    placeholder="Ditt förnamn"
+                    value={firstName}
+                    onChange={(e) => setFirstName(e.target.value)}
+                    className="pl-10 h-12"
+                    required={!isLogin}
+                    minLength={2}
+                    maxLength={50}
+                  />
+                </div>
+              </div>
+            )}
+
             <div className="space-y-2">
               <Label htmlFor="email">E-post</Label>
               <div className="relative">
