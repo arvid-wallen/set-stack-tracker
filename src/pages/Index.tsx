@@ -144,12 +144,10 @@ const Index = () => {
       <main className="px-4 py-6 space-y-6">
         {/* Hero Greeting */}
         <div className="w-full text-center py-6">
-          <h2 className="font-display text-3xl md:text-4xl font-black leading-tight">
+          <h1 className="font-display text-4xl md:text-5xl font-black leading-tight">
             Tjena, {profile?.first_name || 'du'}! 👋
-          </h2>
-          <p className="text-lg text-muted-foreground mt-2">
-            Redo att slakta gymmet idag?
-          </p>
+            <span className="block mt-2">Redo att slakta gymmet idag?</span>
+          </h1>
         </div>
 
         {/* Start Workout Button */}
