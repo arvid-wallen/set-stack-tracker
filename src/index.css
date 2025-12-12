@@ -3,7 +3,39 @@
 @tailwind utilities;
 
 /* Gym Tracker Design System - Dark mode first */
-@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap');
+
+/* Seriguela Font Family */
+@font-face {
+  font-family: 'Seriguela';
+  src: url('@/assets/fonts/Seriguela-Regular.otf') format('opentype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Seriguela';
+  src: url('@/assets/fonts/Seriguela-SemiBold.otf') format('opentype');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Seriguela';
+  src: url('@/assets/fonts/Seriguela-Bold.otf') format('opentype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Seriguela Display';
+  src: url('@/assets/fonts/Seriguela-Display-Black.otf') format('opentype');
+  font-weight: 900;
+  font-style: normal;
+  font-display: swap;
+}
 
 @layer base {
   :root {
@@ -43,8 +75,9 @@
 
     --radius: 0.75rem;
 
-    --font-heading: 'Space Grotesk', sans-serif;
-    --font-body: 'Inter', sans-serif;
+    --font-heading: 'Seriguela', serif;
+    --font-body: 'Seriguela', serif;
+    --font-display: 'Seriguela Display', serif;
   }
 
   .dark {

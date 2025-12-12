@@ -134,21 +134,24 @@ const Index = () => {
       {/* Header */}
       <header className="sticky top-0 z-10 bg-background/95 backdrop-blur border-b border-border px-4 py-4">
         <div className="flex items-center justify-between">
-          <div>
-            <h1 className="font-heading text-xl font-bold">
-              Tjena, {profile?.first_name || 'du'}! 👋
-            </h1>
-            <p className="text-sm text-muted-foreground">
-              Redo att slakta gymmet idag?
-            </p>
-          </div>
-          <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
-            <Dumbbell className="h-5 w-5 text-primary" />
+          <div className="flex items-center gap-2">
+            <Dumbbell className="h-6 w-6 text-primary" />
+            <span className="font-heading text-xl font-bold">Gym Tracker</span>
           </div>
         </div>
       </header>
 
       <main className="px-4 py-6 space-y-6">
+        {/* Hero Greeting */}
+        <div className="w-full text-center py-6">
+          <h2 className="font-display text-3xl md:text-4xl font-black leading-tight">
+            Tjena, {profile?.first_name || 'du'}! 👋
+          </h2>
+          <p className="text-lg text-muted-foreground mt-2">
+            Redo att slakta gymmet idag?
+          </p>
+        </div>
+
         {/* Start Workout Button */}
         <Button
           size="lg"
