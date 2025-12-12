@@ -12,6 +12,7 @@ import { WorkoutType, WORKOUT_TYPE_LABELS } from '@/types/workout';
 import { supabase } from '@/integrations/supabase/client';
 import { format } from 'date-fns';
 import { sv } from 'date-fns/locale';
+import hausLogo from '@/assets/haus-logo.png';
 
 const Index = () => {
   const { user, profile, isLoading: authLoading } = useAuth();
@@ -134,10 +135,11 @@ const Index = () => {
       {/* Header */}
       <header className="sticky top-0 z-10 bg-background/95 backdrop-blur border-b border-border px-4 py-4">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Dumbbell className="h-6 w-6 text-primary" />
-            <span className="font-heading text-xl font-bold">Gym Tracker</span>
-          </div>
+          <img 
+            src={hausLogo} 
+            alt="Haus" 
+            className="h-6 invert"
+          />
         </div>
       </header>
 
