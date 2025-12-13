@@ -256,11 +256,11 @@ export function ProgressPhotos({ userId }: ProgressPhotosProps) {
         {/* Fullscreen view */}
         {viewingPhoto && (
           <Dialog open={!!viewingPhoto} onOpenChange={() => setViewingPhoto(null)}>
-            <DialogContent className="max-w-3xl p-0 overflow-hidden">
+            <DialogContent className="max-w-[95vw] sm:max-w-3xl p-0 overflow-hidden">
               <img 
                 src={viewingPhoto} 
                 alt="Progress" 
-                className="w-full h-auto"
+                className="w-full h-auto max-h-[85vh] object-contain"
               />
             </DialogContent>
           </Dialog>

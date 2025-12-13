@@ -145,10 +145,10 @@ const Index = () => {
 
       <main className="px-4 py-6 space-y-6">
         {/* Hero Greeting */}
-        <div className="w-full text-center py-8">
-          <h1 className="font-display text-5xl md:text-6xl lg:text-7xl font-black leading-tight">
+        <div className="w-full text-center py-6 sm:py-8">
+          <h1 className="font-display text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-black leading-tight">
             Tjena, {profile?.first_name || 'du'}! 👋
-            <span className="block mt-3">Redo att slakta gymmet idag?</span>
+            <span className="block mt-2 sm:mt-3">Redo att slakta gymmet idag?</span>
           </h1>
         </div>
 
