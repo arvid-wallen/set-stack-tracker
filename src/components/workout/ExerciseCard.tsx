@@ -13,6 +13,7 @@ import {
 import { SetRow } from './SetRow';
 import { CardioLogRow } from './CardioLogRow';
 import { ProgressiveOverloadSuggestion } from './ProgressiveOverloadSuggestion';
+import { useProgressiveOverload } from '@/hooks/useProgressiveOverload';
 import { WorkoutExercise, ExerciseSet, CardioLog, MUSCLE_GROUP_LABELS, CardioType } from '@/types/workout';
 import { cn } from '@/lib/utils';
 
@@ -67,7 +68,19 @@ export function ExerciseCard({
     onMarkComplete?.(!isCompleted);
   }, [onMarkComplete, isCompleted]);
 
+  // Fetch progressive overload data for auto-fill from previous session
+  const { suggestion } = useProgressiveOverload(isCardio ? null : workoutExercise.exercise_id);
+
   const lastWorkingSet = workingSets[workingSets.length - 1];
+  
+  // Use last set from current workout, or fall back to historical data from previous session
+  const previousSetData = lastWorkingSet ? {
+    weight_kg: lastWorkingSet.weight_kg,
+    reps: lastWorkingSet.reps,
+  } : suggestion?.suggestedWeight ? {
+    weight_kg: suggestion.suggestedWeight,
+    reps: suggestion.suggestedReps ?? null,
+  } : undefined;
 
   const handleSaveNewSet = useCallback((data: { 
     weight_kg: number; 
@@ -272,10 +285,7 @@ export function ExerciseCard({
                 key={`new-${newSetKey}`}
                 setNumber={workingSets.length + 1}
                 isNew
-                previousSet={lastWorkingSet ? {
-                  weight_kg: lastWorkingSet.weight_kg,
-                  reps: lastWorkingSet.reps,
-                } : undefined}
+                previousSet={previousSetData}
                 onSave={handleSaveNewSet}
                 onStartRest={onStartRest}
               />
