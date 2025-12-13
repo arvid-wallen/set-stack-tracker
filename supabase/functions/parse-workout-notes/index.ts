@@ -50,16 +50,18 @@ serve(async (req) => {
     }
 
     // Input size validation to prevent API abuse
-    const MAX_TEXT_LENGTH = 50000; // ~10k tokens for GPT
+    const MAX_TEXT_LENGTH = 100000; // ~25k tokens for GPT
     if (text.length > MAX_TEXT_LENGTH) {
       console.warn(`Text too long: ${text.length} characters (max: ${MAX_TEXT_LENGTH})`);
       return new Response(
         JSON.stringify({ 
-          error: `Text too long. Maximum ${MAX_TEXT_LENGTH} characters allowed.` 
+          error: `Texten är för lång (${Math.round(text.length / 1000)}k tecken). Dela upp i mindre delar och importera separat.` 
         }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
+
+    console.log(`Processing workout notes: ${text.length} characters`);
 
     const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY');
     if (!OPENAI_API_KEY) {
