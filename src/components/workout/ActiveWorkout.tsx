@@ -135,8 +135,8 @@ export function ActiveWorkout() {
       </ScrollArea>
 
       {/* Bottom action bar */}
-      <div className="fixed bottom-0 left-0 right-0 p-4 bg-background/80 backdrop-blur-lg border-t border-border safe-bottom">
-        <div className="flex gap-3">
+      <div className="fixed bottom-0 left-0 right-0 bg-background/80 backdrop-blur-lg border-t border-border">
+        <div className="flex gap-3 p-4 pb-[calc(1rem+env(safe-area-inset-bottom))]">
           <ExerciseSearch 
             onSelect={handleExerciseSelect}
             trigger={
