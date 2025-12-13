@@ -131,19 +131,19 @@ export function ExerciseCard({
           onClick={() => setIsExpanded(!isExpanded)}
         >
           <div className="flex-1">
-            <div className="flex items-center gap-2">
-              {isCardio && <Activity className="h-4 w-4 text-orange-500" />}
+            <div className="flex items-center gap-2 flex-wrap">
+              {isCardio && <Activity className="h-4 w-4 text-orange-500 shrink-0" />}
               <h3 className={cn(
-                "font-semibold",
+                "font-semibold truncate max-w-[180px] sm:max-w-none",
                 isCompleted && "line-through text-muted-foreground"
               )}>{exercise.name}</h3>
               {isCardio && (
-                <Badge variant="secondary" className="text-xs bg-orange-500/20 text-orange-500 border-orange-500/30">
+                <Badge variant="secondary" className="text-xs bg-orange-500/20 text-orange-500 border-orange-500/30 shrink-0">
                   Cardio
                 </Badge>
               )}
               {isCompleted && (
-                <Badge variant="secondary" className="text-xs bg-green-500/20 text-green-500 border-green-500/30">
+                <Badge variant="secondary" className="text-xs bg-green-500/20 text-green-500 border-green-500/30 shrink-0">
                   ✓ Klar
                 </Badge>
               )}
@@ -233,12 +233,12 @@ export function ExerciseCard({
             /* Strength training sets */
             <>
               {/* Header row */}
-              <div className="flex items-center gap-3 pb-2 border-b border-border text-xs text-muted-foreground uppercase tracking-wide">
-                <div className="w-8 text-center">Set</div>
-                <div className="w-16 text-center">Förra</div>
-                <div className="flex-1 text-center">Kg</div>
-                <div className="flex-1 text-center">Reps</div>
-                <div className="w-[176px]"></div>
+              <div className="flex items-center gap-2 sm:gap-3 pb-2 border-b border-border text-xs text-muted-foreground uppercase tracking-wide">
+                <div className="w-8 text-center shrink-0">Set</div>
+                <div className="w-14 text-center shrink-0">Förra</div>
+                <div className="flex-1 text-center min-w-0">Kg</div>
+                <div className="flex-1 text-center min-w-0">Reps</div>
+                <div className="w-auto shrink-0"></div>
               </div>
 
               {/* Warmup sets */}

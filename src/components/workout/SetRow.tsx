@@ -204,8 +204,8 @@ export function SetRow({
         />
       </div>
 
-      {/* Actions - simplified for mobile */}
-      <div className="flex gap-1 shrink-0">
+      {/* Actions - compact on mobile */}
+      <div className="flex gap-0.5 sm:gap-1 shrink-0">
         {/* Warmup toggle */}
         <Button
           size="icon"
