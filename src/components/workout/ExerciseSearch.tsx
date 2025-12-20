@@ -14,6 +14,7 @@ import {
 import { useExercises } from '@/hooks/useExercises';
 import { Exercise, MuscleGroup, MUSCLE_GROUP_LABELS, EQUIPMENT_TYPE_LABELS } from '@/types/workout';
 import { cn } from '@/lib/utils';
+import { CreateExerciseSheet } from '@/components/library/CreateExerciseSheet';
 
 interface ExerciseSearchProps {
   onSelect: (exercise: Exercise) => void;
@@ -26,8 +27,9 @@ export function ExerciseSearch({ onSelect, trigger }: ExerciseSearchProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [query, setQuery] = useState('');
   const [selectedMuscle, setSelectedMuscle] = useState<MuscleGroup | 'cardio' | null>(null);
+  const [showCreateSheet, setShowCreateSheet] = useState(false);
   
-  const { exercises, isLoading, searchExercises } = useExercises();
+  const { exercises, isLoading, searchExercises, createCustomExercise } = useExercises();
 
   const filteredExercises = useMemo(() => {
     let results = searchExercises(query, {
@@ -47,6 +49,16 @@ export function ExerciseSearch({ onSelect, trigger }: ExerciseSearchProps) {
     setIsOpen(false);
     setQuery('');
     setSelectedMuscle(null);
+  };
+
+  const handleCreateExercise = async (exercise: Partial<Exercise>) => {
+    const result = await createCustomExercise(exercise);
+    if (result) {
+      setShowCreateSheet(false);
+      // Automatically select the newly created exercise
+      handleSelect(result as Exercise);
+    }
+    return result;
   };
 
   return (
@@ -84,6 +96,16 @@ export function ExerciseSearch({ onSelect, trigger }: ExerciseSearchProps) {
             </Button>
           )}
         </div>
+
+        {/* Create exercise button */}
+        <Button
+          variant="ghost"
+          className="w-full justify-start text-muted-foreground hover:text-foreground mb-2"
+          onClick={() => setShowCreateSheet(true)}
+        >
+          <Plus className="h-4 w-4 mr-2" />
+          Skapa egen övning
+        </Button>
 
         {/* Muscle group filters */}
         <div className="flex gap-2 overflow-x-auto pb-4 -mx-6 px-6 scrollbar-hide">
@@ -125,8 +147,14 @@ export function ExerciseSearch({ onSelect, trigger }: ExerciseSearchProps) {
                 Laddar övningar...
               </div>
             ) : filteredExercises.length === 0 ? (
-              <div className="text-center text-muted-foreground py-8">
-                Inga övningar hittades
+              <div className="text-center py-8">
+                <p className="text-muted-foreground mb-4">
+                  {query ? `Hittade ingen övning som matchar "${query}"` : 'Inga övningar hittades'}
+                </p>
+                <Button onClick={() => setShowCreateSheet(true)}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  {query ? `Skapa "${query}" som ny övning` : 'Skapa egen övning'}
+                </Button>
               </div>
             ) : (
               filteredExercises.map(exercise => (
@@ -172,6 +200,13 @@ export function ExerciseSearch({ onSelect, trigger }: ExerciseSearchProps) {
             )}
           </div>
         </ScrollArea>
+
+        {/* Create exercise sheet */}
+        <CreateExerciseSheet
+          isOpen={showCreateSheet}
+          onClose={() => setShowCreateSheet(false)}
+          onSubmit={handleCreateExercise}
+        />
       </SheetContent>
     </Sheet>
   );
