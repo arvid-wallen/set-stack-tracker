@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Navigate, useNavigate } from 'react-router-dom';
 import { X, Clock, Dumbbell, Wifi, WifiOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -60,7 +60,7 @@ export function ActiveWorkout() {
   };
 
   if (!activeWorkout) {
-    return null;
+    return <Navigate to="/" replace />;
   }
 
   return (
@@ -170,10 +170,9 @@ export function ActiveWorkout() {
         isOpen={showEndSheet}
         onClose={() => setShowEndSheet(false)}
         onConfirm={async (rating, notes, templateData) => {
-          // Stäng sheet och navigera FÖRST för att undvika blank skärm
+          // Stäng sheeten först så overlay inte kan fastna
           setShowEndSheet(false);
-          navigate('/');
-          
+
           // Spara som mall om det begärdes
           if (templateData) {
             await createRoutine({
@@ -187,9 +186,12 @@ export function ActiveWorkout() {
               })),
             });
           }
-          
-          // Avsluta workout sist
+
+          // Avsluta workout FÖRST (så startsidan inte tror att ett pass fortfarande är aktivt)
           await endWorkout(rating, notes);
+
+          // Alltid tillbaka till hem
+          navigate('/', { replace: true });
         }}
         totalSets={totalSets}
         duration={formatDuration()}

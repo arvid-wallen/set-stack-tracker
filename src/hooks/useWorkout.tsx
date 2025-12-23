@@ -1,9 +1,9 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, createContext, useContext, type ReactNode } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { WorkoutSession, WorkoutExercise, ExerciseSet, WorkoutType, CardioLog } from '@/types/workout';
 import { useToast } from '@/hooks/use-toast';
 import { saveWorkoutToLocal, getLocalWorkout, clearLocalWorkout, hasPendingSync, getPendingActions, clearPendingActions, queueAction } from '@/lib/offline-storage';
-export function useWorkout() {
+function useWorkoutImpl() {
   const [activeWorkout, setActiveWorkout] = useState<WorkoutSession | null>(null);
   const [exercises, setExercises] = useState<WorkoutExercise[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -505,3 +505,21 @@ export function useWorkout() {
     refreshWorkout: checkActiveWorkout,
   };
 }
+
+type WorkoutContextValue = ReturnType<typeof useWorkoutImpl>;
+
+const WorkoutContext = createContext<WorkoutContextValue | null>(null);
+
+export function WorkoutProvider({ children }: { children: ReactNode }) {
+  const value = useWorkoutImpl();
+  return <WorkoutContext.Provider value={value}>{children}</WorkoutContext.Provider>;
+}
+
+export function useWorkout() {
+  const ctx = useContext(WorkoutContext);
+  if (!ctx) {
+    throw new Error('useWorkout must be used within a WorkoutProvider');
+  }
+  return ctx;
+}
+
