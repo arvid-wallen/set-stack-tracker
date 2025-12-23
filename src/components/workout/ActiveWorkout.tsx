@@ -170,7 +170,11 @@ export function ActiveWorkout() {
         isOpen={showEndSheet}
         onClose={() => setShowEndSheet(false)}
         onConfirm={async (rating, notes, templateData) => {
-          // Save as template if requested
+          // Stäng sheet och navigera FÖRST för att undvika blank skärm
+          setShowEndSheet(false);
+          navigate('/');
+          
+          // Spara som mall om det begärdes
           if (templateData) {
             await createRoutine({
               name: templateData.name,
@@ -184,9 +188,8 @@ export function ActiveWorkout() {
             });
           }
           
+          // Avsluta workout sist
           await endWorkout(rating, notes);
-          setShowEndSheet(false);
-          navigate('/');
         }}
         totalSets={totalSets}
         duration={formatDuration()}
