@@ -65,6 +65,17 @@ export default {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
+        'ios-sm': 'var(--ios-radius-sm)',
+        'ios-md': 'var(--ios-radius-md)',
+        'ios-lg': 'var(--ios-radius-lg)',
+        'ios-xl': 'var(--ios-radius-xl)',
+        'ios-2xl': 'var(--ios-radius-2xl)',
+        'ios-full': '9999px',
+      },
+      boxShadow: {
+        'ios': 'var(--ios-shadow)',
+        'ios-lg': 'var(--ios-shadow-lg)',
+        'ios-up': 'var(--ios-shadow-up)',
       },
       keyframes: {
         "accordion-down": {

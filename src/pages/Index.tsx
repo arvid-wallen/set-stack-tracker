@@ -131,31 +131,32 @@ const Index = () => {
 
   // Show home screen
   return (
-    <div className="min-h-screen bg-background pb-24">
-      {/* Header */}
-      <header className="sticky top-0 z-10 bg-background/95 backdrop-blur border-b border-border px-4 py-4">
-        <div className="flex items-center justify-between">
+    <div className="min-h-screen bg-background pb-28">
+      {/* iOS Navigation Bar Header */}
+      <header className="ios-nav-bar">
+        <div className="flex items-center justify-center">
           <img 
             src={hausLogo} 
             alt="Haus" 
-            className="h-6 dark:invert"
+            className="h-7 dark:invert"
           />
         </div>
       </header>
 
-      <main className="px-4 py-6 space-y-6">
+      <main className="px-5 py-8 space-y-8">
         {/* Hero Greeting */}
-        <div className="w-full text-center py-6 sm:py-8">
+        <div className="w-full text-center py-8">
           <h1 className="font-display text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-black leading-tight">
             Tjena, {profile?.first_name || 'du'}! 👋
-            <span className="block mt-2 sm:mt-3">Redo att slakta gymmet idag?</span>
+            <span className="block mt-3">Redo att slakta gymmet idag?</span>
           </h1>
         </div>
 
-        {/* Start Workout Button */}
+        {/* Start Workout Button - Pill shaped */}
         <Button
+          variant="pill"
           size="lg"
-          className="w-full h-16 text-lg font-semibold touch-target"
+          className="w-full h-14 text-lg font-semibold touch-target"
           onClick={() => setShowTypeSelector(true)}
           disabled={workoutLoading}
         >
@@ -164,7 +165,7 @@ const Index = () => {
         </Button>
 
         {/* Quick Stats */}
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-3 gap-4">
           <Card className="bg-card/50">
             <CardContent className="p-4 text-center">
               <Calendar className="h-5 w-5 mx-auto mb-2 text-foreground" />
@@ -190,7 +191,7 @@ const Index = () => {
 
         {/* Recent Workouts */}
         <Card>
-          <CardHeader className="pb-3">
+          <CardHeader className="pb-4">
             <CardTitle className="text-lg">Senaste pass</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
@@ -202,7 +203,7 @@ const Index = () => {
               recentWorkouts.map((workout) => (
                 <div
                   key={workout.id}
-                  className="flex items-center justify-between p-3 rounded-lg bg-muted/50"
+                  className="flex items-center justify-between p-4 rounded-ios-lg bg-muted/50"
                 >
                   <div>
                     <p className="font-medium">
