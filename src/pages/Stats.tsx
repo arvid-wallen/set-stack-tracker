@@ -31,7 +31,7 @@ export default function Stats() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-background pb-28">
+      <div className="min-h-screen bg-background pb-32">
         <div className="px-5 py-6 space-y-6">
           <Skeleton className="h-8 w-32" />
           <div className="grid grid-cols-2 gap-4">
@@ -54,7 +54,7 @@ export default function Stats() {
         <meta name="description" content="Se din träningsstatistik och framsteg" />
       </Helmet>
 
-      <div className="min-h-screen bg-background pb-28">
+      <div className="min-h-screen bg-background pb-32">
         <header className="ios-nav-bar sticky top-0 z-10">
           <div className="px-5 py-4 text-center">
             <h1 className="text-lg font-semibold">Statistik</h1>

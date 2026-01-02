@@ -15,7 +15,7 @@ export default function Library() {
         <meta name="description" content="Övnings- och rutinbibliotek" />
       </Helmet>
 
-      <div className="min-h-screen bg-background pb-28">
+      <div className="min-h-screen bg-background pb-32">
         <header className="ios-nav-bar sticky top-0 z-30">
           <div className="px-5 py-4 text-center">
             <h1 className="text-lg font-semibold">Bibliotek</h1>

@@ -15,7 +15,7 @@ export function BottomNav() {
 
   return (
     <nav className="ios-tab-bar">
-      <div className="flex items-center justify-around h-20 pb-[env(safe-area-inset-bottom)]">
+      <div className="ios-tab-bar-inner">
         {NAV_ITEMS.map(({ icon: Icon, label, path }) => {
           const isActive = location.pathname === path;
           
@@ -24,20 +24,28 @@ export function BottomNav() {
               key={path}
               to={path}
               className={cn(
-                "flex flex-col items-center justify-center flex-1 h-full transition-all",
-                isActive ? "text-primary" : "text-muted-foreground active:scale-95"
+                "flex flex-col items-center justify-center px-3 py-2 transition-all",
+                isActive 
+                  ? "text-primary-foreground" 
+                  : "text-muted-foreground active:scale-95"
               )}
             >
               <div className={cn(
-                "p-2 rounded-ios-md transition-colors",
-                isActive && "bg-primary/10"
+                "flex items-center justify-center w-11 h-11 rounded-full transition-all duration-200",
+                isActive 
+                  ? "bg-primary shadow-lg scale-110" 
+                  : "hover:bg-muted/50"
               )}>
-                <Icon className={cn("h-6 w-6", isActive && "stroke-[2.5px]")} />
+                <Icon className={cn(
+                  "h-5 w-5",
+                  isActive && "stroke-[2.5px]"
+                )} />
               </div>
-              <span className={cn(
-                "text-[10px] font-medium mt-0.5",
-                isActive && "font-semibold"
-              )}>{label}</span>
+              {isActive && (
+                <span className="text-[10px] font-semibold mt-1 text-primary">
+                  {label}
+                </span>
+              )}
             </Link>
           );
         })}
