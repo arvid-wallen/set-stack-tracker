@@ -100,6 +100,17 @@
 
     --radius: 0.75rem;
 
+    /* iOS Design System */
+    --ios-radius-sm: 8px;
+    --ios-radius-md: 12px;
+    --ios-radius-lg: 16px;
+    --ios-radius-xl: 22px;
+    --ios-radius-2xl: 28px;
+    
+    --ios-shadow: 0 2px 8px hsla(0, 0%, 0%, 0.08);
+    --ios-shadow-lg: 0 4px 16px hsla(0, 0%, 0%, 0.12);
+    --ios-shadow-up: 0 -4px 16px hsla(0, 0%, 0%, 0.08);
+
     --font-heading: 'Seriguela', serif;
     --font-body: 'Apercu', sans-serif;
     --font-display: 'Seriguela Display', serif;
@@ -186,12 +197,24 @@
     letter-spacing: -0.02em;
   }
 
-  .workout-card {
-    @apply bg-card rounded-xl border border-border p-4 transition-all duration-200;
+.workout-card {
+    @apply bg-card rounded-2xl border border-border/50 p-4 transition-all duration-200;
+    box-shadow: var(--ios-shadow);
   }
 
   .workout-card:active {
     @apply scale-[0.98];
+    box-shadow: 0 1px 4px hsla(0, 0%, 0%, 0.04);
+  }
+
+  /* iOS Navigation Bar */
+  .ios-nav-bar {
+    @apply sticky top-0 z-10 bg-background/95 backdrop-blur-xl border-b border-border/30 px-5 py-4 safe-top;
+  }
+
+  /* iOS Tab Bar */
+  .ios-tab-bar {
+    @apply fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur-xl border-t border-border/30 z-40;
   }
 
   .set-row {

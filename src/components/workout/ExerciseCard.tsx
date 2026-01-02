@@ -114,7 +114,7 @@ export function ExerciseCard({
 
   return (
     <Card className={cn(
-      "workout-card overflow-hidden transition-all duration-300",
+      "rounded-2xl overflow-hidden transition-all duration-300 shadow-ios p-4",
       supersetBadge && "border-l-4 border-l-primary",
       isCompleted && "opacity-60 bg-muted/30"
     )}>
@@ -151,19 +151,19 @@ export function ExerciseCard({
                 isCompleted && "line-through text-muted-foreground"
               )}>{exercise.name}</h3>
               {isCardio && (
-                <Badge variant="secondary" className="text-xs bg-orange-500/20 text-orange-500 border-orange-500/30 shrink-0">
+                <Badge variant="secondary" className="text-xs bg-orange-500/20 text-orange-500 border-orange-500/30 shrink-0 rounded-full">
                   Cardio
                 </Badge>
               )}
               {isCompleted && (
-                <Badge variant="secondary" className="text-xs bg-green-500/20 text-green-500 border-green-500/30 shrink-0">
+                <Badge variant="secondary" className="text-xs bg-green-500/20 text-green-500 border-green-500/30 shrink-0 rounded-full">
                   ✓ Klar
                 </Badge>
               )}
             </div>
             <div className="flex gap-1 mt-1 flex-wrap">
               {!isCardio && exercise.muscle_groups.slice(0, 2).map(mg => (
-                <Badge key={mg} variant="secondary" className="text-xs">
+                <Badge key={mg} variant="secondary" className="text-xs rounded-full">
                   {MUSCLE_GROUP_LABELS[mg]}
                 </Badge>
               ))}
@@ -190,11 +190,11 @@ export function ExerciseCard({
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-10 w-10 touch-target">
+            <Button variant="ghost" size="icon" className="h-10 w-10 touch-target rounded-ios-md">
               <MoreVertical className="h-4 w-4" />
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
+          <DropdownMenuContent align="end" className="rounded-ios-lg">
             {onLinkSuperset && (
               <DropdownMenuItem onClick={onLinkSuperset}>
                 <Link2 className="h-4 w-4 mr-2" />

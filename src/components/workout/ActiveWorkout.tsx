@@ -65,45 +65,44 @@ export function ActiveWorkout() {
 
   return (
     <div className="fixed inset-0 bg-background z-50 flex flex-col safe-top safe-bottom">
-      {/* Header */}
-      <header className="flex items-center justify-between p-4 border-b border-border">
-        <div className="flex items-center gap-3">
-          <Button 
-            variant="ghost" 
-            size="icon"
-            className="touch-target"
-            onClick={() => setShowEndSheet(true)}
-          >
-            <X className="h-5 w-5" />
-          </Button>
-          <div>
-            <h1 className="font-heading font-semibold">
-              {activeWorkout.custom_type_name || WORKOUT_TYPE_LABELS[activeWorkout.workout_type]}
-            </h1>
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Clock className="h-3 w-3" />
-              <WorkoutTimer startedAt={activeWorkout.started_at} className="text-sm !text-muted-foreground" />
-            </div>
+      {/* iOS Navigation Bar Header */}
+      <header className="flex items-center justify-between px-5 py-4 border-b border-border/30 bg-background/95 backdrop-blur-xl">
+        <Button 
+          variant="ghost" 
+          size="icon"
+          className="h-12 w-12 rounded-ios-md touch-target"
+          onClick={() => setShowEndSheet(true)}
+        >
+          <X className="h-5 w-5" />
+        </Button>
+        
+        <div className="flex-1 text-center">
+          <h1 className="font-heading font-semibold text-lg">
+            {activeWorkout.custom_type_name || WORKOUT_TYPE_LABELS[activeWorkout.workout_type]}
+          </h1>
+          <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
+            <Clock className="h-3 w-3" />
+            <WorkoutTimer startedAt={activeWorkout.started_at} className="text-sm !text-muted-foreground" />
           </div>
         </div>
 
         <div className="flex items-center gap-2">
           {/* Offline indicator */}
           {!isOnline && (
-            <Badge variant="outline" className="text-warning border-warning">
+            <Badge variant="outline" className="text-warning border-warning rounded-full">
               <WifiOff className="h-3 w-3 mr-1" />
               Offline
             </Badge>
           )}
-          <Badge variant="secondary" className="font-mono">
+          <Badge variant="secondary" className="font-mono rounded-full px-3">
             {totalSets} set
           </Badge>
         </div>
       </header>
 
       {/* Exercise list */}
-      <ScrollArea className="flex-1 p-4">
-        <div className="space-y-4 pb-32">
+      <ScrollArea className="flex-1 px-5 py-6">
+        <div className="space-y-5 pb-36">
           {workoutExercises.length === 0 ? (
             <div className="text-center py-12">
               <Dumbbell className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
@@ -134,13 +133,13 @@ export function ActiveWorkout() {
         </div>
       </ScrollArea>
 
-      {/* Bottom action bar */}
-      <div className="fixed bottom-0 left-0 right-0 bg-background/80 backdrop-blur-lg border-t border-border">
-        <div className="flex gap-3 p-4 pb-[calc(1rem+env(safe-area-inset-bottom))]">
+      {/* Bottom action bar - iOS style */}
+      <div className="fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur-xl border-t border-border/30">
+        <div className="flex gap-4 p-5 pb-[calc(1.25rem+env(safe-area-inset-bottom))]">
           <ExerciseSearch 
             onSelect={handleExerciseSelect}
             trigger={
-              <Button className="flex-1 h-14 text-base touch-target">
+              <Button variant="outline" className="flex-1 h-14 text-base touch-target rounded-ios-lg">
                 <Dumbbell className="h-5 w-5 mr-2" />
                 Lägg till övning
               </Button>
@@ -148,7 +147,7 @@ export function ActiveWorkout() {
           />
           <Button 
             variant="destructive" 
-            className="h-14 px-6 touch-target"
+            className="h-14 px-6 touch-target rounded-ios-lg"
             onClick={() => setShowEndSheet(true)}
           >
             Avsluta
