@@ -48,7 +48,7 @@ export function ProfileHeader({
         <Button
           size="icon"
           variant="secondary"
-          className="absolute bottom-0 right-0 h-8 w-8 rounded-full shadow-lg"
+          className="absolute bottom-0 right-0 h-9 w-9 rounded-full shadow-ios"
           onClick={() => fileInputRef.current?.click()}
           disabled={isSaving}
         >

@@ -62,12 +62,12 @@ export function WorkoutHistoryList({ workouts, onWorkoutSelect }: WorkoutHistory
             {month}
           </h3>
 
-          <div className="space-y-2">
+          <div className="space-y-3">
             {monthWorkouts.map((workout) => (
               <button
                 key={workout.id}
                 onClick={() => onWorkoutSelect(workout)}
-                className="w-full p-4 rounded-xl bg-card border border-border text-left transition-all hover:bg-accent/50 active:scale-[0.98]"
+                className="w-full p-4 rounded-2xl bg-card border border-border/50 shadow-ios text-left transition-all hover:bg-accent/50 active:scale-[0.98]"
               >
                 <div className="flex items-start justify-between gap-3">
                   <div className="space-y-2 flex-1">

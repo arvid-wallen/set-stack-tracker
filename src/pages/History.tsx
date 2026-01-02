@@ -40,24 +40,28 @@ export default function History() {
         <meta name="description" content="Se din träningshistorik och tidigare pass" />
       </Helmet>
 
-      <div className="min-h-screen bg-background pb-24">
-        <div className="px-4 pt-6 pb-4">
-          <div className="flex items-center justify-between mb-4">
-            <h1 className="text-2xl font-bold">Historik</h1>
-            <div className="flex items-center gap-2">
-              <ExportButton workouts={workouts} disabled={isLoading} />
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setImportOpen(true)}
-                className="gap-2"
-              >
-                <Sparkles className="h-4 w-4" />
-                AI Import
-              </Button>
+      <div className="min-h-screen bg-background pb-28">
+        <header className="ios-nav-bar sticky top-0 z-30">
+          <div className="px-5 py-4">
+            <div className="flex items-center justify-between">
+              <h1 className="text-lg font-semibold">Historik</h1>
+              <div className="flex items-center gap-2">
+                <ExportButton workouts={workouts} disabled={isLoading} />
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setImportOpen(true)}
+                  className="gap-2 rounded-ios-md"
+                >
+                  <Sparkles className="h-4 w-4" />
+                  AI Import
+                </Button>
+              </div>
             </div>
           </div>
+        </header>
 
+        <div className="px-5 py-4 space-y-4">
           <Tabs defaultValue="calendar" className="w-full">
             <TabsList className="grid w-full grid-cols-2 mb-4">
               <TabsTrigger value="calendar" className="flex items-center gap-2">
@@ -81,9 +85,9 @@ export default function History() {
 
             {isLoading ? (
               <div className="space-y-3">
-                <Skeleton className="h-[300px] rounded-xl" />
-                <Skeleton className="h-20 rounded-xl" />
-                <Skeleton className="h-20 rounded-xl" />
+                <Skeleton className="h-[300px] rounded-2xl" />
+                <Skeleton className="h-20 rounded-2xl" />
+                <Skeleton className="h-20 rounded-2xl" />
               </div>
             ) : (
               <>

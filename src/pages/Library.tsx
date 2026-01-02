@@ -15,31 +15,27 @@ export default function Library() {
         <meta name="description" content="Övnings- och rutinbibliotek" />
       </Helmet>
 
-      <div className="min-h-screen bg-background pb-20">
-        <header className="sticky top-0 z-30 bg-background/95 backdrop-blur-lg border-b border-border">
-          <div className="px-4 py-4">
-            <h1 className="text-2xl font-bold">Bibliotek</h1>
+      <div className="min-h-screen bg-background pb-28">
+        <header className="ios-nav-bar sticky top-0 z-30">
+          <div className="px-5 py-4 text-center">
+            <h1 className="text-lg font-semibold">Bibliotek</h1>
           </div>
           
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="w-full h-12 rounded-none bg-transparent border-b border-border p-0">
-              <TabsTrigger 
-                value="exercises" 
-                className="flex-1 h-full rounded-none data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:shadow-none"
-              >
-                Övningar
-              </TabsTrigger>
-              <TabsTrigger 
-                value="routines"
-                className="flex-1 h-full rounded-none data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:shadow-none"
-              >
-                Rutiner
-              </TabsTrigger>
-            </TabsList>
-          </Tabs>
+          <div className="px-5 pb-4">
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="exercises">
+                  Övningar
+                </TabsTrigger>
+                <TabsTrigger value="routines">
+                  Rutiner
+                </TabsTrigger>
+              </TabsList>
+            </Tabs>
+          </div>
         </header>
 
-        <main className="px-4 py-4">
+        <main className="px-5 py-4 space-y-4">
           {activeTab === 'exercises' && <ExerciseLibrary />}
           {activeTab === 'routines' && <RoutineLibrary />}
         </main>
