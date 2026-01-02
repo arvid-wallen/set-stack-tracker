@@ -33,7 +33,7 @@ export function BottomNav() {
               <div className={cn(
                 "flex items-center justify-center w-11 h-11 rounded-full transition-all duration-200",
                 isActive 
-                  ? "bg-primary shadow-lg scale-110" 
+                  ? "bg-primary shadow-lg" 
                   : "hover:bg-muted/50"
               )}>
                 <Icon className={cn(
