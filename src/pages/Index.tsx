@@ -131,7 +131,7 @@ const Index = () => {
 
   // Show home screen
   return (
-    <div className="min-h-screen bg-background pb-28">
+    <div className="min-h-screen bg-background pb-32">
       {/* iOS Navigation Bar Header */}
       <header className="ios-nav-bar">
         <div className="flex items-center justify-center">

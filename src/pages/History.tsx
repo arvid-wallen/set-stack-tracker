@@ -40,7 +40,7 @@ export default function History() {
         <meta name="description" content="Se din träningshistorik och tidigare pass" />
       </Helmet>
 
-      <div className="min-h-screen bg-background pb-28">
+      <div className="min-h-screen bg-background pb-32">
         <header className="ios-nav-bar sticky top-0 z-30">
           <div className="px-5 py-4">
             <div className="flex items-center justify-between">
