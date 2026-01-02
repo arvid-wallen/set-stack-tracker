@@ -8,7 +8,11 @@ function useWorkoutImpl() {
   const [exercises, setExercises] = useState<WorkoutExercise[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isOnline, setIsOnline] = useState(navigator.onLine);
+  const [isMinimized, setIsMinimized] = useState(false);
   const { toast } = useToast();
+
+  const minimizeWorkout = () => setIsMinimized(true);
+  const expandWorkout = () => setIsMinimized(false);
 
   // Online/offline detection
   useEffect(() => {
@@ -168,6 +172,7 @@ function useWorkoutImpl() {
       clearLocalWorkout();
       setActiveWorkout(null);
       setExercises([]);
+      setIsMinimized(false);
       toast({ title: 'Pass avslutat! Bra jobbat! 🎉' });
     } catch (error) {
       console.error('Error ending workout:', error);
@@ -489,6 +494,9 @@ function useWorkoutImpl() {
     exercises,
     isLoading,
     isOnline,
+    isMinimized,
+    minimizeWorkout,
+    expandWorkout,
     startWorkout,
     endWorkout,
     addExercise,

@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
-import { Navigate, useNavigate } from 'react-router-dom';
-import { X, Clock, Dumbbell, Wifi, WifiOff } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Minus, Clock, Dumbbell, WifiOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -19,6 +19,8 @@ export function ActiveWorkout() {
     activeWorkout, 
     exercises: workoutExercises, 
     isOnline,
+    isMinimized,
+    minimizeWorkout,
     addExercise, 
     removeExercise, 
     addSet, 
@@ -59,8 +61,9 @@ export function ActiveWorkout() {
     return `${minutes} min`;
   };
 
-  if (!activeWorkout) {
-    return <Navigate to="/" replace />;
+  // Don't render if no workout or if minimized
+  if (!activeWorkout || isMinimized) {
+    return null;
   }
 
   return (
@@ -71,9 +74,9 @@ export function ActiveWorkout() {
           variant="ghost" 
           size="icon"
           className="h-12 w-12 rounded-ios-md touch-target"
-          onClick={() => setShowEndSheet(true)}
+          onClick={minimizeWorkout}
         >
-          <X className="h-5 w-5" />
+          <Minus className="h-5 w-5" />
         </Button>
         
         <div className="flex-1 text-center">

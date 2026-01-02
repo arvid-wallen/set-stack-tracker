@@ -14,6 +14,8 @@ import Profile from "./pages/Profile";
 import { AuthForm } from "./components/auth/AuthForm";
 import NotFound from "./pages/NotFound";
 import { WorkoutProvider } from "@/hooks/useWorkout";
+import { ActiveWorkout } from "@/components/workout/ActiveWorkout";
+import { WorkoutMiniBar } from "@/components/workout/WorkoutMiniBar";
 
 const queryClient = new QueryClient();
 
@@ -37,6 +39,9 @@ const App = () => (
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
               </Routes>
+              {/* Global workout overlays */}
+              <ActiveWorkout />
+              <WorkoutMiniBar />
             </WorkoutProvider>
           </BrowserRouter>
         </TooltipProvider>

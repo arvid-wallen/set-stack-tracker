@@ -3,7 +3,6 @@ import { Play, Dumbbell, TrendingUp, Calendar, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { AuthForm } from '@/components/auth/AuthForm';
-import { ActiveWorkout } from '@/components/workout/ActiveWorkout';
 import { WorkoutTypeSelector } from '@/components/workout/WorkoutTypeSelector';
 import { BottomNav } from '@/components/layout/BottomNav';
 import { useAuth } from '@/hooks/useAuth';
@@ -16,7 +15,7 @@ import hausLogo from '@/assets/haus-logo.png';
 
 const Index = () => {
   const { user, profile, isLoading: authLoading } = useAuth();
-  const { activeWorkout, startWorkout, isLoading: workoutLoading } = useWorkout();
+  const { startWorkout, isLoading: workoutLoading } = useWorkout();
   const [showTypeSelector, setShowTypeSelector] = useState(false);
   const [recentWorkouts, setRecentWorkouts] = useState<any[]>([]);
   const [stats, setStats] = useState({ thisWeek: 0, totalSets: 0, avgDuration: 0 });
@@ -124,10 +123,7 @@ const Index = () => {
     return <AuthForm />;
   }
 
-  // Show active workout if one exists
-  if (activeWorkout) {
-    return <ActiveWorkout />;
-  }
+  // Show home screen (ActiveWorkout is now rendered globally in App.tsx)
 
   // Show home screen
   return (
