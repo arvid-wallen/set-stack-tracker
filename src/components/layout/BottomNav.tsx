@@ -41,11 +41,12 @@ export function BottomNav() {
                   isActive && "stroke-[2.5px]"
                 )} />
               </div>
-              {isActive && (
-                <span className="text-[10px] font-semibold mt-1 text-primary">
-                  {label}
-                </span>
-              )}
+              <span className={cn(
+                "text-[10px] font-medium mt-1 transition-colors",
+                isActive ? "text-primary" : "text-muted-foreground"
+              )}>
+                {label}
+              </span>
             </Link>
           );
         })}
