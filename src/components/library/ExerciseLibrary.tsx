@@ -56,13 +56,13 @@ export function ExerciseLibrary() {
           placeholder="Sök övningar..."
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          className="pl-10 h-12"
+          className="pl-10 h-12 rounded-ios-lg"
         />
         {query && (
           <Button
             variant="ghost"
             size="icon"
-            className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8"
+            className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 rounded-ios-md"
             onClick={() => setQuery('')}
           >
             <X className="h-4 w-4" />
@@ -141,18 +141,18 @@ export function ExerciseLibrary() {
       {/* Create button */}
       <Button 
         onClick={() => setShowCreateSheet(true)}
-        className="w-full h-12"
+        className="w-full h-14 rounded-ios-lg"
       >
         <Plus className="h-5 w-5 mr-2" />
         Skapa egen övning
       </Button>
 
       {/* Exercise list */}
-      <div className="space-y-2">
+      <div className="space-y-3">
         {isLoading ? (
-          <div className="space-y-2">
+          <div className="space-y-3">
             {[...Array(5)].map((_, i) => (
-              <div key={i} className="h-20 bg-muted animate-pulse rounded-xl" />
+              <div key={i} className="h-20 bg-muted animate-pulse rounded-2xl" />
             ))}
           </div>
         ) : filteredExercises.length === 0 ? (
@@ -169,10 +169,10 @@ export function ExerciseLibrary() {
           filteredExercises.map(exercise => (
             <div
               key={exercise.id}
-              className="p-4 rounded-xl bg-card border border-border"
+              className="p-4 rounded-2xl bg-card border border-border/50 shadow-ios"
             >
               <div className="flex items-start gap-3">
-                <div className="h-10 w-10 rounded-lg bg-muted flex items-center justify-center shrink-0">
+                <div className="h-10 w-10 rounded-ios-md bg-muted flex items-center justify-center shrink-0">
                   <Dumbbell className="h-5 w-5 text-muted-foreground" />
                 </div>
                 <div className="flex-1 min-w-0">

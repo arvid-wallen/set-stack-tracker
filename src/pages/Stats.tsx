@@ -31,16 +31,16 @@ export default function Stats() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-background pb-20">
-        <div className="px-4 py-6 space-y-6">
+      <div className="min-h-screen bg-background pb-28">
+        <div className="px-5 py-6 space-y-6">
           <Skeleton className="h-8 w-32" />
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-2 gap-4">
             {[1, 2, 3, 4].map(i => (
-              <Skeleton key={i} className="h-24" />
+              <Skeleton key={i} className="h-24 rounded-2xl" />
             ))}
           </div>
-          <Skeleton className="h-[250px]" />
-          <Skeleton className="h-[250px]" />
+          <Skeleton className="h-[250px] rounded-2xl" />
+          <Skeleton className="h-[250px] rounded-2xl" />
         </div>
         <BottomNav />
       </div>
@@ -54,16 +54,17 @@ export default function Stats() {
         <meta name="description" content="Se din träningsstatistik och framsteg" />
       </Helmet>
 
-      <div className="min-h-screen bg-background pb-20">
-        <div className="px-4 py-6 space-y-6">
-          {/* Header */}
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight">Statistik</h1>
-            <p className="text-sm text-muted-foreground">Din träningsöversikt</p>
+      <div className="min-h-screen bg-background pb-28">
+        <header className="ios-nav-bar sticky top-0 z-10">
+          <div className="px-5 py-4 text-center">
+            <h1 className="text-lg font-semibold">Statistik</h1>
+            <p className="text-xs text-muted-foreground">Din träningsöversikt</p>
           </div>
+        </header>
 
+        <div className="px-5 py-6 space-y-6">
           {/* Overview Stats */}
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-2 gap-4">
             <StatCard
               icon={Calendar}
               label="Totalt pass"
@@ -92,7 +93,7 @@ export default function Stats() {
           </div>
 
           {/* Additional Stats Row */}
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-2 gap-4">
             <StatCard
               icon={Dumbbell}
               label="Totalt set"
@@ -107,11 +108,11 @@ export default function Stats() {
 
           {/* Exercise Stats Link */}
           <Link to="/stats/exercise">
-            <Card className="bg-card/50 border-border/50 hover:bg-card/70 transition-colors">
+            <Card className="rounded-2xl shadow-ios bg-card/80 hover:bg-card transition-colors active:scale-[0.98]">
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <div className="p-2 rounded-full bg-primary/10">
+                    <div className="p-2.5 rounded-ios-md bg-primary/10">
                       <Dumbbell className="h-5 w-5 text-primary" />
                     </div>
                     <div>

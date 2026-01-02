@@ -39,15 +39,15 @@ export default function Profile() {
 
   if (authLoading || profileLoading) {
     return (
-      <div className="min-h-screen bg-background pb-20">
-        <div className="container max-w-lg mx-auto px-4 py-6 space-y-6">
+      <div className="min-h-screen bg-background pb-28">
+        <div className="container max-w-lg mx-auto px-5 py-6 space-y-8">
           <div className="flex flex-col items-center gap-4">
             <Skeleton className="h-24 w-24 rounded-full" />
             <Skeleton className="h-8 w-48" />
             <Skeleton className="h-4 w-32" />
           </div>
-          <Skeleton className="h-40 w-full rounded-lg" />
-          <Skeleton className="h-32 w-full rounded-lg" />
+          <Skeleton className="h-40 w-full rounded-2xl" />
+          <Skeleton className="h-32 w-full rounded-2xl" />
         </div>
         <BottomNav />
       </div>
@@ -65,8 +65,8 @@ export default function Profile() {
         <meta name="description" content="Hantera din profil, se din träningsstatistik och anpassa dina inställningar." />
       </Helmet>
       
-      <div className="min-h-screen bg-background pb-20">
-        <div className="container max-w-lg mx-auto px-4 py-6 space-y-6">
+      <div className="min-h-screen bg-background pb-28">
+        <div className="container max-w-lg mx-auto px-5 py-6 space-y-8">
           <ProfileHeader
             firstName={profile.first_name}
             lastName={profile.last_name}
