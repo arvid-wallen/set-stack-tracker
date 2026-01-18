@@ -1,8 +1,8 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from './useAuth';
 import { format, subDays } from 'date-fns';
 import { sv } from 'date-fns/locale';
+import { useEffect, useState } from 'react';
 
 interface RecentWorkout {
   date: string;
@@ -68,12 +68,25 @@ function calculateProgressSuggestion(
 }
 
 export function useTrainingHistory() {
-  const { user } = useAuth();
+  const [userId, setUserId] = useState<string | null>(null);
+
+  // Get user ID directly from supabase to avoid hook conflicts
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUserId(session?.user?.id ?? null);
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUserId(session?.user?.id ?? null);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
 
   const { data: trainingHistory, isLoading } = useQuery({
-    queryKey: ['training-history-for-ai', user?.id],
+    queryKey: ['training-history-for-ai', userId],
     queryFn: async (): Promise<TrainingHistory> => {
-      if (!user) {
+      if (!userId) {
         return { recentWorkouts: [], topExercises: [], personalRecords: [] };
       }
 
@@ -83,7 +96,7 @@ export function useTrainingHistory() {
       const { data: sessions, error: sessionsError } = await supabase
         .from('workout_sessions')
         .select('*')
-        .eq('user_id', user.id)
+        .eq('user_id', userId)
         .eq('is_active', false)
         .gte('started_at', thirtyDaysAgo)
         .order('started_at', { ascending: false })
@@ -288,7 +301,7 @@ export function useTrainingHistory() {
         personalRecords,
       };
     },
-    enabled: !!user,
+    enabled: !!userId,
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
