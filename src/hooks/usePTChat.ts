@@ -73,13 +73,30 @@ export function usePTChat() {
         return [];
       }
 
-      return data?.map(msg => ({
-        id: msg.id,
-        role: msg.role as 'user' | 'assistant',
-        content: msg.content,
-        timestamp: new Date(msg.created_at),
-        actions: msg.actions as unknown as PTAction[] | undefined,
-      })) || [];
+      return data?.map(msg => {
+        // Validate and normalize actions from database
+        let parsedActions: PTAction[] | undefined;
+        if (msg.actions && Array.isArray(msg.actions)) {
+          parsedActions = (msg.actions as unknown[])
+            .filter((a): a is Record<string, unknown> => 
+              a !== null && typeof a === 'object' && 'id' in a && 'type' in a
+            )
+            .map(a => ({
+              id: String(a.id || `action-${Date.now()}`),
+              type: a.type as 'create_workout' | 'add_exercise',
+              data: (a.data || {}) as CreateWorkoutData | AddExerciseData,
+              applied: Boolean(a.applied),
+            }));
+        }
+        
+        return {
+          id: msg.id,
+          role: msg.role as 'user' | 'assistant',
+          content: msg.content || '',
+          timestamp: new Date(msg.created_at),
+          actions: parsedActions,
+        };
+      }) || [];
     },
     staleTime: 1000 * 60, // 1 minute
   });
