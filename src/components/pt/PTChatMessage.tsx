@@ -3,7 +3,6 @@ import { Bot, User, Play, Plus, Check, ExternalLink, Dumbbell, ChevronUp, Chevro
 import { Button } from '@/components/ui/button';
 import { ChatMessage, PTAction, CreateWorkoutData, AddExerciseData } from '@/hooks/usePTChat';
 import { cn } from '@/lib/utils';
-import { WORKOUT_TYPE_LABELS } from '@/types/workout';
 
 interface PTChatMessageProps {
   message: ChatMessage;
@@ -60,139 +59,182 @@ function renderContent(content: string) {
   return parts.length > 0 ? parts : content;
 }
 
-function ActionButton({ action, onApply }: { action: PTAction; onApply: (editedExercises?: CreateWorkoutData['exercises']) => void }) {
-  if (action.type === 'create_workout') {
-    const data = action.data as CreateWorkoutData;
-    const [editedExercises, setEditedExercises] = useState(data.exercises);
+// Separate component for create_workout action - has its own state
+function CreateWorkoutActionCard({ 
+  action, 
+  initialExercises, 
+  onApply 
+}: { 
+  action: PTAction; 
+  initialExercises: CreateWorkoutData['exercises'];
+  onApply: (editedExercises: CreateWorkoutData['exercises']) => void;
+}) {
+  const [editedExercises, setEditedExercises] = useState(initialExercises);
+  const data = action.data as CreateWorkoutData;
 
-    const removeExercise = (index: number) => {
-      if (editedExercises.length <= 1) return; // Keep at least one exercise
-      setEditedExercises(prev => prev.filter((_, i) => i !== index));
-    };
+  const removeExercise = (index: number) => {
+    if (editedExercises.length <= 1) return;
+    setEditedExercises(prev => prev.filter((_, i) => i !== index));
+  };
 
-    const moveExercise = (index: number, direction: 'up' | 'down') => {
-      const targetIndex = direction === 'up' ? index - 1 : index + 1;
-      if (targetIndex < 0 || targetIndex >= editedExercises.length) return;
-      const newExercises = [...editedExercises];
-      [newExercises[index], newExercises[targetIndex]] = 
-        [newExercises[targetIndex], newExercises[index]];
-      setEditedExercises(newExercises);
-    };
+  const moveExercise = (index: number, direction: 'up' | 'down') => {
+    const targetIndex = direction === 'up' ? index - 1 : index + 1;
+    if (targetIndex < 0 || targetIndex >= editedExercises.length) return;
+    const newExercises = [...editedExercises];
+    [newExercises[index], newExercises[targetIndex]] = 
+      [newExercises[targetIndex], newExercises[index]];
+    setEditedExercises(newExercises);
+  };
 
-    return (
-      <div className="bg-muted/50 rounded-lg border overflow-hidden">
-        {/* Header with workout name */}
-        <div className="px-4 py-3 border-b bg-muted/30">
-          <div className="flex items-center gap-2">
-            <Dumbbell className="h-4 w-4 text-primary" />
-            <span className="font-medium">{data.name}</span>
-          </div>
-          <span className="text-xs text-muted-foreground">
-            {editedExercises.length} övningar
-          </span>
+  return (
+    <div className="bg-muted/50 rounded-lg border overflow-hidden">
+      <div className="px-4 py-3 border-b bg-muted/30">
+        <div className="flex items-center gap-2">
+          <Dumbbell className="h-4 w-4 text-primary" />
+          <span className="font-medium">{data.name}</span>
         </div>
-        
-        {/* Editable exercise list */}
-        <div className="px-3 py-2 space-y-1">
-          {editedExercises.map((exercise, index) => (
-            <div 
-              key={`${exercise.exercise_name}-${index}`} 
-              className="flex items-center gap-1 text-sm group py-1 px-1 -mx-1 rounded hover:bg-muted/50 transition-colors"
-            >
-              {/* Reorder buttons */}
-              <div className="flex flex-col opacity-0 group-hover:opacity-100 transition-opacity">
-                <button 
-                  onClick={() => moveExercise(index, 'up')}
-                  disabled={index === 0}
-                  className="h-4 w-4 flex items-center justify-center hover:bg-muted rounded disabled:opacity-30 text-muted-foreground hover:text-foreground transition-colors"
-                  aria-label="Flytta upp"
-                >
-                  <ChevronUp className="h-3 w-3" />
-                </button>
-                <button 
-                  onClick={() => moveExercise(index, 'down')}
-                  disabled={index === editedExercises.length - 1}
-                  className="h-4 w-4 flex items-center justify-center hover:bg-muted rounded disabled:opacity-30 text-muted-foreground hover:text-foreground transition-colors"
-                  aria-label="Flytta ned"
-                >
-                  <ChevronDown className="h-3 w-3" />
-                </button>
-              </div>
-              
-              {/* Exercise info */}
-              <span className="flex-1 text-muted-foreground truncate">
-                {index + 1}. {exercise.exercise_name}
-              </span>
-              <span className="text-xs font-medium tabular-nums whitespace-nowrap">
-                {exercise.sets} × {exercise.reps}
-              </span>
-              
-              {/* Remove button */}
+        <span className="text-xs text-muted-foreground">
+          {editedExercises.length} övningar
+        </span>
+      </div>
+      
+      <div className="px-3 py-2 space-y-1">
+        {editedExercises.map((exercise, index) => (
+          <div 
+            key={`${exercise.exercise_name}-${index}`} 
+            className="flex items-center gap-1 text-sm group py-1 px-1 -mx-1 rounded hover:bg-muted/50 transition-colors"
+          >
+            <div className="flex flex-col opacity-0 group-hover:opacity-100 transition-opacity">
               <button 
-                onClick={() => removeExercise(index)}
-                disabled={editedExercises.length <= 1}
-                className="h-5 w-5 flex items-center justify-center rounded hover:bg-destructive/10 text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100 transition-all disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-muted-foreground"
-                aria-label="Ta bort övning"
+                onClick={() => moveExercise(index, 'up')}
+                disabled={index === 0}
+                className="h-4 w-4 flex items-center justify-center hover:bg-muted rounded disabled:opacity-30 text-muted-foreground hover:text-foreground transition-colors"
+                aria-label="Flytta upp"
               >
-                <X className="h-3 w-3" />
+                <ChevronUp className="h-3 w-3" />
+              </button>
+              <button 
+                onClick={() => moveExercise(index, 'down')}
+                disabled={index === editedExercises.length - 1}
+                className="h-4 w-4 flex items-center justify-center hover:bg-muted rounded disabled:opacity-30 text-muted-foreground hover:text-foreground transition-colors"
+                aria-label="Flytta ned"
+              >
+                <ChevronDown className="h-3 w-3" />
               </button>
             </div>
-          ))}
-        </div>
-        
-        {/* Start button */}
-        <div className="p-3 border-t">
-          <Button
-            onClick={() => onApply(editedExercises)}
-            disabled={action.applied || editedExercises.length === 0}
-            className="w-full gap-2"
-            variant={action.applied ? "secondary" : "default"}
-          >
-            {action.applied ? (
-              <>
-                <Check className="h-4 w-4" />
-                Pass startat
-              </>
-            ) : (
-              <>
-                <Play className="h-4 w-4" />
-                Starta detta pass
-              </>
-            )}
-          </Button>
-        </div>
+            
+            <span className="flex-1 text-muted-foreground truncate">
+              {index + 1}. {exercise.exercise_name}
+            </span>
+            <span className="text-xs font-medium tabular-nums whitespace-nowrap">
+              {exercise.sets} × {exercise.reps}
+            </span>
+            
+            <button 
+              onClick={() => removeExercise(index)}
+              disabled={editedExercises.length <= 1}
+              className="h-5 w-5 flex items-center justify-center rounded hover:bg-destructive/10 text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100 transition-all disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-muted-foreground"
+              aria-label="Ta bort övning"
+            >
+              <X className="h-3 w-3" />
+            </button>
+          </div>
+        ))}
       </div>
+      
+      <div className="p-3 border-t">
+        <Button
+          onClick={() => onApply(editedExercises)}
+          disabled={action.applied || editedExercises.length === 0}
+          className="w-full gap-2"
+          variant={action.applied ? "secondary" : "default"}
+        >
+          {action.applied ? (
+            <>
+              <Check className="h-4 w-4" />
+              Pass startat
+            </>
+          ) : (
+            <>
+              <Play className="h-4 w-4" />
+              Starta detta pass
+            </>
+          )}
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+// Separate component for add_exercise action - no state needed
+function AddExerciseActionButton({ 
+  action, 
+  onApply 
+}: { 
+  action: PTAction; 
+  onApply: () => void;
+}) {
+  const data = action.data as AddExerciseData;
+  
+  return (
+    <Button
+      onClick={onApply}
+      disabled={action.applied}
+      className={cn(
+        "w-full justify-start gap-2 h-auto py-3",
+        action.applied && "opacity-60"
+      )}
+      variant={action.applied ? "secondary" : "outline"}
+    >
+      {action.applied ? (
+        <Check className="h-4 w-4" />
+      ) : (
+        <Plus className="h-4 w-4" />
+      )}
+      <div className="text-left">
+        <div className="font-medium">
+          {action.applied ? 'Tillagd' : `Lägg till ${data.exercise_name}`}
+        </div>
+        {data.sets && data.reps && (
+          <div className="text-xs opacity-80">
+            {data.sets} set × {data.reps} reps
+          </div>
+        )}
+      </div>
+    </Button>
+  );
+}
+
+// Main action button switcher - no hooks, just routing
+function ActionButton({ action, onApply }: { action: PTAction; onApply: (editedExercises?: CreateWorkoutData['exercises']) => void }) {
+  if (!action || !action.type) {
+    return null;
+  }
+  
+  if (action.type === 'create_workout') {
+    const data = action.data as CreateWorkoutData;
+    if (!data || !Array.isArray(data.exercises)) {
+      return null;
+    }
+    return (
+      <CreateWorkoutActionCard 
+        action={action} 
+        initialExercises={data.exercises}
+        onApply={onApply}
+      />
     );
   }
 
   if (action.type === 'add_exercise') {
     const data = action.data as AddExerciseData;
+    if (!data || !data.exercise_name) {
+      return null;
+    }
     return (
-      <Button
-        onClick={() => onApply()}
-        disabled={action.applied}
-        className={cn(
-          "w-full justify-start gap-2 h-auto py-3",
-          action.applied && "opacity-60"
-        )}
-        variant={action.applied ? "secondary" : "outline"}
-      >
-        {action.applied ? (
-          <Check className="h-4 w-4" />
-        ) : (
-          <Plus className="h-4 w-4" />
-        )}
-        <div className="text-left">
-          <div className="font-medium">
-            {action.applied ? 'Tillagd' : `Lägg till ${data.exercise_name}`}
-          </div>
-          {data.sets && data.reps && (
-            <div className="text-xs opacity-80">
-              {data.sets} set × {data.reps} reps
-            </div>
-          )}
-        </div>
-      </Button>
+      <AddExerciseActionButton 
+        action={action} 
+        onApply={() => onApply()}
+      />
     );
   }
 
@@ -230,7 +272,7 @@ export function PTChatMessage({ message, onApplyAction }: PTChatMessageProps) {
           </p>
         </div>
 
-        {message.actions && message.actions.length > 0 && (
+        {message.actions && Array.isArray(message.actions) && message.actions.length > 0 && (
           <div className="space-y-2 max-w-[85%]">
             {message.actions.map(action => (
               <ActionButton

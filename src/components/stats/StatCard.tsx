@@ -12,6 +12,10 @@ interface StatCardProps {
 }
 
 export function StatCard({ icon: Icon, label, value, trend, subtitle, className }: StatCardProps) {
+  // Guard against missing icon
+  if (!Icon) {
+    return null;
+  }
   const hasTrend = trend !== undefined && trend !== 0;
   const isPositive = trend !== undefined && trend > 0;
 

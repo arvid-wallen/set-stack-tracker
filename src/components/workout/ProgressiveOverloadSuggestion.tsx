@@ -56,6 +56,12 @@ export function ProgressiveOverloadSuggestion({
   }
 
   const config = SUGGESTION_CONFIG[suggestion.type];
+  
+  // Guard against undefined config or icon
+  if (!config || !config.icon) {
+    return null;
+  }
+  
   const Icon = config.icon;
 
   if (compact) {
