@@ -199,7 +199,7 @@ export function usePTChat() {
     }
   }, [messages, isLoading, activeWorkout, toast]);
 
-  const applyAction = useCallback(async (actionId: string) => {
+  const applyAction = useCallback(async (actionId: string, editedExercises?: CreateWorkoutData['exercises']) => {
     const message = messages.find(m => m.actions?.some(a => a.id === actionId));
     const action = message?.actions?.find(a => a.id === actionId);
 
@@ -208,6 +208,8 @@ export function usePTChat() {
     try {
       if (action.type === 'create_workout') {
         const data = action.data as CreateWorkoutData;
+        // Use edited exercises if provided, otherwise use original
+        const exercisesToAdd = editedExercises || data.exercises;
         
         // Start the workout
         const workout = await startWorkout(data.workout_type, data.name);
@@ -217,7 +219,7 @@ export function usePTChat() {
 
         // Add exercises using the workout ID directly to avoid race condition
         let addedCount = 0;
-        for (const exercise of data.exercises) {
+        for (const exercise of exercisesToAdd) {
           const match = findBestExerciseMatch(exercise.exercise_name, allExercises);
           if (match) {
             await addWorkoutExercise(match.id, workout.id);
