@@ -111,23 +111,109 @@ const tools = [
   }
 ];
 
+// Map goal IDs to readable Swedish
+const goalLabels: Record<string, string> = {
+  muscle_gain: 'Bygga muskler',
+  fat_loss: 'Gå ner i vikt',
+  strength: 'Öka styrka',
+  health: 'Allmän hälsa',
+  endurance: 'Bättre kondition',
+};
+
+// Map experience levels to Swedish
+const experienceLabels: Record<string, string> = {
+  beginner: 'Nybörjare (0-1 år)',
+  intermediate: 'Mellanliggande (1-3 år)',
+  advanced: 'Avancerad (3+ år)',
+};
+
+// Map equipment to Swedish
+const equipmentLabels: Record<string, string> = {
+  full_gym: 'Komplett gym',
+  home_gym: 'Hemmagym',
+  bodyweight: 'Endast kroppsvikt',
+  resistance_bands: 'Gummiband',
+};
+
+interface UserProfile {
+  goals?: string[];
+  experience_level?: string;
+  available_equipment?: string[];
+  preferred_workout_duration?: number;
+  training_days_per_week?: number;
+  injuries?: string;
+}
+
+function buildPersonalContext(profile: UserProfile | null): string {
+  if (!profile) return '';
+
+  const parts: string[] = [];
+  
+  if (profile.goals && profile.goals.length > 0) {
+    const goalNames = profile.goals.map(g => goalLabels[g] || g).join(', ');
+    parts.push(`- Träningsmål: ${goalNames}`);
+  }
+  
+  if (profile.experience_level) {
+    parts.push(`- Erfarenhetsnivå: ${experienceLabels[profile.experience_level] || profile.experience_level}`);
+  }
+  
+  if (profile.available_equipment && profile.available_equipment.length > 0) {
+    const equipNames = profile.available_equipment.map(e => equipmentLabels[e] || e).join(', ');
+    parts.push(`- Tillgänglig utrustning: ${equipNames}`);
+  }
+  
+  if (profile.preferred_workout_duration) {
+    parts.push(`- Önskad tid per pass: ${profile.preferred_workout_duration} minuter`);
+  }
+  
+  if (profile.training_days_per_week) {
+    parts.push(`- Träningsdagar per vecka: ${profile.training_days_per_week}`);
+  }
+  
+  if (profile.injuries) {
+    parts.push(`- Skador/begränsningar att ta hänsyn till: ${profile.injuries}`);
+  }
+
+  if (parts.length === 0) return '';
+
+  return `
+ANVÄNDARENS PROFIL:
+${parts.join('\n')}
+
+VIKTIGT: Anpassa ALLTID dina svar och träningsförslag efter denna profil:
+- Välj övningar som passar användarens utrustning
+- Anpassa volym och intensitet efter erfarenhetsnivå
+- Undvik övningar som kan förvärra eventuella skador
+- Håll pass inom önskad tidsram
+- Fokusera på användarens primära mål
+`;
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const { messages, hasActiveWorkout } = await req.json();
+    const { messages, hasActiveWorkout, userProfile } = await req.json();
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     
     if (!LOVABLE_API_KEY) {
       throw new Error("LOVABLE_API_KEY is not configured");
     }
 
-    // Adjust system prompt based on workout state
-    const contextPrompt = hasActiveWorkout 
-      ? `${systemPrompt}\n\nKONTEXT: Användaren har ett pågående pass. Du kan rekommendera övningar att lägga till med add_exercise-verktyget.`
-      : `${systemPrompt}\n\nKONTEXT: Användaren har inget aktivt pass. Du kan skapa ett nytt pass med create_workout-verktyget.`;
+    // Build personal context from user profile
+    const personalContext = buildPersonalContext(userProfile);
+
+    // Adjust system prompt based on workout state and user profile
+    const workoutContext = hasActiveWorkout 
+      ? `\n\nKONTEXT: Användaren har ett pågående pass. Du kan rekommendera övningar att lägga till med add_exercise-verktyget.`
+      : `\n\nKONTEXT: Användaren har inget aktivt pass. Du kan skapa ett nytt pass med create_workout-verktyget.`;
+
+    const contextPrompt = `${systemPrompt}${personalContext}${workoutContext}`;
+
+    console.log("PT Chat request with profile:", userProfile ? "yes" : "no");
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",

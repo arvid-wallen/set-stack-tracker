@@ -2,6 +2,7 @@ import { useState, useCallback } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { useWorkout } from '@/hooks/useWorkout';
 import { useExercises } from '@/hooks/useExercises';
+import { usePTProfile } from '@/hooks/usePTProfile';
 import { findBestExerciseMatch } from '@/lib/exercise-matcher';
 import { WorkoutType } from '@/types/workout';
 
@@ -46,6 +47,7 @@ export function usePTChat() {
   const { toast } = useToast();
   const { activeWorkout, startWorkout, addExercise: addWorkoutExercise, expandWorkout } = useWorkout();
   const { exercises: allExercises } = useExercises();
+  const { ptProfile } = usePTProfile();
 
   const sendMessage = useCallback(async (content: string) => {
     if (!content.trim() || isLoading) return;
@@ -61,6 +63,16 @@ export function usePTChat() {
     setIsLoading(true);
 
     try {
+      // Build user profile data to send
+      const userProfile = ptProfile ? {
+        goals: ptProfile.goals,
+        experience_level: ptProfile.experience_level,
+        available_equipment: ptProfile.available_equipment,
+        preferred_workout_duration: ptProfile.preferred_workout_duration,
+        training_days_per_week: ptProfile.training_days_per_week,
+        injuries: ptProfile.injuries,
+      } : null;
+
       const response = await fetch(PT_CHAT_URL, {
         method: 'POST',
         headers: {
@@ -73,6 +85,7 @@ export function usePTChat() {
             content: m.content,
           })),
           hasActiveWorkout: !!activeWorkout,
+          userProfile,
         }),
       });
 
@@ -197,7 +210,7 @@ export function usePTChat() {
     } finally {
       setIsLoading(false);
     }
-  }, [messages, isLoading, activeWorkout, toast]);
+  }, [messages, isLoading, activeWorkout, ptProfile, toast]);
 
   const applyAction = useCallback(async (actionId: string, editedExercises?: CreateWorkoutData['exercises']) => {
     const message = messages.find(m => m.actions?.some(a => a.id === actionId));

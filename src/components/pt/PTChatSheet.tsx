@@ -5,7 +5,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { PTChatMessage } from './PTChatMessage';
+import { PTOnboarding } from './PTOnboarding';
 import { usePTChat } from '@/hooks/usePTChat';
+import { usePTProfile } from '@/hooks/usePTProfile';
 import { cn } from '@/lib/utils';
 
 interface PTChatSheetProps {
@@ -41,10 +43,11 @@ export function PTChatSheet({ isOpen, onClose }: PTChatSheetProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const { messages, isLoading, sendMessage, applyAction, clearChat, hasActiveWorkout } = usePTChat();
+  const { ptProfile, needsOnboarding, savePTProfile, isLoading: profileLoading } = usePTProfile();
 
   // Rotate suggestions every 3 seconds
   useEffect(() => {
-    if (messages.length > 0 || !isOpen) return;
+    if (messages.length > 0 || !isOpen || needsOnboarding) return;
     
     const interval = setInterval(() => {
       setIsTransitioning(true);
@@ -55,7 +58,7 @@ export function PTChatSheet({ isOpen, onClose }: PTChatSheetProps) {
     }, 3000);
     
     return () => clearInterval(interval);
-  }, [messages.length, isOpen]);
+  }, [messages.length, isOpen, needsOnboarding]);
 
   // Get current 3 suggestions
   const currentSuggestions = [
@@ -71,12 +74,12 @@ export function PTChatSheet({ isOpen, onClose }: PTChatSheetProps) {
     }
   }, [messages]);
 
-  // Focus input when sheet opens
+  // Focus input when sheet opens (only if not onboarding)
   useEffect(() => {
-    if (isOpen && inputRef.current) {
+    if (isOpen && inputRef.current && !needsOnboarding) {
       setTimeout(() => inputRef.current?.focus(), 100);
     }
-  }, [isOpen]);
+  }, [isOpen, needsOnboarding]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -85,6 +88,50 @@ export function PTChatSheet({ isOpen, onClose }: PTChatSheetProps) {
     sendMessage(input);
     setInput('');
   };
+
+  const handleOnboardingComplete = async (data: any) => {
+    await savePTProfile(data);
+  };
+
+  // Show loading state while checking profile
+  if (profileLoading) {
+    return (
+      <Sheet open={isOpen} onOpenChange={(open) => !open && onClose()}>
+        <SheetContent side="right" className="w-full sm:max-w-md p-0 flex flex-col">
+          <div className="flex-1 flex items-center justify-center">
+            <div className="text-center">
+              <Bot className="h-12 w-12 text-primary mx-auto mb-4 animate-pulse" />
+              <p className="text-muted-foreground">Laddar...</p>
+            </div>
+          </div>
+        </SheetContent>
+      </Sheet>
+    );
+  }
+
+  // Show onboarding if needed
+  if (needsOnboarding) {
+    return (
+      <Sheet open={isOpen} onOpenChange={(open) => !open && onClose()}>
+        <SheetContent side="right" className="w-full sm:max-w-md p-0 flex flex-col">
+          <SheetHeader className="px-4 py-3 pr-14 border-b">
+            <div className="flex items-center gap-3">
+              <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center">
+                <Bot className="h-5 w-5 text-primary" />
+              </div>
+              <div>
+                <SheetTitle className="text-base">Välkommen! 👋</SheetTitle>
+                <p className="text-xs text-muted-foreground">
+                  Låt mig lära känna dig
+                </p>
+              </div>
+            </div>
+          </SheetHeader>
+          <PTOnboarding onComplete={handleOnboardingComplete} />
+        </SheetContent>
+      </Sheet>
+    );
+  }
 
   return (
     <Sheet open={isOpen} onOpenChange={(open) => !open && onClose()}>
