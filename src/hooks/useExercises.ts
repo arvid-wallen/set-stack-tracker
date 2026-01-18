@@ -90,11 +90,67 @@ export function useExercises() {
     }
   };
 
+  const updateExercise = async (exerciseId: string, updates: Partial<Exercise>) => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return false;
+
+      const { data, error } = await supabase
+        .from('exercises')
+        .update({
+          name: updates.name,
+          description: updates.description,
+          muscle_groups: updates.muscle_groups,
+          equipment_type: updates.equipment_type,
+          is_cardio: updates.is_cardio,
+        })
+        .eq('id', exerciseId)
+        .eq('user_id', user.id)
+        .eq('is_custom', true)
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      setExercises(prev => prev.map(e => 
+        e.id === exerciseId ? (data as unknown as Exercise) : e
+      ));
+      return true;
+    } catch (error) {
+      console.error('Error updating exercise:', error);
+      return false;
+    }
+  };
+
+  const deleteExercise = async (exerciseId: string) => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return false;
+
+      const { error } = await supabase
+        .from('exercises')
+        .delete()
+        .eq('id', exerciseId)
+        .eq('user_id', user.id)
+        .eq('is_custom', true);
+
+      if (error) throw error;
+
+      setExercises(prev => prev.filter(e => e.id !== exerciseId));
+      return true;
+    } catch (error) {
+      console.error('Error deleting exercise:', error);
+      return false;
+    }
+  };
+
   return {
     exercises,
     isLoading,
     searchExercises,
     createCustomExercise,
+    updateExercise,
+    deleteExercise,
     refetch: fetchExercises,
   };
 }
