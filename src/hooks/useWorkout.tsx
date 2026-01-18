@@ -211,8 +211,9 @@ function useWorkoutImpl() {
     }
   };
 
-  const addExercise = async (exerciseId: string) => {
-    if (!activeWorkout) return null;
+  const addExercise = async (exerciseId: string, workoutSessionId?: string) => {
+    const sessionId = workoutSessionId || activeWorkout?.id;
+    if (!sessionId) return null;
 
     try {
       const orderIndex = exercises.length;
@@ -220,7 +221,7 @@ function useWorkoutImpl() {
       const { data, error } = await supabase
         .from('workout_exercises')
         .insert({
-          workout_session_id: activeWorkout.id,
+          workout_session_id: sessionId,
           exercise_id: exerciseId,
           order_index: orderIndex,
         })
