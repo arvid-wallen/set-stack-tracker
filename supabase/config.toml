@@ -5,3 +5,6 @@ verify_jwt = true
 
 [functions.testing-api]
 verify_jwt = false
+
+[functions.pt-chat]
+verify_jwt = false
