@@ -3,6 +3,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useWorkout } from '@/hooks/useWorkout';
 import { useExercises } from '@/hooks/useExercises';
 import { usePTProfile } from '@/hooks/usePTProfile';
+import { useTrainingHistory } from '@/hooks/useTrainingHistory';
 import { findBestExerciseMatch } from '@/lib/exercise-matcher';
 import { WorkoutType } from '@/types/workout';
 
@@ -48,6 +49,7 @@ export function usePTChat() {
   const { activeWorkout, startWorkout, addExercise: addWorkoutExercise, expandWorkout } = useWorkout();
   const { exercises: allExercises } = useExercises();
   const { ptProfile } = usePTProfile();
+  const { trainingHistory } = useTrainingHistory();
 
   const sendMessage = useCallback(async (content: string) => {
     if (!content.trim() || isLoading) return;
@@ -86,6 +88,7 @@ export function usePTChat() {
           })),
           hasActiveWorkout: !!activeWorkout,
           userProfile,
+          trainingHistory,
         }),
       });
 
@@ -210,7 +213,7 @@ export function usePTChat() {
     } finally {
       setIsLoading(false);
     }
-  }, [messages, isLoading, activeWorkout, ptProfile, toast]);
+  }, [messages, isLoading, activeWorkout, ptProfile, trainingHistory, toast]);
 
   const applyAction = useCallback(async (actionId: string, editedExercises?: CreateWorkoutData['exercises']) => {
     const message = messages.find(m => m.actions?.some(a => a.id === actionId));

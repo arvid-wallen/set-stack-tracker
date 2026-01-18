@@ -18,6 +18,7 @@ FUNKTIONER:
 2. Förklara övningar och inkludera YouTube-sökningar för teknikanvisningar
 3. Skapa kompletta träningspass baserat på användarens mål
 4. Rekommendera specifika övningar
+5. GE SPECIFIKA VIKTFÖRSLAG baserat på användarens träningshistorik
 
 NÄR DU SKAPAR ETT PASS:
 Använd create_workout-verktyget med workout_type, name och en lista med övningar.
@@ -111,6 +112,45 @@ const tools = [
   }
 ];
 
+// Types
+interface UserProfile {
+  goals?: string[];
+  experience_level?: string;
+  available_equipment?: string[];
+  preferred_workout_duration?: number;
+  training_days_per_week?: number;
+  injuries?: string;
+}
+
+interface RecentWorkout {
+  date: string;
+  type: string;
+  exerciseCount: number;
+  duration: number;
+  topExercise: string;
+}
+
+interface TopExercise {
+  name: string;
+  lastWeight: number;
+  lastReps: number;
+  personalRecord: number;
+  timesPerformed: number;
+  progressSuggestion: string;
+}
+
+interface PersonalRecord {
+  exerciseName: string;
+  weight: number;
+  date: string;
+}
+
+interface TrainingHistory {
+  recentWorkouts: RecentWorkout[];
+  topExercises: TopExercise[];
+  personalRecords: PersonalRecord[];
+}
+
 // Map goal IDs to readable Swedish
 const goalLabels: Record<string, string> = {
   muscle_gain: 'Bygga muskler',
@@ -134,15 +174,6 @@ const equipmentLabels: Record<string, string> = {
   bodyweight: 'Endast kroppsvikt',
   resistance_bands: 'Gummiband',
 };
-
-interface UserProfile {
-  goals?: string[];
-  experience_level?: string;
-  available_equipment?: string[];
-  preferred_workout_duration?: number;
-  training_days_per_week?: number;
-  injuries?: string;
-}
 
 function buildPersonalContext(profile: UserProfile | null): string {
   if (!profile) return '';
@@ -178,6 +209,7 @@ function buildPersonalContext(profile: UserProfile | null): string {
   if (parts.length === 0) return '';
 
   return `
+
 ANVÄNDARENS PROFIL:
 ${parts.join('\n')}
 
@@ -186,8 +218,60 @@ VIKTIGT: Anpassa ALLTID dina svar och träningsförslag efter denna profil:
 - Anpassa volym och intensitet efter erfarenhetsnivå
 - Undvik övningar som kan förvärra eventuella skador
 - Håll pass inom önskad tidsram
-- Fokusera på användarens primära mål
-`;
+- Fokusera på användarens primära mål`;
+}
+
+function buildTrainingContext(history: TrainingHistory | null): string {
+  if (!history) return '';
+  
+  const hasData = 
+    (history.recentWorkouts?.length > 0) || 
+    (history.topExercises?.length > 0) || 
+    (history.personalRecords?.length > 0);
+  
+  if (!hasData) return '';
+
+  let context = '\n\nANVÄNDARENS TRÄNINGSHISTORIK:';
+  
+  // Recent workouts
+  if (history.recentWorkouts?.length > 0) {
+    context += '\n\nSenaste pass:';
+    history.recentWorkouts.slice(0, 5).forEach(w => {
+      context += `\n- ${w.date}: ${w.type} (${w.exerciseCount} övningar, ${w.duration} min)`;
+      if (w.topExercise) context += ` - Tyngst: ${w.topExercise}`;
+    });
+  }
+  
+  // Top exercises with progression suggestions
+  if (history.topExercises?.length > 0) {
+    context += '\n\nMest tränade övningar med progressionsförslag:';
+    history.topExercises.forEach(e => {
+      context += `\n- ${e.name}: Senast ${e.lastWeight}kg × ${e.lastReps} reps, PR: ${e.personalRecord}kg (${e.timesPerformed} ggr)`;
+      if (e.progressSuggestion) {
+        context += ` → ${e.progressSuggestion}`;
+      }
+    });
+  }
+  
+  // Personal records
+  if (history.personalRecords?.length > 0) {
+    context += '\n\nPersonliga rekord:';
+    history.personalRecords.forEach(pr => {
+      context += `\n- ${pr.exerciseName}: ${pr.weight}kg (${pr.date})`;
+    });
+  }
+  
+  context += `
+
+VIKTIGT FÖR PROGRESSIV ÖVERBELASTNING:
+- Använd träningshistoriken för att ge SPECIFIKA viktförslag
+- När användaren klarar 10+ reps, föreslå ökning med 2.5kg
+- Under 6 reps kan indikera för tung vikt
+- Referera till deras personliga rekord för motivation
+- Undvik övningar de nyligen tränat om de vill ha variation
+- Anpassa volym baserat på deras vanliga träningsmönster`;
+  
+  return context;
 }
 
 serve(async (req) => {
@@ -196,7 +280,7 @@ serve(async (req) => {
   }
 
   try {
-    const { messages, hasActiveWorkout, userProfile } = await req.json();
+    const { messages, hasActiveWorkout, userProfile, trainingHistory } = await req.json();
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     
     if (!LOVABLE_API_KEY) {
@@ -205,15 +289,18 @@ serve(async (req) => {
 
     // Build personal context from user profile
     const personalContext = buildPersonalContext(userProfile);
+    
+    // Build training history context
+    const trainingContext = buildTrainingContext(trainingHistory);
 
     // Adjust system prompt based on workout state and user profile
     const workoutContext = hasActiveWorkout 
       ? `\n\nKONTEXT: Användaren har ett pågående pass. Du kan rekommendera övningar att lägga till med add_exercise-verktyget.`
       : `\n\nKONTEXT: Användaren har inget aktivt pass. Du kan skapa ett nytt pass med create_workout-verktyget.`;
 
-    const contextPrompt = `${systemPrompt}${personalContext}${workoutContext}`;
+    const contextPrompt = `${systemPrompt}${personalContext}${trainingContext}${workoutContext}`;
 
-    console.log("PT Chat request with profile:", userProfile ? "yes" : "no");
+    console.log("PT Chat request - profile:", userProfile ? "yes" : "no", "- history:", trainingHistory?.topExercises?.length || 0, "exercises");
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
