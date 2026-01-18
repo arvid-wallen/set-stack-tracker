@@ -18,6 +18,7 @@ import { ActiveWorkout } from "@/components/workout/ActiveWorkout";
 import { WorkoutMiniBar } from "@/components/workout/WorkoutMiniBar";
 import { PTChatFAB } from "@/components/pt/PTChatFAB";
 
+// Query client instance
 const queryClient = new QueryClient();
 
 const App = () => (
