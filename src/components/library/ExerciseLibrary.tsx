@@ -218,16 +218,14 @@ export function ExerciseLibrary() {
                     </Badge>
                   </div>
                 </div>
-                {exercise.is_custom && (
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8 shrink-0"
-                    onClick={() => setEditingExercise(exercise)}
-                  >
-                    <Settings className="h-4 w-4 text-muted-foreground" />
-                  </Button>
-                )}
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 shrink-0"
+                  onClick={() => setEditingExercise(exercise)}
+                >
+                  <Settings className="h-4 w-4 text-muted-foreground" />
+                </Button>
               </div>
             </div>
           ))
@@ -245,6 +243,7 @@ export function ExerciseLibrary() {
         isOpen={!!editingExercise}
         onClose={() => setEditingExercise(null)}
         onSave={handleSaveExercise}
+        onCreate={handleCreateExercise}
         onDelete={handleDeleteExercise}
       />
     </div>
