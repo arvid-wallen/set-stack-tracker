@@ -1,4 +1,4 @@
-import { Bot, User, Play, Plus, Check, ExternalLink } from 'lucide-react';
+import { Bot, User, Play, Plus, Check, ExternalLink, Dumbbell } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ChatMessage, PTAction, CreateWorkoutData, AddExerciseData } from '@/hooks/usePTChat';
 import { cn } from '@/lib/utils';
@@ -63,29 +63,54 @@ function ActionButton({ action, onApply }: { action: PTAction; onApply: () => vo
   if (action.type === 'create_workout') {
     const data = action.data as CreateWorkoutData;
     return (
-      <Button
-        onClick={onApply}
-        disabled={action.applied}
-        className={cn(
-          "w-full justify-start gap-2 h-auto py-3",
-          action.applied && "opacity-60"
-        )}
-        variant={action.applied ? "secondary" : "default"}
-      >
-        {action.applied ? (
-          <Check className="h-4 w-4" />
-        ) : (
-          <Play className="h-4 w-4" />
-        )}
-        <div className="text-left">
-          <div className="font-medium">
-            {action.applied ? 'Pass startat' : 'Starta detta pass'}
+      <div className="bg-muted/50 rounded-lg border overflow-hidden">
+        {/* Header with workout name */}
+        <div className="px-4 py-3 border-b bg-muted/30">
+          <div className="flex items-center gap-2">
+            <Dumbbell className="h-4 w-4 text-primary" />
+            <span className="font-medium">{data.name}</span>
           </div>
-          <div className="text-xs opacity-80">
-            {data.name} • {data.exercises.length} övningar
-          </div>
+          <span className="text-xs text-muted-foreground">
+            {data.exercises.length} övningar
+          </span>
         </div>
-      </Button>
+        
+        {/* Exercise list */}
+        <div className="px-4 py-2 space-y-1.5">
+          {data.exercises.map((exercise, index) => (
+            <div key={index} className="flex justify-between text-sm">
+              <span className="text-muted-foreground">
+                {index + 1}. {exercise.exercise_name}
+              </span>
+              <span className="text-xs font-medium tabular-nums">
+                {exercise.sets} × {exercise.reps}
+              </span>
+            </div>
+          ))}
+        </div>
+        
+        {/* Start button */}
+        <div className="p-3 border-t">
+          <Button
+            onClick={onApply}
+            disabled={action.applied}
+            className="w-full gap-2"
+            variant={action.applied ? "secondary" : "default"}
+          >
+            {action.applied ? (
+              <>
+                <Check className="h-4 w-4" />
+                Pass startat
+              </>
+            ) : (
+              <>
+                <Play className="h-4 w-4" />
+                Starta detta pass
+              </>
+            )}
+          </Button>
+        </div>
+      </div>
     );
   }
 
