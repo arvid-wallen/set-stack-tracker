@@ -26,6 +26,7 @@ export function ActiveWorkout() {
     addSet, 
     deleteSet, 
     endWorkout,
+    discardWorkout,
     linkToSuperset,
     unlinkFromSuperset,
     markExerciseComplete,
@@ -196,6 +197,11 @@ export function ActiveWorkout() {
           await endWorkout(rating, notes, customDuration);
 
           // Alltid tillbaka till hem
+          navigate('/', { replace: true });
+        }}
+        onDiscard={async () => {
+          setShowEndSheet(false);
+          await discardWorkout();
           navigate('/', { replace: true });
         }}
         totalSets={totalSets}

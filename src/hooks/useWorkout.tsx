@@ -185,6 +185,32 @@ function useWorkoutImpl() {
     }
   };
 
+  const discardWorkout = async () => {
+    if (!activeWorkout) return;
+
+    setIsLoading(true);
+    try {
+      // Delete workout session (cascade removes exercises and sets automatically via FK)
+      const { error } = await supabase
+        .from('workout_sessions')
+        .delete()
+        .eq('id', activeWorkout.id);
+
+      if (error) throw error;
+
+      clearLocalWorkout();
+      setActiveWorkout(null);
+      setExercises([]);
+      setIsMinimized(false);
+      toast({ title: 'Pass kasserat' });
+    } catch (error) {
+      console.error('Error discarding workout:', error);
+      toast({ title: 'Kunde inte kassera pass', variant: 'destructive' });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const addExercise = async (exerciseId: string) => {
     if (!activeWorkout) return null;
 
@@ -513,6 +539,7 @@ function useWorkoutImpl() {
     addCardioLog,
     updateCardioLog,
     deleteCardioLog,
+    discardWorkout,
     refreshWorkout: checkActiveWorkout,
   };
 }
