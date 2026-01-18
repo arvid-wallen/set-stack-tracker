@@ -174,8 +174,8 @@ export function SetRow({
         )}
       </div>
 
-      {/* Weight input */}
-      <div className="flex-1 min-w-0">
+      {/* Weight input with BW toggle */}
+      <div className="flex-1 min-w-0 flex gap-1">
         <Input
           type="number"
           inputMode="decimal"
@@ -184,11 +184,23 @@ export function SetRow({
           onChange={(e) => setWeight(e.target.value)}
           disabled={isBodyweight}
           className={cn(
-            "input-gym text-center",
-            isBodyweight && "bg-accent text-accent-foreground"
+            "input-gym text-center flex-1 min-w-0",
+            isBodyweight && "bg-accent/50"
           )}
           onFocus={(e) => e.target.select()}
         />
+        <Button
+          type="button"
+          variant={isBodyweight ? "default" : "outline"}
+          size="sm"
+          className={cn(
+            "h-10 px-2 text-xs font-bold shrink-0",
+            isBodyweight && "bg-accent text-accent-foreground hover:bg-accent/90"
+          )}
+          onClick={() => setIsBodyweight(!isBodyweight)}
+        >
+          BW
+        </Button>
       </div>
 
       {/* Reps input */}
