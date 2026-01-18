@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Trash2 } from 'lucide-react';
+import { Trash2, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -38,6 +38,7 @@ interface EditExerciseSheetProps {
   isOpen: boolean;
   onClose: () => void;
   onSave: (exerciseId: string, updates: Partial<Exercise>) => Promise<boolean>;
+  onCreate?: (exercise: Partial<Exercise>) => Promise<any>;
   onDelete?: (exerciseId: string) => Promise<boolean>;
 }
 
@@ -50,7 +51,7 @@ const ALL_EQUIPMENT: EquipmentType[] = [
   'barbell', 'dumbbell', 'machine', 'cable', 'bodyweight', 'kettlebell', 'bands', 'cardio_machine', 'other'
 ];
 
-export function EditExerciseSheet({ exercise, isOpen, onClose, onSave, onDelete }: EditExerciseSheetProps) {
+export function EditExerciseSheet({ exercise, isOpen, onClose, onSave, onCreate, onDelete }: EditExerciseSheetProps) {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [selectedMuscles, setSelectedMuscles] = useState<MuscleGroup[]>([]);
@@ -78,21 +79,37 @@ export function EditExerciseSheet({ exercise, isOpen, onClose, onSave, onDelete 
     );
   };
 
+  const isBuiltIn = exercise && !exercise.is_custom;
+
   const handleSubmit = async () => {
     if (!exercise || !name.trim() || selectedMuscles.length === 0) return;
 
     setIsSubmitting(true);
     try {
-      const success = await onSave(exercise.id, {
-        name: name.trim(),
-        description: description.trim() || null,
-        muscle_groups: selectedMuscles,
-        equipment_type: equipmentType,
-        is_cardio: isCardio,
-      });
-      
-      if (success) {
-        onClose();
+      if (isBuiltIn && onCreate) {
+        // Create a personal copy for built-in exercises
+        const result = await onCreate({
+          name: name.trim(),
+          description: description.trim() || null,
+          muscle_groups: selectedMuscles,
+          equipment_type: equipmentType,
+          is_cardio: isCardio,
+        });
+        if (result) {
+          onClose();
+        }
+      } else {
+        // Update existing custom exercise
+        const success = await onSave(exercise.id, {
+          name: name.trim(),
+          description: description.trim() || null,
+          muscle_groups: selectedMuscles,
+          equipment_type: equipmentType,
+          is_cardio: isCardio,
+        });
+        if (success) {
+          onClose();
+        }
       }
     } finally {
       setIsSubmitting(false);
@@ -114,7 +131,7 @@ export function EditExerciseSheet({ exercise, isOpen, onClose, onSave, onDelete 
   };
 
   const isValid = name.trim() && selectedMuscles.length > 0;
-  const canDelete = exercise?.is_custom && onDelete;
+  const canDelete = exercise?.is_custom && onDelete && !isBuiltIn;
 
   return (
     <Sheet open={isOpen} onOpenChange={onClose}>
@@ -124,6 +141,16 @@ export function EditExerciseSheet({ exercise, isOpen, onClose, onSave, onDelete 
         </SheetHeader>
 
         <div className="space-y-6 overflow-y-auto max-h-[calc(90vh-180px)] pb-4">
+          {/* Built-in warning */}
+          {isBuiltIn && (
+            <div className="flex items-start gap-3 p-3 rounded-xl bg-amber-500/10 border border-amber-500/20">
+              <AlertTriangle className="h-5 w-5 text-amber-600 shrink-0 mt-0.5" />
+              <p className="text-sm text-amber-700 dark:text-amber-400">
+                Detta är en standardövning. Dina ändringar sparas som en personlig kopia.
+              </p>
+            </div>
+          )}
+
           {/* Name */}
           <div className="space-y-2">
             <Label htmlFor="edit-name">Namn *</Label>
@@ -239,7 +266,7 @@ export function EditExerciseSheet({ exercise, isOpen, onClose, onSave, onDelete 
               disabled={!isValid || isSubmitting}
               className="flex-1 h-12"
             >
-              {isSubmitting ? 'Sparar...' : 'Spara ändringar'}
+              {isSubmitting ? 'Sparar...' : isBuiltIn ? 'Spara som egen kopia' : 'Spara ändringar'}
             </Button>
           </div>
         </SheetFooter>
