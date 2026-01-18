@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import {
   Drawer,
   DrawerContent,
@@ -11,8 +12,11 @@ import { sv } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import { WORKOUT_TYPE_LABELS, MUSCLE_GROUP_LABELS, WorkoutType } from '@/types/workout';
 import { Badge } from '@/components/ui/badge';
-import { Clock, Dumbbell, Star, Calendar, MessageSquare, Flame, Route } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Clock, Dumbbell, Star, Calendar, MessageSquare, Flame, Route, Pencil, Check, X } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { DurationInput } from '@/components/ui/duration-input';
+import { useUpdateWorkout } from '@/hooks/useUpdateWorkout';
 
 interface WorkoutDetailSheetProps {
   workout: WorkoutWithDetails | null;
@@ -32,6 +36,10 @@ const WORKOUT_TYPE_COLORS: Record<WorkoutType, string> = {
 };
 
 export function WorkoutDetailSheet({ workout, open, onOpenChange }: WorkoutDetailSheetProps) {
+  const [isEditingDuration, setIsEditingDuration] = useState(false);
+  const [editedDuration, setEditedDuration] = useState(workout?.duration_seconds || 0);
+  const { updateWorkout } = useUpdateWorkout();
+
   if (!workout) return null;
 
   const formatDuration = (seconds: number | null) => {
@@ -41,6 +49,24 @@ export function WorkoutDetailSheet({ workout, open, onOpenChange }: WorkoutDetai
     const hours = Math.floor(mins / 60);
     const remainingMins = mins % 60;
     return `${hours}h ${remainingMins}m`;
+  };
+
+  const handleStartEdit = () => {
+    setEditedDuration(workout.duration_seconds || 0);
+    setIsEditingDuration(true);
+  };
+
+  const handleCancelEdit = () => {
+    setIsEditingDuration(false);
+    setEditedDuration(workout.duration_seconds || 0);
+  };
+
+  const handleSaveDuration = () => {
+    updateWorkout.mutate({ 
+      workoutId: workout.id, 
+      data: { duration_seconds: editedDuration } 
+    });
+    setIsEditingDuration(false);
   };
 
   const formatCardioDuration = (seconds: number | null) => {
@@ -90,10 +116,40 @@ export function WorkoutDetailSheet({ workout, open, onOpenChange }: WorkoutDetai
 
           {/* Stats row */}
           <div className="flex items-center gap-4 mt-3 text-sm text-muted-foreground">
-            <span className="flex items-center gap-1.5">
-              <Clock className="h-4 w-4" />
-              {formatDuration(workout.duration_seconds)}
-            </span>
+            {isEditingDuration ? (
+              <div className="flex items-center gap-2">
+                <DurationInput 
+                  value={editedDuration} 
+                  onChange={setEditedDuration}
+                />
+                <Button 
+                  size="icon" 
+                  variant="ghost" 
+                  className="h-8 w-8"
+                  onClick={handleSaveDuration}
+                  disabled={updateWorkout.isPending}
+                >
+                  <Check className="h-4 w-4 text-primary" />
+                </Button>
+                <Button 
+                  size="icon" 
+                  variant="ghost" 
+                  className="h-8 w-8"
+                  onClick={handleCancelEdit}
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+            ) : (
+              <button 
+                className="flex items-center gap-1.5 hover:text-foreground transition-colors"
+                onClick={handleStartEdit}
+              >
+                <Clock className="h-4 w-4" />
+                {formatDuration(workout.duration_seconds)}
+                <Pencil className="h-3 w-3 opacity-50" />
+              </button>
+            )}
             <span className="flex items-center gap-1.5">
               <Dumbbell className="h-4 w-4" />
               {workout.exercises.length} övningar
