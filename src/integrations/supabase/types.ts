@@ -286,6 +286,33 @@ export type Database = {
         }
         Relationships: []
       }
+      pt_chat_messages: {
+        Row: {
+          actions: Json | null
+          content: string
+          created_at: string
+          id: string
+          role: string
+          user_id: string
+        }
+        Insert: {
+          actions?: Json | null
+          content?: string
+          created_at?: string
+          id?: string
+          role: string
+          user_id: string
+        }
+        Update: {
+          actions?: Json | null
+          content?: string
+          created_at?: string
+          id?: string
+          role?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       pt_profiles: {
         Row: {
           age: number | null
