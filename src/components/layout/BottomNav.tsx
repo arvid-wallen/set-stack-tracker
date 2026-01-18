@@ -1,3 +1,4 @@
+import { forwardRef } from 'react';
 import { Home, Calendar, BarChart3, Library, User } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
@@ -10,11 +11,12 @@ const NAV_ITEMS = [
   { icon: User, label: 'Profil', path: '/profile' },
 ];
 
-export function BottomNav() {
-  const location = useLocation();
+export const BottomNav = forwardRef<HTMLElement, object>(
+  function BottomNav(_props, ref) {
+    const location = useLocation();
 
-  return (
-    <nav className="ios-tab-bar">
+    return (
+      <nav ref={ref} className="ios-tab-bar">
       <div className="ios-tab-bar-inner">
         {NAV_ITEMS.map(({ icon: Icon, label, path }) => {
           const isActive = location.pathname === path;
@@ -50,7 +52,8 @@ export function BottomNav() {
             </Link>
           );
         })}
-      </div>
-    </nav>
-  );
-}
+        </div>
+      </nav>
+    );
+  }
+);

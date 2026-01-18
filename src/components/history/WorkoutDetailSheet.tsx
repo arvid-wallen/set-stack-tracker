@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, forwardRef } from 'react';
 import {
   Drawer,
   DrawerContent,
@@ -37,13 +37,14 @@ const WORKOUT_TYPE_COLORS: Record<WorkoutType, string> = {
   custom: 'bg-muted-foreground',
 };
 
-export function WorkoutDetailSheet({ workout, open, onOpenChange }: WorkoutDetailSheetProps) {
-  const [isEditingDuration, setIsEditingDuration] = useState(false);
-  const [editedDuration, setEditedDuration] = useState(workout?.duration_seconds || 0);
-  const [saveAsRoutineOpen, setSaveAsRoutineOpen] = useState(false);
-  const { updateWorkout } = useUpdateWorkout();
+export const WorkoutDetailSheet = forwardRef<HTMLDivElement, WorkoutDetailSheetProps>(
+  function WorkoutDetailSheet({ workout, open, onOpenChange }, ref) {
+    const [isEditingDuration, setIsEditingDuration] = useState(false);
+    const [editedDuration, setEditedDuration] = useState(workout?.duration_seconds || 0);
+    const [saveAsRoutineOpen, setSaveAsRoutineOpen] = useState(false);
+    const { updateWorkout } = useUpdateWorkout();
 
-  if (!workout) return null;
+    if (!workout) return null;
   
   const hasNonCardioExercises = workout.exercises.some(e => !e.is_cardio);
 
@@ -270,12 +271,13 @@ export function WorkoutDetailSheet({ workout, open, onOpenChange }: WorkoutDetai
         )}
       </DrawerContent>
 
-      {/* Save as Routine Sheet */}
-      <SaveAsRoutineSheet
-        workout={workout}
-        open={saveAsRoutineOpen}
-        onOpenChange={setSaveAsRoutineOpen}
-      />
-    </Drawer>
-  );
-}
+        {/* Save as Routine Sheet */}
+        <SaveAsRoutineSheet
+          workout={workout}
+          open={saveAsRoutineOpen}
+          onOpenChange={setSaveAsRoutineOpen}
+        />
+      </Drawer>
+    );
+  }
+);
