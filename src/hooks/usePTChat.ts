@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { useWorkout } from '@/hooks/useWorkout';
 import { useExercises } from '@/hooks/useExercises';
@@ -6,6 +6,8 @@ import { usePTProfile } from '@/hooks/usePTProfile';
 import { useTrainingHistory } from '@/hooks/useTrainingHistory';
 import { findBestExerciseMatch } from '@/lib/exercise-matcher';
 import { WorkoutType } from '@/types/workout';
+import { supabase } from '@/integrations/supabase/client';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 
 export interface ChatMessage {
   id: string;
@@ -50,12 +52,86 @@ export function usePTChat() {
   const { exercises: allExercises } = useExercises();
   const { ptProfile } = usePTProfile();
   const { trainingHistory } = useTrainingHistory();
+  const queryClient = useQueryClient();
+
+  // Load saved messages from database
+  const { data: savedMessages, isLoading: isLoadingMessages } = useQuery({
+    queryKey: ['pt-chat-messages'],
+    queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return [];
+
+      const { data, error } = await supabase
+        .from('pt_chat_messages')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: true })
+        .limit(50);
+
+      if (error) {
+        console.error('Error loading chat messages:', error);
+        return [];
+      }
+
+      return data?.map(msg => ({
+        id: msg.id,
+        role: msg.role as 'user' | 'assistant',
+        content: msg.content,
+        timestamp: new Date(msg.created_at),
+        actions: msg.actions as unknown as PTAction[] | undefined,
+      })) || [];
+    },
+    staleTime: 1000 * 60, // 1 minute
+  });
+
+  // Sync saved messages to state when loaded
+  useEffect(() => {
+    if (savedMessages && savedMessages.length > 0 && messages.length === 0) {
+      setMessages(savedMessages);
+    }
+  }, [savedMessages, messages.length]);
+
+  // Save message to database
+  const saveMessageToDb = useCallback(async (
+    role: 'user' | 'assistant',
+    content: string,
+    actions?: PTAction[]
+  ) => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return null;
+
+      const { data, error } = await supabase
+        .from('pt_chat_messages')
+        .insert([{
+          user_id: user.id,
+          role,
+          content,
+          actions: actions && actions.length > 0 ? JSON.parse(JSON.stringify(actions)) : null,
+        }] as any)
+        .select('id')
+        .single();
+
+      if (error) {
+        console.error('Error saving chat message:', error);
+        return null;
+      }
+
+      return data.id;
+    } catch (error) {
+      console.error('Error saving chat message:', error);
+      return null;
+    }
+  }, []);
 
   const sendMessage = useCallback(async (content: string) => {
     if (!content.trim() || isLoading) return;
 
+    // Save user message to database first
+    const userMessageId = await saveMessageToDb('user', content.trim());
+
     const userMessage: ChatMessage = {
-      id: `user-${Date.now()}`,
+      id: userMessageId || `user-${Date.now()}`,
       role: 'user',
       content: content.trim(),
       timestamp: new Date(),
@@ -107,13 +183,12 @@ export function usePTChat() {
       let textBuffer = '';
       let assistantContent = '';
       let toolCalls: any[] = [];
-      let currentToolCall: any = null;
 
-      const assistantMessageId = `assistant-${Date.now()}`;
+      const tempAssistantId = `assistant-${Date.now()}`;
 
       // Add empty assistant message that we'll update
       setMessages(prev => [...prev, {
-        id: assistantMessageId,
+        id: tempAssistantId,
         role: 'assistant',
         content: '',
         timestamp: new Date(),
@@ -144,7 +219,7 @@ export function usePTChat() {
             if (delta?.content) {
               assistantContent += delta.content;
               setMessages(prev => prev.map(m =>
-                m.id === assistantMessageId
+                m.id === tempAssistantId
                   ? { ...m, content: assistantContent }
                   : m
               ));
@@ -192,14 +267,19 @@ export function usePTChat() {
         }
       }
 
-      // Update message with actions
-      if (actions.length > 0) {
-        setMessages(prev => prev.map(m =>
-          m.id === assistantMessageId
-            ? { ...m, actions }
-            : m
-        ));
-      }
+      // Save assistant message to database
+      const assistantMessageId = await saveMessageToDb('assistant', assistantContent, actions);
+
+      // Update message with real ID and actions
+      setMessages(prev => prev.map(m =>
+        m.id === tempAssistantId
+          ? { 
+              ...m, 
+              id: assistantMessageId || tempAssistantId,
+              actions: actions.length > 0 ? actions : undefined 
+            }
+          : m
+      ));
 
     } catch (error) {
       console.error('PT Chat error:', error);
@@ -213,7 +293,7 @@ export function usePTChat() {
     } finally {
       setIsLoading(false);
     }
-  }, [messages, isLoading, activeWorkout, ptProfile, trainingHistory, toast]);
+  }, [messages, isLoading, activeWorkout, ptProfile, trainingHistory, toast, saveMessageToDb]);
 
   const applyAction = useCallback(async (actionId: string, editedExercises?: CreateWorkoutData['exercises']) => {
     const message = messages.find(m => m.actions?.some(a => a.id === actionId));
@@ -278,13 +358,24 @@ export function usePTChat() {
         });
       }
 
-      // Mark action as applied
+      // Mark action as applied in state
       setMessages(prev => prev.map(m => ({
         ...m,
         actions: m.actions?.map(a =>
           a.id === actionId ? { ...a, applied: true } : a
         ),
       })));
+
+      // Update the action in database
+      if (message?.id) {
+        const updatedActions = message.actions?.map(a =>
+          a.id === actionId ? { ...a, applied: true } : a
+        );
+        await supabase
+          .from('pt_chat_messages')
+          .update({ actions: JSON.parse(JSON.stringify(updatedActions)) } as any)
+          .eq('id', message.id);
+      }
 
     } catch (error) {
       console.error('Apply action error:', error);
@@ -296,13 +387,26 @@ export function usePTChat() {
     }
   }, [messages, allExercises, activeWorkout, startWorkout, addWorkoutExercise, expandWorkout, toast]);
 
-  const clearChat = useCallback(() => {
-    setMessages([]);
-  }, []);
+  const clearChat = useCallback(async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        await supabase
+          .from('pt_chat_messages')
+          .delete()
+          .eq('user_id', user.id);
+      }
+      setMessages([]);
+      queryClient.invalidateQueries({ queryKey: ['pt-chat-messages'] });
+    } catch (error) {
+      console.error('Error clearing chat:', error);
+      setMessages([]);
+    }
+  }, [queryClient]);
 
   return {
     messages,
-    isLoading,
+    isLoading: isLoading || isLoadingMessages,
     sendMessage,
     applyAction,
     clearChat,
