@@ -147,14 +147,17 @@ function useWorkoutImpl() {
     }
   };
 
-  const endWorkout = async (rating?: number, notes?: string) => {
+  const endWorkout = async (rating?: number, notes?: string, customDuration?: number) => {
     if (!activeWorkout) return;
 
     setIsLoading(true);
     try {
       const endTime = new Date();
       const startTime = new Date(activeWorkout.started_at);
-      const durationSeconds = Math.floor((endTime.getTime() - startTime.getTime()) / 1000);
+      const calculatedDuration = Math.floor((endTime.getTime() - startTime.getTime()) / 1000);
+      
+      // Use custom duration if provided, otherwise use calculated
+      const durationSeconds = customDuration ?? calculatedDuration;
 
       const { error } = await supabase
         .from('workout_sessions')

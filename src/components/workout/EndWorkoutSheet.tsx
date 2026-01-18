@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Star, Save } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Star, Save, Pencil } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
@@ -13,13 +13,14 @@ import {
   SheetDescription,
 } from '@/components/ui/sheet';
 import { cn } from '@/lib/utils';
+import { DurationInput } from '@/components/ui/duration-input';
 
 interface EndWorkoutSheetProps {
   isOpen: boolean;
   onClose: () => void;
-  onConfirm: (rating: number, notes: string, saveAsTemplate?: { name: string; folder?: string; isFavorite: boolean }) => void;
+  onConfirm: (rating: number, notes: string, customDuration?: number, saveAsTemplate?: { name: string; folder?: string; isFavorite: boolean }) => void;
   totalSets: number;
-  duration: string;
+  durationSeconds: number;
   workoutType: string;
   exerciseCount: number;
 }
@@ -29,7 +30,7 @@ export function EndWorkoutSheet({
   onClose, 
   onConfirm, 
   totalSets,
-  duration,
+  durationSeconds,
   workoutType,
   exerciseCount
 }: EndWorkoutSheetProps) {
@@ -39,13 +40,31 @@ export function EndWorkoutSheet({
   const [templateName, setTemplateName] = useState('');
   const [templateFolder, setTemplateFolder] = useState('');
   const [templateFavorite, setTemplateFavorite] = useState(false);
+  const [editedDuration, setEditedDuration] = useState(durationSeconds);
+  const [isEditingDuration, setIsEditingDuration] = useState(false);
+
+  // Update edited duration when durationSeconds prop changes
+  useEffect(() => {
+    setEditedDuration(durationSeconds);
+  }, [durationSeconds]);
+
+  const formatDuration = (seconds: number) => {
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    if (hours > 0) {
+      return `${hours}h ${minutes}min`;
+    }
+    return `${minutes} min`;
+  };
 
   const handleConfirm = () => {
     const templateData = saveAsTemplate && templateName.trim() 
       ? { name: templateName.trim(), folder: templateFolder.trim() || undefined, isFavorite: templateFavorite }
       : undefined;
     
-    onConfirm(rating || 3, notes, templateData);
+    // Only pass custom duration if it was edited
+    const customDuration = editedDuration !== durationSeconds ? editedDuration : undefined;
+    onConfirm(rating || 3, notes, customDuration, templateData);
   };
 
   const handleClose = () => {
@@ -62,8 +81,22 @@ export function EndWorkoutSheet({
       <SheetContent side="bottom" className="h-auto max-h-[90vh] rounded-t-3xl overflow-y-auto">
         <SheetHeader className="pb-4">
           <SheetTitle>Avsluta pass</SheetTitle>
-          <SheetDescription>
-            {totalSets} set på {duration}
+          <SheetDescription className="flex items-center gap-2">
+            {totalSets} set på{' '}
+            {isEditingDuration ? (
+              <DurationInput 
+                value={editedDuration} 
+                onChange={setEditedDuration}
+              />
+            ) : (
+              <button 
+                onClick={() => setIsEditingDuration(true)}
+                className="inline-flex items-center gap-1 text-primary hover:underline"
+              >
+                {formatDuration(editedDuration)}
+                <Pencil className="h-3 w-3" />
+              </button>
+            )}
           </SheetDescription>
         </SheetHeader>
 

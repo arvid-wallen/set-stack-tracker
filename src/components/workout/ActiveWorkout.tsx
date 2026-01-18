@@ -47,13 +47,16 @@ export function ActiveWorkout() {
     await addExercise(exercise.id);
   };
 
-  const formatDuration = () => {
-    if (!activeWorkout) return '0 min';
+  const getDurationSeconds = () => {
+    if (!activeWorkout) return 0;
     const start = new Date(activeWorkout.started_at);
     const now = new Date();
-    const diff = Math.floor((now.getTime() - start.getTime()) / 1000);
-    const hours = Math.floor(diff / 3600);
-    const minutes = Math.floor((diff % 3600) / 60);
+    return Math.floor((now.getTime() - start.getTime()) / 1000);
+  };
+
+  const formatDuration = (seconds: number) => {
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
     
     if (hours > 0) {
       return `${hours}h ${minutes}min`;
@@ -171,7 +174,7 @@ export function ActiveWorkout() {
       <EndWorkoutSheet
         isOpen={showEndSheet}
         onClose={() => setShowEndSheet(false)}
-        onConfirm={async (rating, notes, templateData) => {
+        onConfirm={async (rating, notes, customDuration, templateData) => {
           // Stäng sheeten först så overlay inte kan fastna
           setShowEndSheet(false);
 
@@ -190,13 +193,13 @@ export function ActiveWorkout() {
           }
 
           // Avsluta workout FÖRST (så startsidan inte tror att ett pass fortfarande är aktivt)
-          await endWorkout(rating, notes);
+          await endWorkout(rating, notes, customDuration);
 
           // Alltid tillbaka till hem
           navigate('/', { replace: true });
         }}
         totalSets={totalSets}
-        duration={formatDuration()}
+        durationSeconds={getDurationSeconds()}
         workoutType={activeWorkout.custom_type_name || WORKOUT_TYPE_LABELS[activeWorkout.workout_type]}
         exerciseCount={workoutExercises.length}
       />
