@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Star, Save, Pencil } from 'lucide-react';
+import { Star, Save, Pencil, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
@@ -12,6 +12,17 @@ import {
   SheetTitle,
   SheetDescription,
 } from '@/components/ui/sheet';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 import { cn } from '@/lib/utils';
 import { DurationInput } from '@/components/ui/duration-input';
 
@@ -19,6 +30,7 @@ interface EndWorkoutSheetProps {
   isOpen: boolean;
   onClose: () => void;
   onConfirm: (rating: number, notes: string, customDuration?: number, saveAsTemplate?: { name: string; folder?: string; isFavorite: boolean }) => void;
+  onDiscard: () => void;
   totalSets: number;
   durationSeconds: number;
   workoutType: string;
@@ -29,6 +41,7 @@ export function EndWorkoutSheet({
   isOpen, 
   onClose, 
   onConfirm, 
+  onDiscard,
   totalSets,
   durationSeconds,
   workoutType,
@@ -212,6 +225,36 @@ export function EndWorkoutSheet({
               Spara pass
             </Button>
           </div>
+
+          {/* Discard option */}
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button 
+                variant="ghost" 
+                className="w-full text-destructive hover:text-destructive hover:bg-destructive/10"
+              >
+                <Trash2 className="h-4 w-4 mr-2" />
+                Spara inte pass
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Ta bort pass?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Är du säker på att du vill ta bort detta pass? Det kommer inte sparas i din historik eller statistik.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Avbryt</AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={onDiscard}
+                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                >
+                  Ta bort
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </div>
       </SheetContent>
     </Sheet>
