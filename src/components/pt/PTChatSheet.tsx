@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Send, Trash2, Bot, X } from 'lucide-react';
+import { Send, Trash2, Bot } from 'lucide-react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -13,11 +13,56 @@ interface PTChatSheetProps {
   onClose: () => void;
 }
 
+const allSuggestions = [
+  // Workout suggestions
+  'Skapa ett push-pass',
+  'Ge mig ett pull-pass',
+  'Skapa ett benpass',
+  'Bygg ett helkroppspass',
+  'Ge mig ett 30-min pass',
+  'Skapa ett axelpass',
+  // Technique suggestions
+  'Hur gör jag squats?',
+  'Teknik för marklyft',
+  'Hur gör jag chin-ups?',
+  'Rätt form för rodd',
+  // Tips suggestions
+  'Tips för bättre bänkpress',
+  'Hur ökar jag styrka snabbt?',
+  'Bästa övningarna för rygg',
+  'Hur bygger jag större armar?',
+  'Tips för bättre kondition',
+];
+
 export function PTChatSheet({ isOpen, onClose }: PTChatSheetProps) {
   const [input, setInput] = useState('');
+  const [currentSuggestionIndex, setCurrentSuggestionIndex] = useState(0);
+  const [isTransitioning, setIsTransitioning] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const { messages, isLoading, sendMessage, applyAction, clearChat, hasActiveWorkout } = usePTChat();
+
+  // Rotate suggestions every 3 seconds
+  useEffect(() => {
+    if (messages.length > 0 || !isOpen) return;
+    
+    const interval = setInterval(() => {
+      setIsTransitioning(true);
+      setTimeout(() => {
+        setCurrentSuggestionIndex(prev => (prev + 3) % allSuggestions.length);
+        setIsTransitioning(false);
+      }, 200);
+    }, 3000);
+    
+    return () => clearInterval(interval);
+  }, [messages.length, isOpen]);
+
+  // Get current 3 suggestions
+  const currentSuggestions = [
+    allSuggestions[currentSuggestionIndex % allSuggestions.length],
+    allSuggestions[(currentSuggestionIndex + 1) % allSuggestions.length],
+    allSuggestions[(currentSuggestionIndex + 2) % allSuggestions.length],
+  ];
 
   // Auto-scroll to bottom on new messages
   useEffect(() => {
@@ -86,12 +131,11 @@ export function PTChatSheet({ isOpen, onClose }: PTChatSheetProps) {
                 </p>
                 <div className="mt-6 space-y-2">
                   <p className="text-xs text-muted-foreground">Prova att fråga:</p>
-                  <div className="flex flex-wrap gap-2 justify-center">
-                    {[
-                      'Skapa ett push-pass',
-                      'Hur gör jag squats?',
-                      'Tips för bättre bänkpress',
-                    ].map((suggestion) => (
+                  <div className={cn(
+                    "flex flex-wrap gap-2 justify-center transition-opacity duration-200",
+                    isTransitioning ? "opacity-0" : "opacity-100"
+                  )}>
+                    {currentSuggestions.map((suggestion) => (
                       <Button
                         key={suggestion}
                         variant="outline"
