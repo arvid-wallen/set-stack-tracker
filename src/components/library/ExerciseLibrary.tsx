@@ -1,12 +1,12 @@
 import { useState, useMemo } from 'react';
-import { Search, Plus, X, Dumbbell, Filter, Sparkles } from 'lucide-react';
+import { Search, Plus, X, Dumbbell, Sparkles, Settings } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { useExercises } from '@/hooks/useExercises';
 import { Exercise, MuscleGroup, EquipmentType, MUSCLE_GROUP_LABELS, EQUIPMENT_TYPE_LABELS } from '@/types/workout';
 import { CreateExerciseSheet } from './CreateExerciseSheet';
+import { EditExerciseSheet } from './EditExerciseSheet';
 import { cn } from '@/lib/utils';
 
 const MUSCLE_FILTERS: MuscleGroup[] = ['chest', 'back', 'shoulders', 'biceps', 'triceps', 'quads', 'hamstrings', 'glutes', 'core'];
@@ -20,8 +20,9 @@ export function ExerciseLibrary() {
   const [selectedEquipment, setSelectedEquipment] = useState<EquipmentType | null>(null);
   const [typeFilter, setTypeFilter] = useState<ExerciseFilter>('all');
   const [showCreateSheet, setShowCreateSheet] = useState(false);
+  const [editingExercise, setEditingExercise] = useState<Exercise | null>(null);
   
-  const { exercises, isLoading, searchExercises, createCustomExercise, refetch } = useExercises();
+  const { exercises, isLoading, searchExercises, createCustomExercise, updateExercise, deleteExercise, refetch } = useExercises();
 
   const filteredExercises = useMemo(() => {
     let filtered = searchExercises(query, {
@@ -45,6 +46,22 @@ export function ExerciseLibrary() {
       refetch();
     }
     return result;
+  };
+
+  const handleSaveExercise = async (exerciseId: string, updates: Partial<Exercise>) => {
+    const success = await updateExercise(exerciseId, updates);
+    if (success) {
+      refetch();
+    }
+    return success;
+  };
+
+  const handleDeleteExercise = async (exerciseId: string) => {
+    const success = await deleteExercise(exerciseId);
+    if (success) {
+      refetch();
+    }
+    return success;
   };
 
   return (
@@ -201,6 +218,16 @@ export function ExerciseLibrary() {
                     </Badge>
                   </div>
                 </div>
+                {exercise.is_custom && (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 shrink-0"
+                    onClick={() => setEditingExercise(exercise)}
+                  >
+                    <Settings className="h-4 w-4 text-muted-foreground" />
+                  </Button>
+                )}
               </div>
             </div>
           ))
@@ -211,6 +238,14 @@ export function ExerciseLibrary() {
         isOpen={showCreateSheet}
         onClose={() => setShowCreateSheet(false)}
         onSubmit={handleCreateExercise}
+      />
+
+      <EditExerciseSheet
+        exercise={editingExercise}
+        isOpen={!!editingExercise}
+        onClose={() => setEditingExercise(null)}
+        onSave={handleSaveExercise}
+        onDelete={handleDeleteExercise}
       />
     </div>
   );

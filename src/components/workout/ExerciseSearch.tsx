@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { Search, Plus, X, Dumbbell, Activity } from 'lucide-react';
+import { Search, Plus, X, Dumbbell, Activity, Settings } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -15,6 +15,7 @@ import { useExercises } from '@/hooks/useExercises';
 import { Exercise, MuscleGroup, MUSCLE_GROUP_LABELS, EQUIPMENT_TYPE_LABELS } from '@/types/workout';
 import { cn } from '@/lib/utils';
 import { CreateExerciseSheet } from '@/components/library/CreateExerciseSheet';
+import { EditExerciseSheet } from '@/components/library/EditExerciseSheet';
 
 interface ExerciseSearchProps {
   onSelect: (exercise: Exercise) => void;
@@ -28,8 +29,9 @@ export function ExerciseSearch({ onSelect, trigger }: ExerciseSearchProps) {
   const [query, setQuery] = useState('');
   const [selectedMuscle, setSelectedMuscle] = useState<MuscleGroup | 'cardio' | null>(null);
   const [showCreateSheet, setShowCreateSheet] = useState(false);
+  const [editingExercise, setEditingExercise] = useState<Exercise | null>(null);
   
-  const { exercises, isLoading, searchExercises, createCustomExercise } = useExercises();
+  const { exercises, isLoading, searchExercises, createCustomExercise, updateExercise, deleteExercise, refetch } = useExercises();
 
   const filteredExercises = useMemo(() => {
     let results = searchExercises(query, {
@@ -59,6 +61,27 @@ export function ExerciseSearch({ onSelect, trigger }: ExerciseSearchProps) {
       handleSelect(result as Exercise);
     }
     return result;
+  };
+
+  const handleEditExercise = (e: React.MouseEvent, exercise: Exercise) => {
+    e.stopPropagation();
+    setEditingExercise(exercise);
+  };
+
+  const handleSaveExercise = async (exerciseId: string, updates: Partial<Exercise>) => {
+    const success = await updateExercise(exerciseId, updates);
+    if (success) {
+      refetch();
+    }
+    return success;
+  };
+
+  const handleDeleteExercise = async (exerciseId: string) => {
+    const success = await deleteExercise(exerciseId);
+    if (success) {
+      refetch();
+    }
+    return success;
   };
 
   return (
@@ -158,9 +181,9 @@ export function ExerciseSearch({ onSelect, trigger }: ExerciseSearchProps) {
               </div>
             ) : (
               filteredExercises.map(exercise => (
-                <button
+                <div
                   key={exercise.id}
-                  className="w-full p-4 rounded-xl bg-card border border-border hover:border-primary/50 transition-colors text-left"
+                  className="relative w-full p-4 rounded-xl bg-card border border-border hover:border-primary/50 transition-colors text-left cursor-pointer"
                   onClick={() => handleSelect(exercise)}
                 >
                   <div className="flex items-start gap-3">
@@ -194,8 +217,18 @@ export function ExerciseSearch({ onSelect, trigger }: ExerciseSearchProps) {
                         </Badge>
                       </div>
                     </div>
+                    {exercise.is_custom && (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 shrink-0"
+                        onClick={(e) => handleEditExercise(e, exercise)}
+                      >
+                        <Settings className="h-4 w-4 text-muted-foreground" />
+                      </Button>
+                    )}
                   </div>
-                </button>
+                </div>
               ))
             )}
           </div>
@@ -206,6 +239,15 @@ export function ExerciseSearch({ onSelect, trigger }: ExerciseSearchProps) {
           isOpen={showCreateSheet}
           onClose={() => setShowCreateSheet(false)}
           onSubmit={handleCreateExercise}
+        />
+
+        {/* Edit exercise sheet */}
+        <EditExerciseSheet
+          exercise={editingExercise}
+          isOpen={!!editingExercise}
+          onClose={() => setEditingExercise(null)}
+          onSave={handleSaveExercise}
+          onDelete={handleDeleteExercise}
         />
       </SheetContent>
     </Sheet>
