@@ -1,6 +1,7 @@
 import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
 import "./index.css";
+import { WorkoutProvider } from "@/hooks/useWorkout";
 
 // Register service worker for PWA offline support
 if ('serviceWorker' in navigator) {
@@ -15,4 +16,8 @@ if ('serviceWorker' in navigator) {
   });
 }
 
-createRoot(document.getElementById("root")!).render(<App />);
+createRoot(document.getElementById("root")!).render(
+  <WorkoutProvider>
+    <App />
+  </WorkoutProvider>
+);
