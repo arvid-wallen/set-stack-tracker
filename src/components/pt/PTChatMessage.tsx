@@ -1,4 +1,5 @@
-import { Bot, User, Play, Plus, Check, ExternalLink, Dumbbell } from 'lucide-react';
+import { useState } from 'react';
+import { Bot, User, Play, Plus, Check, ExternalLink, Dumbbell, ChevronUp, ChevronDown, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ChatMessage, PTAction, CreateWorkoutData, AddExerciseData } from '@/hooks/usePTChat';
 import { cn } from '@/lib/utils';
@@ -6,7 +7,7 @@ import { WORKOUT_TYPE_LABELS } from '@/types/workout';
 
 interface PTChatMessageProps {
   message: ChatMessage;
-  onApplyAction: (actionId: string) => void;
+  onApplyAction: (actionId: string, editedExercises?: CreateWorkoutData['exercises']) => void;
 }
 
 // Convert markdown-style bold and links to formatted elements
@@ -59,9 +60,25 @@ function renderContent(content: string) {
   return parts.length > 0 ? parts : content;
 }
 
-function ActionButton({ action, onApply }: { action: PTAction; onApply: () => void }) {
+function ActionButton({ action, onApply }: { action: PTAction; onApply: (editedExercises?: CreateWorkoutData['exercises']) => void }) {
   if (action.type === 'create_workout') {
     const data = action.data as CreateWorkoutData;
+    const [editedExercises, setEditedExercises] = useState(data.exercises);
+
+    const removeExercise = (index: number) => {
+      if (editedExercises.length <= 1) return; // Keep at least one exercise
+      setEditedExercises(prev => prev.filter((_, i) => i !== index));
+    };
+
+    const moveExercise = (index: number, direction: 'up' | 'down') => {
+      const targetIndex = direction === 'up' ? index - 1 : index + 1;
+      if (targetIndex < 0 || targetIndex >= editedExercises.length) return;
+      const newExercises = [...editedExercises];
+      [newExercises[index], newExercises[targetIndex]] = 
+        [newExercises[targetIndex], newExercises[index]];
+      setEditedExercises(newExercises);
+    };
+
     return (
       <div className="bg-muted/50 rounded-lg border overflow-hidden">
         {/* Header with workout name */}
@@ -71,20 +88,54 @@ function ActionButton({ action, onApply }: { action: PTAction; onApply: () => vo
             <span className="font-medium">{data.name}</span>
           </div>
           <span className="text-xs text-muted-foreground">
-            {data.exercises.length} övningar
+            {editedExercises.length} övningar
           </span>
         </div>
         
-        {/* Exercise list */}
-        <div className="px-4 py-2 space-y-1.5">
-          {data.exercises.map((exercise, index) => (
-            <div key={index} className="flex justify-between text-sm">
-              <span className="text-muted-foreground">
+        {/* Editable exercise list */}
+        <div className="px-3 py-2 space-y-1">
+          {editedExercises.map((exercise, index) => (
+            <div 
+              key={`${exercise.exercise_name}-${index}`} 
+              className="flex items-center gap-1 text-sm group py-1 px-1 -mx-1 rounded hover:bg-muted/50 transition-colors"
+            >
+              {/* Reorder buttons */}
+              <div className="flex flex-col opacity-0 group-hover:opacity-100 transition-opacity">
+                <button 
+                  onClick={() => moveExercise(index, 'up')}
+                  disabled={index === 0}
+                  className="h-4 w-4 flex items-center justify-center hover:bg-muted rounded disabled:opacity-30 text-muted-foreground hover:text-foreground transition-colors"
+                  aria-label="Flytta upp"
+                >
+                  <ChevronUp className="h-3 w-3" />
+                </button>
+                <button 
+                  onClick={() => moveExercise(index, 'down')}
+                  disabled={index === editedExercises.length - 1}
+                  className="h-4 w-4 flex items-center justify-center hover:bg-muted rounded disabled:opacity-30 text-muted-foreground hover:text-foreground transition-colors"
+                  aria-label="Flytta ned"
+                >
+                  <ChevronDown className="h-3 w-3" />
+                </button>
+              </div>
+              
+              {/* Exercise info */}
+              <span className="flex-1 text-muted-foreground truncate">
                 {index + 1}. {exercise.exercise_name}
               </span>
-              <span className="text-xs font-medium tabular-nums">
+              <span className="text-xs font-medium tabular-nums whitespace-nowrap">
                 {exercise.sets} × {exercise.reps}
               </span>
+              
+              {/* Remove button */}
+              <button 
+                onClick={() => removeExercise(index)}
+                disabled={editedExercises.length <= 1}
+                className="h-5 w-5 flex items-center justify-center rounded hover:bg-destructive/10 text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100 transition-all disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-muted-foreground"
+                aria-label="Ta bort övning"
+              >
+                <X className="h-3 w-3" />
+              </button>
             </div>
           ))}
         </div>
@@ -92,8 +143,8 @@ function ActionButton({ action, onApply }: { action: PTAction; onApply: () => vo
         {/* Start button */}
         <div className="p-3 border-t">
           <Button
-            onClick={onApply}
-            disabled={action.applied}
+            onClick={() => onApply(editedExercises)}
+            disabled={action.applied || editedExercises.length === 0}
             className="w-full gap-2"
             variant={action.applied ? "secondary" : "default"}
           >
@@ -118,7 +169,7 @@ function ActionButton({ action, onApply }: { action: PTAction; onApply: () => vo
     const data = action.data as AddExerciseData;
     return (
       <Button
-        onClick={onApply}
+        onClick={() => onApply()}
         disabled={action.applied}
         className={cn(
           "w-full justify-start gap-2 h-auto py-3",
@@ -185,7 +236,7 @@ export function PTChatMessage({ message, onApplyAction }: PTChatMessageProps) {
               <ActionButton
                 key={action.id}
                 action={action}
-                onApply={() => onApplyAction(action.id)}
+                onApply={(editedExercises) => onApplyAction(action.id, editedExercises)}
               />
             ))}
           </div>
