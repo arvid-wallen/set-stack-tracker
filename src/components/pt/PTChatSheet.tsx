@@ -47,7 +47,7 @@ export function PTChatSheet({ isOpen, onClose }: PTChatSheetProps) {
         side="right" 
         className="w-full sm:max-w-md p-0 flex flex-col"
       >
-        <SheetHeader className="px-4 py-3 border-b flex-row items-center justify-between space-y-0">
+        <SheetHeader className="px-4 py-3 pr-14 border-b flex-row items-center justify-between space-y-0">
           <div className="flex items-center gap-3">
             <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center">
               <Bot className="h-5 w-5 text-primary" />
