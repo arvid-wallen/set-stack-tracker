@@ -9,32 +9,44 @@ interface PTChatMessageProps {
   onApplyAction: (actionId: string) => void;
 }
 
-// Convert markdown-style links to clickable links
+// Convert markdown-style bold and links to formatted elements
 function renderContent(content: string) {
-  const linkRegex = /\[([^\]]+)\]\(([^)]+)\)/g;
   const parts: (string | JSX.Element)[] = [];
+  
+  // Combined regex for bold (**text**) and links [text](url)
+  const combinedRegex = /\*\*([^*]+)\*\*|\[([^\]]+)\]\(([^)]+)\)/g;
   let lastIndex = 0;
   let match;
+  let keyIndex = 0;
 
-  while ((match = linkRegex.exec(content)) !== null) {
-    // Add text before the link
+  while ((match = combinedRegex.exec(content)) !== null) {
+    // Add text before the match
     if (match.index > lastIndex) {
       parts.push(content.slice(lastIndex, match.index));
     }
     
-    // Add the link
-    parts.push(
-      <a
-        key={match.index}
-        href={match[2]}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="text-primary hover:underline inline-flex items-center gap-1"
-      >
-        {match[1]}
-        <ExternalLink className="h-3 w-3" />
-      </a>
-    );
+    if (match[1]) {
+      // Bold text: **text**
+      parts.push(
+        <strong key={`bold-${keyIndex++}`} className="font-semibold">
+          {match[1]}
+        </strong>
+      );
+    } else if (match[2] && match[3]) {
+      // Link: [text](url)
+      parts.push(
+        <a
+          key={`link-${keyIndex++}`}
+          href={match[3]}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-green-700 dark:text-green-400 hover:underline inline-flex items-center gap-1"
+        >
+          {match[2]}
+          <ExternalLink className="h-3 w-3" />
+        </a>
+      );
+    }
     
     lastIndex = match.index + match[0].length;
   }
