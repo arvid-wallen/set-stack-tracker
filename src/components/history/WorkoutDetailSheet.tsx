@@ -5,6 +5,7 @@ import {
   DrawerHeader,
   DrawerTitle,
   DrawerDescription,
+  DrawerFooter,
 } from '@/components/ui/drawer';
 import { WorkoutWithDetails } from '@/hooks/useWorkoutHistory';
 import { format } from 'date-fns';
@@ -13,10 +14,11 @@ import { cn } from '@/lib/utils';
 import { WORKOUT_TYPE_LABELS, MUSCLE_GROUP_LABELS, WorkoutType } from '@/types/workout';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Clock, Dumbbell, Star, Calendar, MessageSquare, Flame, Route, Pencil, Check, X } from 'lucide-react';
+import { Clock, Dumbbell, Star, Calendar, MessageSquare, Flame, Route, Pencil, Check, X, BookmarkPlus } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { DurationInput } from '@/components/ui/duration-input';
 import { useUpdateWorkout } from '@/hooks/useUpdateWorkout';
+import { SaveAsRoutineSheet } from './SaveAsRoutineSheet';
 
 interface WorkoutDetailSheetProps {
   workout: WorkoutWithDetails | null;
@@ -38,9 +40,12 @@ const WORKOUT_TYPE_COLORS: Record<WorkoutType, string> = {
 export function WorkoutDetailSheet({ workout, open, onOpenChange }: WorkoutDetailSheetProps) {
   const [isEditingDuration, setIsEditingDuration] = useState(false);
   const [editedDuration, setEditedDuration] = useState(workout?.duration_seconds || 0);
+  const [saveAsRoutineOpen, setSaveAsRoutineOpen] = useState(false);
   const { updateWorkout } = useUpdateWorkout();
 
   if (!workout) return null;
+  
+  const hasNonCardioExercises = workout.exercises.some(e => !e.is_cardio);
 
   const formatDuration = (seconds: number | null) => {
     if (!seconds) return '-';
@@ -249,7 +254,28 @@ export function WorkoutDetailSheet({ workout, open, onOpenChange }: WorkoutDetai
             )}
           </div>
         </ScrollArea>
+
+        {/* Footer with Save as Template button */}
+        {hasNonCardioExercises && (
+          <DrawerFooter className="border-t border-border pt-4">
+            <Button 
+              variant="outline" 
+              className="w-full"
+              onClick={() => setSaveAsRoutineOpen(true)}
+            >
+              <BookmarkPlus className="h-4 w-4 mr-2" />
+              Spara som mall
+            </Button>
+          </DrawerFooter>
+        )}
       </DrawerContent>
+
+      {/* Save as Routine Sheet */}
+      <SaveAsRoutineSheet
+        workout={workout}
+        open={saveAsRoutineOpen}
+        onOpenChange={setSaveAsRoutineOpen}
+      />
     </Drawer>
   );
 }

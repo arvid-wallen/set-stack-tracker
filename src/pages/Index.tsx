@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react';
-import { Play, Dumbbell, TrendingUp, Calendar, Clock } from 'lucide-react';
+import { Play, Dumbbell, TrendingUp, Calendar, Clock, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { AuthForm } from '@/components/auth/AuthForm';
 import { WorkoutTypeSelector } from '@/components/workout/WorkoutTypeSelector';
 import { BottomNav } from '@/components/layout/BottomNav';
+import { WorkoutDetailSheet } from '@/components/history/WorkoutDetailSheet';
 import { useAuth } from '@/hooks/useAuth';
 import { useWorkout } from '@/hooks/useWorkout';
+import { useWorkoutHistory, WorkoutWithDetails } from '@/hooks/useWorkoutHistory';
 import { WorkoutType, WORKOUT_TYPE_LABELS } from '@/types/workout';
 import { supabase } from '@/integrations/supabase/client';
 import { format } from 'date-fns';
@@ -16,7 +18,10 @@ import hausLogo from '@/assets/haus-logo.png';
 const Index = () => {
   const { user, profile, isLoading: authLoading } = useAuth();
   const { startWorkout, isLoading: workoutLoading } = useWorkout();
+  const { workouts: fullWorkouts } = useWorkoutHistory();
   const [showTypeSelector, setShowTypeSelector] = useState(false);
+  const [selectedWorkout, setSelectedWorkout] = useState<WorkoutWithDetails | null>(null);
+  const [detailOpen, setDetailOpen] = useState(false);
   const [recentWorkouts, setRecentWorkouts] = useState<any[]>([]);
   const [stats, setStats] = useState({ thisWeek: 0, totalSets: 0, avgDuration: 0 });
 
@@ -104,6 +109,15 @@ const Index = () => {
       return `${hrs}h ${mins % 60}min`;
     }
     return `${mins}min`;
+  };
+
+  const handleWorkoutClick = (workoutId: string) => {
+    // Find the full workout data from useWorkoutHistory
+    const fullWorkout = fullWorkouts.find(w => w.id === workoutId);
+    if (fullWorkout) {
+      setSelectedWorkout(fullWorkout);
+      setDetailOpen(true);
+    }
   };
 
   // Show loading state
@@ -197,9 +211,10 @@ const Index = () => {
               </p>
             ) : (
               recentWorkouts.map((workout) => (
-                <div
+                <button
                   key={workout.id}
-                  className="flex items-center justify-between p-4 rounded-ios-lg bg-muted/50"
+                  onClick={() => handleWorkoutClick(workout.id)}
+                  className="flex items-center justify-between p-4 rounded-ios-lg bg-muted/50 w-full text-left hover:bg-muted/70 transition-colors"
                 >
                   <div>
                     <p className="font-medium">
@@ -210,19 +225,22 @@ const Index = () => {
                       {workout.duration_seconds && ` · ${formatDuration(workout.duration_seconds)}`}
                     </p>
                   </div>
-                  {workout.rating && (
-                    <div className="flex items-center gap-0.5">
-                      {[...Array(5)].map((_, i) => (
-                        <span
-                          key={i}
-                          className={i < workout.rating ? 'text-yellow-500' : 'text-muted-foreground/30'}
-                        >
-                          ★
-                        </span>
-                      ))}
-                    </div>
-                  )}
-                </div>
+                  <div className="flex items-center gap-2">
+                    {workout.rating && (
+                      <div className="flex items-center gap-0.5">
+                        {[...Array(5)].map((_, i) => (
+                          <span
+                            key={i}
+                            className={i < workout.rating ? 'text-yellow-500' : 'text-muted-foreground/30'}
+                          >
+                            ★
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                    <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                  </div>
+                </button>
               ))
             )}
           </CardContent>
@@ -234,6 +252,12 @@ const Index = () => {
         open={showTypeSelector}
         onOpenChange={setShowTypeSelector}
         onSelect={handleStartWorkout}
+      />
+
+      <WorkoutDetailSheet
+        workout={selectedWorkout}
+        open={detailOpen}
+        onOpenChange={setDetailOpen}
       />
 
       <BottomNav />
