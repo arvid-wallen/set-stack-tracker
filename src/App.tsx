@@ -13,7 +13,7 @@ import ExerciseStats from "./pages/ExerciseStats";
 import Profile from "./pages/Profile";
 import { AuthForm } from "./components/auth/AuthForm";
 import NotFound from "./pages/NotFound";
-import { WorkoutProvider } from "@/hooks/useWorkout";
+
 import { ActiveWorkout } from "@/components/workout/ActiveWorkout";
 import { WorkoutMiniBar } from "@/components/workout/WorkoutMiniBar";
 import { PTChatFAB } from "@/components/pt/PTChatFAB";
@@ -29,23 +29,21 @@ const App = () => (
           <Toaster />
           <Sonner />
           <BrowserRouter>
-            <WorkoutProvider>
-              <Routes>
-                <Route path="/" element={<Index />} />
-                <Route path="/auth" element={<AuthForm />} />
-                <Route path="/library" element={<Library />} />
-                <Route path="/calendar" element={<History />} />
-                <Route path="/stats" element={<Stats />} />
-                <Route path="/stats/exercise" element={<ExerciseStats />} />
-                <Route path="/profile" element={<Profile />} />
-                {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-              {/* Global workout overlays */}
-              <ActiveWorkout />
-              <WorkoutMiniBar />
-              <PTChatFAB />
-            </WorkoutProvider>
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/auth" element={<AuthForm />} />
+              <Route path="/library" element={<Library />} />
+              <Route path="/calendar" element={<History />} />
+              <Route path="/stats" element={<Stats />} />
+              <Route path="/stats/exercise" element={<ExerciseStats />} />
+              <Route path="/profile" element={<Profile />} />
+              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+            {/* Global workout overlays */}
+            <ActiveWorkout />
+            <WorkoutMiniBar />
+            <PTChatFAB />
           </BrowserRouter>
         </TooltipProvider>
       </ThemeProvider>
