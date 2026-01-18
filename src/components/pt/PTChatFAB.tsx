@@ -1,37 +1,35 @@
 import { useState } from 'react';
 import { Bot } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import { PTChatSheet } from './PTChatSheet';
-import { useWorkout } from '@/hooks/useWorkout';
 import { cn } from '@/lib/utils';
 
 export function PTChatFAB() {
   const [isOpen, setIsOpen] = useState(false);
-  const { activeWorkout, isMinimized } = useWorkout();
-
-  // Determine if we need to shift the FAB up to avoid WorkoutMiniBar
-  const showMiniBar = activeWorkout && isMinimized;
 
   return (
     <>
-      <Button
+      <button
         onClick={() => setIsOpen(true)}
-        size="icon"
         className={cn(
-          "fixed right-4 z-40",
-          "h-14 w-14 rounded-full",
+          // Position: fixed on right edge, vertically centered
+          "fixed right-0 top-1/2 -translate-y-1/2 z-40",
+          // Size: slim notch
+          "h-11 w-7 pl-1.5",
+          // Shape: rounded left side, flat right
+          "rounded-l-xl rounded-r-none",
+          // Color
           "bg-primary hover:bg-primary/90",
-          "shadow-lg shadow-primary/25",
-          "transition-all duration-300 ease-out",
-          "hover:scale-105 active:scale-95",
-          // Position based on whether MiniBar is visible
-          showMiniBar 
-            ? "bottom-[calc(160px+env(safe-area-inset-bottom))]"
-            : "bottom-[calc(100px+env(safe-area-inset-bottom))]"
+          // Shadow to the left
+          "shadow-lg shadow-black/10",
+          // Animation
+          "transition-all duration-200",
+          "hover:w-9 hover:pl-2",
+          // Flexbox for icon
+          "flex items-center justify-start"
         )}
       >
-        <Bot className="h-6 w-6" />
-      </Button>
+        <Bot className="h-4 w-4 text-primary-foreground" />
+      </button>
 
       <PTChatSheet isOpen={isOpen} onClose={() => setIsOpen(false)} />
     </>
