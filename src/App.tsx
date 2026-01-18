@@ -16,6 +16,7 @@ import NotFound from "./pages/NotFound";
 import { WorkoutProvider } from "@/hooks/useWorkout";
 import { ActiveWorkout } from "@/components/workout/ActiveWorkout";
 import { WorkoutMiniBar } from "@/components/workout/WorkoutMiniBar";
+import { PTChatFAB } from "@/components/pt/PTChatFAB";
 
 const queryClient = new QueryClient();
 
@@ -42,6 +43,7 @@ const App = () => (
               {/* Global workout overlays */}
               <ActiveWorkout />
               <WorkoutMiniBar />
+              <PTChatFAB />
             </WorkoutProvider>
           </BrowserRouter>
         </TooltipProvider>
