@@ -1,8 +1,9 @@
 import { useState, useCallback, useEffect } from 'react';
-import { ChevronDown, ChevronUp, Trash2, MoreVertical, Link2, Unlink, Circle, CheckCircle2, Activity } from 'lucide-react';
+import { ChevronDown, ChevronUp, Trash2, MoreVertical, Link2, Unlink, Circle, CheckCircle2, Activity, MessageSquare, Pencil, X, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Textarea } from '@/components/ui/textarea';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -14,6 +15,7 @@ import { SetRow } from './SetRow';
 import { CardioLogRow } from './CardioLogRow';
 import { ProgressiveOverloadSuggestion } from './ProgressiveOverloadSuggestion';
 import { useProgressiveOverload } from '@/hooks/useProgressiveOverload';
+import { useExerciseNotes } from '@/hooks/useExerciseNotes';
 import { WorkoutExercise, ExerciseSet, CardioLog, MUSCLE_GROUP_LABELS, CardioType } from '@/types/workout';
 import { cn } from '@/lib/utils';
 
@@ -48,6 +50,8 @@ export function ExerciseCard({
 }: ExerciseCardProps) {
   const [isExpanded, setIsExpanded] = useState(true);
   const [newSetKey, setNewSetKey] = useState(0);
+  const [isEditingNote, setIsEditingNote] = useState(false);
+  const [noteText, setNoteText] = useState('');
 
   const exercise = workoutExercise.exercise;
   const isCompleted = workoutExercise.is_completed;
@@ -56,6 +60,9 @@ export function ExerciseCard({
   const sets = workoutExercise.sets || [];
   const workingSets = sets.filter(s => !s.is_warmup);
   const warmupSets = sets.filter(s => s.is_warmup);
+
+  // Fetch persistent exercise notes
+  const { note: exerciseNote, saveNote, deleteNote, isLoading: noteLoading } = useExerciseNotes(workoutExercise.exercise_id);
 
   // Auto-collapse when marked complete
   useEffect(() => {
@@ -109,6 +116,33 @@ export function ExerciseCard({
       onUpdateCardioLog(cardioLog.id, data);
     }
   }, [cardioLog, onUpdateCardioLog]);
+
+  const handleStartEditNote = useCallback(() => {
+    setNoteText(exerciseNote?.note || '');
+    setIsEditingNote(true);
+  }, [exerciseNote]);
+
+  const handleSaveNote = useCallback(async () => {
+    if (noteText.trim()) {
+      const success = await saveNote(noteText.trim());
+      if (success) {
+        setIsEditingNote(false);
+      }
+    }
+  }, [noteText, saveNote]);
+
+  const handleCancelEditNote = useCallback(() => {
+    setIsEditingNote(false);
+    setNoteText('');
+  }, []);
+
+  const handleDeleteNote = useCallback(async () => {
+    const success = await deleteNote();
+    if (success) {
+      setIsEditingNote(false);
+      setNoteText('');
+    }
+  }, [deleteNote]);
 
   if (!exercise) return null;
 
@@ -208,6 +242,11 @@ export function ExerciseCard({
               </DropdownMenuItem>
             )}
             {(onLinkSuperset || supersetBadge) && <DropdownMenuSeparator />}
+            <DropdownMenuItem onClick={handleStartEditNote}>
+              <MessageSquare className="h-4 w-4 mr-2" />
+              {exerciseNote ? 'Redigera kommentar' : 'Lägg till kommentar'}
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
             <DropdownMenuItem 
               className="text-destructive focus:text-destructive"
               onClick={onRemoveExercise}
@@ -218,6 +257,73 @@ export function ExerciseCard({
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
+
+      {/* Persistent Exercise Note */}
+      {(exerciseNote || isEditingNote) && (
+        <div className="mt-3 p-3 rounded-xl bg-amber-500/10 border border-amber-500/20">
+          {isEditingNote ? (
+            <div className="space-y-2">
+              <div className="flex items-center gap-2 text-amber-600 dark:text-amber-400">
+                <MessageSquare className="h-4 w-4" />
+                <span className="text-sm font-medium">Kommentar</span>
+              </div>
+              <Textarea
+                value={noteText}
+                onChange={(e) => setNoteText(e.target.value)}
+                placeholder="Skriv en kommentar som visas varje gång du gör denna övning..."
+                className="min-h-[80px] bg-background/50 border-amber-500/30 focus:border-amber-500"
+                autoFocus
+              />
+              <div className="flex items-center justify-between">
+                <div className="flex gap-2">
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={handleCancelEditNote}
+                    className="h-8"
+                  >
+                    <X className="h-4 w-4 mr-1" />
+                    Avbryt
+                  </Button>
+                  {exerciseNote && (
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={handleDeleteNote}
+                      className="h-8 text-destructive hover:text-destructive"
+                    >
+                      <Trash2 className="h-4 w-4 mr-1" />
+                      Ta bort
+                    </Button>
+                  )}
+                </div>
+                <Button
+                  size="sm"
+                  onClick={handleSaveNote}
+                  disabled={!noteText.trim()}
+                  className="h-8"
+                >
+                  <Check className="h-4 w-4 mr-1" />
+                  Spara
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <div className="flex items-start gap-2">
+              <MessageSquare className="h-4 w-4 text-amber-600 dark:text-amber-400 mt-0.5 shrink-0" />
+              <p className="text-sm text-amber-700 dark:text-amber-300 flex-1">{exerciseNote?.note}</p>
+              <Button
+                size="icon"
+                variant="ghost"
+                onClick={handleStartEditNote}
+                className="h-6 w-6 shrink-0 text-amber-600 dark:text-amber-400 hover:text-amber-700"
+              >
+                <Pencil className="h-3 w-3" />
+              </Button>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Content: Cardio or Sets */}
       {isExpanded && (
