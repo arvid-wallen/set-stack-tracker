@@ -215,12 +215,12 @@ export function usePTChat() {
           throw new Error('Kunde inte starta passet');
         }
 
-        // Add exercises
+        // Add exercises using the workout ID directly to avoid race condition
         let addedCount = 0;
         for (const exercise of data.exercises) {
           const match = findBestExerciseMatch(exercise.exercise_name, allExercises);
           if (match) {
-            await addWorkoutExercise(match.id);
+            await addWorkoutExercise(match.id, workout.id);
             addedCount++;
           }
         }
