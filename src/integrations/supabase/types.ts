@@ -286,6 +286,66 @@ export type Database = {
         }
         Relationships: []
       }
+      pt_profiles: {
+        Row: {
+          age: number | null
+          available_equipment: string[] | null
+          created_at: string | null
+          experience_level: string | null
+          gender: string | null
+          goals: string[] | null
+          health_conditions: string | null
+          height_cm: number | null
+          id: string
+          injuries: string | null
+          onboarding_completed: boolean | null
+          preferred_workout_duration: number | null
+          training_days_per_week: number | null
+          training_years: number | null
+          updated_at: string | null
+          user_id: string
+          weight_kg: number | null
+        }
+        Insert: {
+          age?: number | null
+          available_equipment?: string[] | null
+          created_at?: string | null
+          experience_level?: string | null
+          gender?: string | null
+          goals?: string[] | null
+          health_conditions?: string | null
+          height_cm?: number | null
+          id?: string
+          injuries?: string | null
+          onboarding_completed?: boolean | null
+          preferred_workout_duration?: number | null
+          training_days_per_week?: number | null
+          training_years?: number | null
+          updated_at?: string | null
+          user_id: string
+          weight_kg?: number | null
+        }
+        Update: {
+          age?: number | null
+          available_equipment?: string[] | null
+          created_at?: string | null
+          experience_level?: string | null
+          gender?: string | null
+          goals?: string[] | null
+          health_conditions?: string | null
+          height_cm?: number | null
+          id?: string
+          injuries?: string | null
+          onboarding_completed?: boolean | null
+          preferred_workout_duration?: number | null
+          training_days_per_week?: number | null
+          training_years?: number | null
+          updated_at?: string | null
+          user_id?: string
+          weight_kg?: number | null
+        }
+        Relationships: []
+      }
       routine_exercises: {
         Row: {
           created_at: string

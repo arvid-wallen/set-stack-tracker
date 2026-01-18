@@ -11,6 +11,7 @@ import { AccountSection } from '@/components/profile/AccountSection';
 import { StatsOverview } from '@/components/profile/StatsOverview';
 import { ProgressPhotos } from '@/components/profile/ProgressPhotos';
 import { SettingsSection } from '@/components/profile/SettingsSection';
+import { PTProfileSettings } from '@/components/profile/PTProfileSettings';
 import { Skeleton } from '@/components/ui/skeleton';
 import { exportToCSV } from '@/lib/export-utils';
 
@@ -87,6 +88,8 @@ export default function Profile() {
           />
 
           <ProgressPhotos userId={user.id} />
+
+          <PTProfileSettings />
 
           <SettingsSection onExportData={handleExportData} />
 
