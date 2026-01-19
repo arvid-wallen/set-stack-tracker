@@ -1,9 +1,6 @@
 project_id = "aoibiphmvcffolrznqmn"
 
 [functions.parse-workout-notes]
-verify_jwt = true
-
-[functions.testing-api]
 verify_jwt = false
 
 [functions.pt-chat]
