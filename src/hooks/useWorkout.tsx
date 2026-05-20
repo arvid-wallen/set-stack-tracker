@@ -34,7 +34,7 @@ function useWorkoutImpl() {
   // Sync pending actions when coming online
   const syncPendingActions = async () => {
     if (!hasPendingSync()) return;
-    
+
     const actions = getPendingActions();
     for (const action of actions) {
       try {
@@ -42,12 +42,16 @@ function useWorkoutImpl() {
           await supabase.from('exercise_sets').insert(action.data);
         } else if (action.type === 'deleteSet') {
           await supabase.from('exercise_sets').delete().eq('id', action.data.id);
+        } else if (action.type === 'updateSet') {
+          const { id, ...updates } = action.data;
+          await supabase.from('exercise_sets').update(updates).eq('id', id);
         }
       } catch (error) {
         console.error('Sync error:', error);
       }
     }
     clearPendingActions();
+    // Refetch from server so temp- IDs get replaced with real ones
     checkActiveWorkout();
     toast({ title: 'Synkroniserat!' });
   };
@@ -330,19 +334,28 @@ function useWorkoutImpl() {
 
   const updateSet = async (setId: string, updates: Partial<ExerciseSet>) => {
     try {
+      // Optimistic local update first
+      setExercises(prev => prev.map(exercise => ({
+        ...exercise,
+        sets: exercise.sets?.map(set =>
+          set.id === setId ? { ...set, ...updates } : set
+        ),
+      })));
+
+      // Skip server sync for temp (unsynced) rows
+      if (setId.startsWith('temp-')) return;
+
+      if (!isOnline) {
+        queueAction({ type: 'updateSet', data: { id: setId, ...updates } });
+        return;
+      }
+
       const { error } = await supabase
         .from('exercise_sets')
         .update(updates)
         .eq('id', setId);
 
       if (error) throw error;
-
-      setExercises(prev => prev.map(exercise => ({
-        ...exercise,
-        sets: exercise.sets?.map(set => 
-          set.id === setId ? { ...set, ...updates } : set
-        ),
-      })));
     } catch (error) {
       console.error('Error updating set:', error);
       toast({ title: 'Kunde inte uppdatera set', variant: 'destructive' });

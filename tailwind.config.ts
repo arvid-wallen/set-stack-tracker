@@ -14,9 +14,9 @@ export default {
     },
     extend: {
       fontFamily: {
-        heading: ['Seriguela', 'serif'],
+        heading: ['Apercu', 'sans-serif'],
         body: ['Apercu', 'sans-serif'],
-        display: ['Seriguela Display', 'serif'],
+        display: ['Apercu', 'sans-serif'],
       },
       colors: {
         border: "hsl(var(--border))",

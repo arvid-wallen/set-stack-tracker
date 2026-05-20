@@ -156,7 +156,7 @@ const Index = () => {
       <main className="px-5 py-8 space-y-8">
         {/* Hero Greeting */}
         <div className="w-full text-center py-8">
-          <h1 className="font-display text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-black leading-tight">
+          <h1 className="font-display text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold leading-tight">
             Tjena, {profile?.first_name || 'du'}! 👋
             <span className="block mt-3">Redo att slakta gymmet idag?</span>
           </h1>
