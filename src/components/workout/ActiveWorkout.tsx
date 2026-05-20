@@ -90,8 +90,9 @@ export function ActiveWorkout() {
           size="icon"
           className="h-12 w-12 rounded-ios-md touch-target"
           onClick={minimizeWorkout}
+          aria-label="Minimera pass"
         >
-          <Minus className="h-5 w-5" />
+          <Minus className="h-5 w-5" aria-hidden="true" />
         </Button>
         
         <div className="flex-1 text-center">
