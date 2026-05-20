@@ -1,28 +1,36 @@
 import { useState, useEffect } from 'react';
-import { Play, Pause } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 
 interface WorkoutTimerProps {
   startedAt: string;
   className?: string;
+  isPaused?: boolean;
+  pausedAt?: number | null;
+  totalPausedMs?: number;
 }
 
-export function WorkoutTimer({ startedAt, className }: WorkoutTimerProps) {
+export function WorkoutTimer({
+  startedAt,
+  className,
+  isPaused = false,
+  pausedAt = null,
+  totalPausedMs = 0,
+}: WorkoutTimerProps) {
   const [elapsed, setElapsed] = useState(0);
 
   useEffect(() => {
     const startTime = new Date(startedAt).getTime();
-    
+
     const updateElapsed = () => {
-      const now = Date.now();
-      setElapsed(Math.floor((now - startTime) / 1000));
+      const reference = isPaused && pausedAt ? pausedAt : Date.now();
+      const ms = reference - startTime - totalPausedMs;
+      setElapsed(Math.max(0, Math.floor(ms / 1000)));
     };
 
     updateElapsed();
+    if (isPaused) return; // frozen while paused
     const interval = setInterval(updateElapsed, 1000);
-
     return () => clearInterval(interval);
-  }, [startedAt]);
+  }, [startedAt, isPaused, pausedAt, totalPausedMs]);
 
   const formatTime = (totalSeconds: number) => {
     const hours = Math.floor(totalSeconds / 3600);
