@@ -117,17 +117,18 @@ export function RoutineLibrary() {
             size="icon"
             className="h-8 w-8"
             onClick={() => toggleFavorite(routine.id)}
+            aria-label={routine.is_favorite ? 'Ta bort favorit' : 'Markera som favorit'}
           >
             <Star className={cn(
               "h-4 w-4",
               routine.is_favorite ? "fill-yellow-500 text-yellow-500" : "text-muted-foreground"
-            )} />
+            )} aria-hidden="true" />
           </Button>
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-8 w-8">
-                <MoreVertical className="h-4 w-4" />
+              <Button variant="ghost" size="icon" className="h-8 w-8" aria-label="Fler val">
+                <MoreVertical className="h-4 w-4" aria-hidden="true" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
