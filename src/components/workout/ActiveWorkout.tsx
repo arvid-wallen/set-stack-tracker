@@ -34,7 +34,13 @@ export function ActiveWorkout() {
     addCardioLog,
     updateCardioLog,
     deleteCardioLog,
+    isPaused,
+    pausedAt,
+    totalPausedMs,
+    pauseWorkout,
+    resumeWorkout,
   } = useWorkout();
+
   
   const navigate = useNavigate();
   const { createRoutine } = useRoutines();
