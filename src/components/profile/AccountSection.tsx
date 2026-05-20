@@ -14,9 +14,11 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-import { Shield, Mail, Key, LogOut, Trash2, Loader2 } from 'lucide-react';
+import { Shield, Mail, Key, LogOut, Trash2, Loader2, AlertTriangle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/hooks/useAuth';
+import { deleteAllUserData } from '@/lib/data-management';
 
 interface AccountSectionProps {
   email: string;
