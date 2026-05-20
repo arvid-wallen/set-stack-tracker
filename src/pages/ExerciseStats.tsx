@@ -36,8 +36,8 @@ export default function ExerciseStats() {
           {/* Header */}
           <div className="flex items-center gap-3">
             <Button variant="ghost" size="icon" asChild>
-              <Link to="/stats">
-                <ArrowLeft className="h-5 w-5" />
+              <Link to="/stats" aria-label="Tillbaka till statistik">
+                <ArrowLeft className="h-5 w-5" aria-hidden="true" />
               </Link>
             </Button>
             <div>

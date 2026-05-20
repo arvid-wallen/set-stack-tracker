@@ -237,8 +237,8 @@ export function ExerciseCard({
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-10 w-10 touch-target rounded-ios-md">
-              <MoreVertical className="h-4 w-4" />
+            <Button variant="ghost" size="icon" className="h-10 w-10 touch-target rounded-ios-md" aria-label="Fler val">
+              <MoreVertical className="h-4 w-4" aria-hidden="true" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="rounded-ios-lg">

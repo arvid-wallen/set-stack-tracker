@@ -65,8 +65,9 @@ export function RestTimer({
           size="icon" 
           className="h-8 w-8"
           onClick={onClose}
+          aria-label="Stäng vilotimer"
         >
-          <X className="h-4 w-4" />
+          <X className="h-4 w-4" aria-hidden="true" />
         </Button>
       </div>
 
@@ -90,11 +91,12 @@ export function RestTimer({
           size="icon"
           className="h-10 w-10"
           onClick={() => setIsRunning(!isRunning)}
+          aria-label={isRunning ? 'Pausa vilotimer' : 'Starta vilotimer'}
         >
           {isRunning ? (
-            <Pause className="h-4 w-4" />
+            <Pause className="h-4 w-4" aria-hidden="true" />
           ) : (
-            <Play className="h-4 w-4" />
+            <Play className="h-4 w-4" aria-hidden="true" />
           )}
         </Button>
 

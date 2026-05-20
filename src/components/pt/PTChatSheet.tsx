@@ -158,8 +158,9 @@ export function PTChatSheet({ isOpen, onClose }: PTChatSheetProps) {
                 size="icon"
                 onClick={clearChat}
                 className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                aria-label="Rensa chatt"
               >
-                <Trash2 className="h-4 w-4" />
+                <Trash2 className="h-4 w-4" aria-hidden="true" />
               </Button>
             )}
           </div>
@@ -241,8 +242,9 @@ export function PTChatSheet({ isOpen, onClose }: PTChatSheetProps) {
               type="submit" 
               size="icon" 
               disabled={!input.trim() || isLoading}
+              aria-label="Skicka meddelande"
             >
-              <Send className="h-4 w-4" />
+              <Send className="h-4 w-4" aria-hidden="true" />
             </Button>
           </div>
         </form>
