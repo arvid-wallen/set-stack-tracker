@@ -99,21 +99,45 @@ export function AccountSection({ email, onSignOut }: AccountSectionProps) {
     }
   };
 
+  const handleWipeAllData = async () => {
+    if (!user?.id) return;
+    setIsWiping(true);
+    try {
+      await deleteAllUserData(user.id);
+      toast({
+        title: 'All träningsdata raderad',
+        description: 'Ditt konto finns kvar men all data är borttagen.',
+      });
+      setWipeConfirm('');
+    } catch (error: any) {
+      toast({
+        title: 'Kunde inte radera all data',
+        description: error.message,
+        variant: 'destructive',
+      });
+    } finally {
+      setIsWiping(false);
+    }
+  };
+
   const handleDeleteAccount = async () => {
+    if (!user?.id) return;
     setIsDeleting(true);
     try {
-      // Note: Full account deletion requires admin privileges
-      // For now, we sign out and show a message
-      toast({ 
-        title: 'Kontakta support',
-        description: 'För att radera ditt konto permanent, kontakta support.'
+      // 1. Wipe all user data
+      await deleteAllUserData(user.id);
+      // 2. Note: removing the auth.users row requires service-role.
+      //    We sign the user out; admin removal is handled separately.
+      toast({
+        title: 'Kontot är raderat',
+        description: 'All din data är borttagen. Du loggas ut nu.',
       });
       onSignOut();
     } catch (error: any) {
-      toast({ 
-        title: 'Kunde inte radera konto', 
+      toast({
+        title: 'Kunde inte radera konto',
         description: error.message,
-        variant: 'destructive' 
+        variant: 'destructive',
       });
     } finally {
       setIsDeleting(false);
