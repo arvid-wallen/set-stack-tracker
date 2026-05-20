@@ -253,6 +253,39 @@ export function SetRow({
           </button>
         )}
       </div>
+
+      {/* RPE chip row (hidden for warmup sets) */}
+      {!isWarmup && (
+        <div className="flex items-center gap-1.5 mt-2 px-1 overflow-x-auto">
+          <span className="text-[10px] font-medium text-muted-foreground/70 shrink-0 mr-0.5">RPE</span>
+          {[6, 7, 8, 9, 10].map((value) => (
+            <button
+              key={value}
+              type="button"
+              onClick={() => setRpe(rpe === value ? null : value)}
+              aria-label={`RPE ${value}`}
+              className={cn(
+                'h-7 min-w-[28px] px-2 rounded-full text-[11px] font-semibold tabular-nums transition-colors shrink-0',
+                rpe === value
+                  ? 'bg-primary/25 text-foreground ring-1 ring-primary/40'
+                  : 'bg-muted/40 text-muted-foreground/70 active:bg-muted'
+              )}
+            >
+              {value}
+            </button>
+          ))}
+          {rpe != null && (
+            <button
+              type="button"
+              onClick={() => setRpe(null)}
+              className="h-7 px-2 rounded-full text-[10px] text-muted-foreground/60 active:bg-muted shrink-0"
+              aria-label="Rensa RPE"
+            >
+              Rensa
+            </button>
+          )}
+        </div>
+      )}
     </div>
   );
 }
