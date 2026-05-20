@@ -99,6 +99,34 @@ export default {
           "50%": { transform: "scale(1.1)", opacity: "0.7" },
           "100%": { transform: "scale(1)", opacity: "1" },
         },
+        "pop": {
+          "0%": { transform: "scale(1)" },
+          "40%": { transform: "scale(1.18)" },
+          "100%": { transform: "scale(1)" },
+        },
+        "tap": {
+          "0%": { transform: "scale(1)" },
+          "50%": { transform: "scale(0.94)" },
+          "100%": { transform: "scale(1)" },
+        },
+        "success-flash": {
+          "0%": { backgroundColor: "transparent" },
+          "30%": { backgroundColor: "hsl(var(--success) / 0.25)" },
+          "100%": { backgroundColor: "transparent" },
+        },
+        "check-draw": {
+          "0%": { transform: "scale(0) rotate(-20deg)", opacity: "0" },
+          "60%": { transform: "scale(1.25) rotate(0deg)", opacity: "1" },
+          "100%": { transform: "scale(1) rotate(0deg)", opacity: "1" },
+        },
+        "slide-in-bottom": {
+          "0%": { opacity: "0", transform: "translateY(12px)" },
+          "100%": { opacity: "1", transform: "translateY(0)" },
+        },
+        "soft-glow": {
+          "0%, 100%": { boxShadow: "0 0 0 0 hsl(var(--primary) / 0)" },
+          "50%": { boxShadow: "0 0 0 6px hsl(var(--primary) / 0.18)" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
@@ -106,6 +134,12 @@ export default {
         "fade-in": "fade-in 0.3s ease-out",
         "slide-up": "slide-up 0.4s ease-out",
         "pulse-ring": "pulse-ring 2s ease-in-out infinite",
+        "pop": "pop 0.35s cubic-bezier(0.34, 1.56, 0.64, 1)",
+        "tap": "tap 0.18s ease-out",
+        "success-flash": "success-flash 0.7s ease-out",
+        "check-draw": "check-draw 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)",
+        "slide-in-bottom": "slide-in-bottom 0.28s cubic-bezier(0.16, 1, 0.3, 1)",
+        "soft-glow": "soft-glow 1.2s ease-out",
       },
     },
   },
