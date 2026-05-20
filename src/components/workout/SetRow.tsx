@@ -10,7 +10,7 @@ interface SetRowProps {
   setNumber: number;
   isNew?: boolean;
   previousSet?: { weight_kg: number | null; reps: number | null };
-  onSave: (data: { weight_kg: number; reps: number; is_warmup: boolean; is_bodyweight: boolean; rpe?: number }) => void;
+  onSave: (data: { weight_kg: number; reps: number; is_warmup: boolean; is_bodyweight: boolean; rpe?: number | null }) => void;
   onDelete?: () => void;
   onStartRest?: () => void;
 }
@@ -28,6 +28,7 @@ export function SetRow({
   const [reps, setReps] = useState(set?.reps?.toString() || '');
   const [isWarmup, setIsWarmup] = useState(set?.is_warmup || false);
   const [isBodyweight, setIsBodyweight] = useState(set?.is_bodyweight || false);
+  const [rpe, setRpe] = useState<number | null>(set?.rpe ?? null);
   const [isEditing, setIsEditing] = useState(isNew);
   const [showSaveAnimation, setShowSaveAnimation] = useState(false);
 
@@ -46,6 +47,7 @@ export function SetRow({
       setReps(set.reps?.toString() || '');
       setIsWarmup(set.is_warmup || false);
       setIsBodyweight(set.is_bodyweight || false);
+      setRpe(set.rpe ?? null);
     }
   }, [set, isNew]);
 
@@ -61,6 +63,7 @@ export function SetRow({
       reps: parseInt(reps),
       is_warmup: isWarmup,
       is_bodyweight: isBodyweight,
+      rpe: isWarmup ? null : rpe,
     });
 
     setIsEditing(false);
