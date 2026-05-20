@@ -111,9 +111,12 @@
     --ios-shadow-lg: 0 4px 16px hsla(0, 0%, 0%, 0.12);
     --ios-shadow-up: 0 -4px 16px hsla(0, 0%, 0%, 0.08);
 
-    --font-heading: 'Seriguela', serif;
+    --font-heading: 'Apercu', sans-serif;
     --font-body: 'Apercu', sans-serif;
-    --font-display: 'Seriguela Display', serif;
+    --font-display: 'Apercu', sans-serif;
+
+    /* Readable dark green used wherever brand green appears as text */
+    --primary-ink: 123 45% 22%;
   }
 
   .dark {
@@ -150,6 +153,9 @@
     --border: 120 2% 22%;
     --input: 120 2% 22%;
     --ring: 123 93% 82%;
+
+    /* Lighter ink for dark mode readability */
+    --primary-ink: 123 70% 78%;
   }
 }
 
@@ -277,4 +283,8 @@
   .animate-set-saved {
     animation: set-saved 0.3s ease-out;
   }
+
+  /* Brand lime green is hard to read as text. Render `text-primary` as a
+     deep readable green while keeping bg-primary lime for fills/buttons. */
+  .text-primary { color: hsl(var(--primary-ink)) !important; }
 }
