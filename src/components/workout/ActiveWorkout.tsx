@@ -227,9 +227,13 @@ export function ActiveWorkout() {
           // Avsluta workout FÖRST (så startsidan inte tror att ett pass fortfarande är aktivt)
           await endWorkout(rating, notes, customDuration);
 
+          // Konfetti-puff 🎉
+          celebrate();
+
           // Alltid tillbaka till hem
           navigate('/', { replace: true });
         }}
+
         onDiscard={async () => {
           setShowEndSheet(false);
           await discardWorkout();
