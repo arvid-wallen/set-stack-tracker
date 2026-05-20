@@ -14,6 +14,21 @@ interface SettingsSectionProps {
 
 export function SettingsSection({ onExportData }: SettingsSectionProps) {
   const { theme, setTheme } = useTheme();
+  const { user } = useAuth();
+  const [isExportingJson, setIsExportingJson] = useState(false);
+
+  const handleExportJSON = async () => {
+    if (!user?.id) return;
+    setIsExportingJson(true);
+    try {
+      await exportAllDataAsJSON(user.id);
+      toast.success('All data exporterad till JSON');
+    } catch (e: any) {
+      toast.error('Kunde inte exportera data', { description: e.message });
+    } finally {
+      setIsExportingJson(false);
+    }
+  };
 
   return (
     <Card className="rounded-2xl shadow-ios">
