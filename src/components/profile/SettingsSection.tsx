@@ -1,8 +1,12 @@
+import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Settings, Download, Smartphone, Moon, Sun } from 'lucide-react';
+import { Settings, Download, Smartphone, Moon, Sun, FileJson, Loader2 } from 'lucide-react';
 import { useTheme } from 'next-themes';
+import { useAuth } from '@/hooks/useAuth';
+import { exportAllDataAsJSON } from '@/lib/data-management';
+import { toast } from 'sonner';
 
 interface SettingsSectionProps {
   onExportData: () => void;
