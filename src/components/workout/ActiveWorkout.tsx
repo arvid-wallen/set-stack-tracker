@@ -9,6 +9,8 @@ import { RestTimer } from './RestTimer';
 import { ExerciseCard } from './ExerciseCard';
 import { ExerciseSearch } from './ExerciseSearch';
 import { EndWorkoutSheet } from './EndWorkoutSheet';
+import { celebrate } from '@/lib/celebrate';
+
 import { useWorkout } from '@/hooks/useWorkout';
 import { useRoutines } from '@/hooks/useRoutines';
 import { WORKOUT_TYPE_LABELS, Exercise } from '@/types/workout';
