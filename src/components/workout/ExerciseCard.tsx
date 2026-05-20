@@ -410,6 +410,13 @@ export function ExerciseCard({
           )}
         </div>
       )}
+
+      <ExerciseHistorySheet
+        open={showHistory}
+        onOpenChange={setShowHistory}
+        exerciseId={workoutExercise.exercise_id}
+        exerciseName={exercise.name}
+      />
     </Card>
   );
 }
