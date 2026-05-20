@@ -153,6 +153,9 @@
     --border: 120 2% 22%;
     --input: 120 2% 22%;
     --ring: 123 93% 82%;
+
+    /* Lighter ink for dark mode readability */
+    --primary-ink: 123 70% 78%;
   }
 }
 
