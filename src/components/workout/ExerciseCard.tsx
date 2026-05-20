@@ -23,6 +23,7 @@ import { cn } from '@/lib/utils';
 interface ExerciseCardProps {
   workoutExercise: WorkoutExercise;
   onAddSet: (data: Partial<ExerciseSet>) => void;
+  onUpdateSet?: (setId: string, data: Partial<ExerciseSet>) => void;
   onDeleteSet: (setId: string) => void;
   onRemoveExercise: () => void;
   onStartRest: () => void;
@@ -38,6 +39,7 @@ interface ExerciseCardProps {
 export function ExerciseCard({
   workoutExercise,
   onAddSet,
+  onUpdateSet,
   onDeleteSet,
   onRemoveExercise,
   onStartRest,
@@ -372,7 +374,7 @@ export function ExerciseCard({
                   key={set.id}
                   set={set}
                   setNumber={i + 1}
-                  onSave={() => {}}
+                  onSave={(data) => onUpdateSet?.(set.id, data)}
                   onDelete={() => onDeleteSet(set.id)}
                 />
               ))}
@@ -387,7 +389,7 @@ export function ExerciseCard({
                     weight_kg: workingSets[i - 1].weight_kg,
                     reps: workingSets[i - 1].reps,
                   } : undefined}
-                  onSave={() => {}}
+                  onSave={(data) => onUpdateSet?.(set.id, data)}
                   onDelete={() => onDeleteSet(set.id)}
                 />
               ))}

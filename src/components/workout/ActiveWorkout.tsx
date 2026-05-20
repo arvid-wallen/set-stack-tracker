@@ -24,6 +24,7 @@ export function ActiveWorkout() {
     addExercise, 
     removeExercise, 
     addSet, 
+    updateSet,
     deleteSet, 
     endWorkout,
     discardWorkout,
@@ -124,6 +125,7 @@ export function ActiveWorkout() {
                 key={workoutExercise.id}
                 workoutExercise={workoutExercise}
                 onAddSet={(data) => addSet(workoutExercise.id, data)}
+                onUpdateSet={(setId, data) => updateSet(setId, data)}
                 onDeleteSet={(setId) => deleteSet(setId, workoutExercise.id)}
                 onRemoveExercise={() => removeExercise(workoutExercise.id)}
                 onStartRest={() => setShowRestTimer(true)}
