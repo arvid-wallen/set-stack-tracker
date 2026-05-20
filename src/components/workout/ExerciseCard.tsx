@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from 'react';
-import { ChevronDown, ChevronUp, Trash2, MoreVertical, Link2, Unlink, Circle, CheckCircle2, Activity, MessageSquare, Pencil, X, Check } from 'lucide-react';
+import { ChevronDown, ChevronUp, Trash2, MoreVertical, Link2, Unlink, Circle, CheckCircle2, Activity, MessageSquare, Pencil, X, Check, LineChart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -14,6 +14,7 @@ import {
 import { SetRow } from './SetRow';
 import { CardioLogRow } from './CardioLogRow';
 import { ProgressiveOverloadSuggestion } from './ProgressiveOverloadSuggestion';
+import { ExerciseHistorySheet } from './ExerciseHistorySheet';
 import { useProgressiveOverload } from '@/hooks/useProgressiveOverload';
 import { useExerciseNotes } from '@/hooks/useExerciseNotes';
 import { WorkoutExercise, ExerciseSet, CardioLog, MUSCLE_GROUP_LABELS, CardioType } from '@/types/workout';
@@ -52,6 +53,7 @@ export function ExerciseCard({
   const [newSetKey, setNewSetKey] = useState(0);
   const [isEditingNote, setIsEditingNote] = useState(false);
   const [noteText, setNoteText] = useState('');
+  const [showHistory, setShowHistory] = useState(false);
 
   const exercise = workoutExercise.exercise;
   const isCompleted = workoutExercise.is_completed;
@@ -242,6 +244,10 @@ export function ExerciseCard({
               </DropdownMenuItem>
             )}
             {(onLinkSuperset || supersetBadge) && <DropdownMenuSeparator />}
+            <DropdownMenuItem onClick={() => setShowHistory(true)}>
+              <LineChart className="h-4 w-4 mr-2" />
+              Visa historik & trend
+            </DropdownMenuItem>
             <DropdownMenuItem onClick={handleStartEditNote}>
               <MessageSquare className="h-4 w-4 mr-2" />
               {exerciseNote ? 'Redigera kommentar' : 'Lägg till kommentar'}
