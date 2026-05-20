@@ -242,8 +242,9 @@ export function PTChatSheet({ isOpen, onClose }: PTChatSheetProps) {
               type="submit" 
               size="icon" 
               disabled={!input.trim() || isLoading}
+              aria-label="Skicka meddelande"
             >
-              <Send className="h-4 w-4" />
+              <Send className="h-4 w-4" aria-hidden="true" />
             </Button>
           </div>
         </form>
