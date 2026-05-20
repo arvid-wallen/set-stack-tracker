@@ -3,16 +3,77 @@ import { supabase } from '@/integrations/supabase/client';
 import { WorkoutSession, WorkoutExercise, ExerciseSet, WorkoutType, CardioLog } from '@/types/workout';
 import { useToast } from '@/hooks/use-toast';
 import { saveWorkoutToLocal, getLocalWorkout, clearLocalWorkout, hasPendingSync, getPendingActions, clearPendingActions, queueAction } from '@/lib/offline-storage';
+const IDLE_TIMEOUT_MS = 15 * 60 * 1000; // 15 min
+
 function useWorkoutImpl() {
   const [activeWorkout, setActiveWorkout] = useState<WorkoutSession | null>(null);
   const [exercises, setExercises] = useState<WorkoutExercise[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [isMinimized, setIsMinimized] = useState(false);
+  const [isPaused, setIsPaused] = useState(false);
+  const [pausedAt, setPausedAt] = useState<number | null>(null);
+  const [totalPausedMs, setTotalPausedMs] = useState(0);
   const { toast } = useToast();
 
   const minimizeWorkout = () => setIsMinimized(true);
   const expandWorkout = () => setIsMinimized(false);
+
+  const pauseWorkout = useCallback((auto = false) => {
+    setIsPaused(prev => {
+      if (prev) return prev;
+      setPausedAt(Date.now());
+      if (auto) {
+        toast({ title: 'Pass pausat', description: 'Inaktiv i 15 min – tryck för att fortsätta' });
+      }
+      return true;
+    });
+  }, [toast]);
+
+  const resumeWorkout = useCallback(() => {
+    setIsPaused(prev => {
+      if (!prev) return prev;
+      setPausedAt(pa => {
+        if (pa) setTotalPausedMs(t => t + (Date.now() - pa));
+        return null;
+      });
+      return false;
+    });
+  }, []);
+
+  // Reset pause state when no workout / new workout starts
+  useEffect(() => {
+    if (!activeWorkout) {
+      setIsPaused(false);
+      setPausedAt(null);
+      setTotalPausedMs(0);
+    }
+  }, [activeWorkout?.id]);
+
+  // Idle auto-pause: any user interaction resets the 15-min timer
+  useEffect(() => {
+    if (!activeWorkout) return;
+
+    let timer: ReturnType<typeof setTimeout> | null = null;
+    const reset = () => {
+      if (timer) clearTimeout(timer);
+      timer = setTimeout(() => pauseWorkout(true), IDLE_TIMEOUT_MS);
+    };
+    const onActivity = () => {
+      if (isPaused) resumeWorkout();
+      reset();
+    };
+
+    reset();
+    const events = ['pointerdown', 'keydown', 'touchstart', 'visibilitychange'] as const;
+    events.forEach(e => window.addEventListener(e, onActivity, { passive: true } as any));
+
+    return () => {
+      if (timer) clearTimeout(timer);
+      events.forEach(e => window.removeEventListener(e, onActivity as any));
+    };
+  }, [activeWorkout, isPaused, pauseWorkout, resumeWorkout]);
+
 
   // Online/offline detection
   useEffect(() => {
@@ -158,7 +219,10 @@ function useWorkoutImpl() {
     try {
       const endTime = new Date();
       const startTime = new Date(activeWorkout.started_at);
-      const calculatedDuration = Math.floor((endTime.getTime() - startTime.getTime()) / 1000);
+      const pausedNowMs = isPaused && pausedAt ? Date.now() - pausedAt : 0;
+      const elapsedMs = endTime.getTime() - startTime.getTime() - totalPausedMs - pausedNowMs;
+      const calculatedDuration = Math.max(0, Math.floor(elapsedMs / 1000));
+
       
       // Use custom duration if provided, otherwise use calculated
       const durationSeconds = customDuration ?? calculatedDuration;
@@ -554,8 +618,14 @@ function useWorkoutImpl() {
     updateCardioLog,
     deleteCardioLog,
     discardWorkout,
+    isPaused,
+    pausedAt,
+    totalPausedMs,
+    pauseWorkout,
+    resumeWorkout,
     refreshWorkout: checkActiveWorkout,
   };
+
 }
 
 type WorkoutContextValue = ReturnType<typeof useWorkoutImpl>;

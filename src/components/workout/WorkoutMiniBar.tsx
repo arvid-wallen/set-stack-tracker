@@ -1,11 +1,11 @@
-import { Dumbbell, ChevronUp, WifiOff } from 'lucide-react';
+import { Dumbbell, ChevronUp, WifiOff, Pause } from 'lucide-react';
 import { WorkoutTimer } from './WorkoutTimer';
 import { useWorkout } from '@/hooks/useWorkout';
 import { WORKOUT_TYPE_LABELS } from '@/types/workout';
 import { cn } from '@/lib/utils';
 
 export function WorkoutMiniBar() {
-  const { activeWorkout, isMinimized, expandWorkout, isOnline } = useWorkout();
+  const { activeWorkout, isMinimized, expandWorkout, isOnline, isPaused, pausedAt, totalPausedMs } = useWorkout();
 
   if (!activeWorkout || !isMinimized) {
     return null;
@@ -36,15 +36,23 @@ export function WorkoutMiniBar() {
         <span className="font-medium text-sm truncate">
           {workoutName}
         </span>
+        {isPaused && (
+          <span className="flex items-center gap-1 text-xs text-muted-foreground">
+            <Pause className="h-3 w-3" /> Pausad
+          </span>
+        )}
         {!isOnline && (
           <WifiOff className="h-3.5 w-3.5 text-warning flex-shrink-0" />
         )}
       </div>
 
       <div className="flex items-center gap-3">
-        <WorkoutTimer 
-          startedAt={activeWorkout.started_at} 
-          className="text-sm font-mono text-muted-foreground" 
+        <WorkoutTimer
+          startedAt={activeWorkout.started_at}
+          isPaused={isPaused}
+          pausedAt={pausedAt}
+          totalPausedMs={totalPausedMs}
+          className="text-sm font-mono text-muted-foreground"
         />
         <ChevronUp className="h-5 w-5 text-muted-foreground" />
       </div>

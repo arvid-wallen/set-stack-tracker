@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Minus, Clock, Dumbbell, WifiOff } from 'lucide-react';
+import { Minus, Clock, Dumbbell, WifiOff, Pause, Play } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -34,7 +34,13 @@ export function ActiveWorkout() {
     addCardioLog,
     updateCardioLog,
     deleteCardioLog,
+    isPaused,
+    pausedAt,
+    totalPausedMs,
+    pauseWorkout,
+    resumeWorkout,
   } = useWorkout();
+
   
   const navigate = useNavigate();
   const { createRoutine } = useRoutines();
@@ -51,10 +57,12 @@ export function ActiveWorkout() {
 
   const getDurationSeconds = () => {
     if (!activeWorkout) return 0;
-    const start = new Date(activeWorkout.started_at);
-    const now = new Date();
-    return Math.floor((now.getTime() - start.getTime()) / 1000);
+    const start = new Date(activeWorkout.started_at).getTime();
+    const pausedNow = isPaused && pausedAt ? Date.now() - pausedAt : 0;
+    const ms = Date.now() - start - totalPausedMs - pausedNow;
+    return Math.max(0, Math.floor(ms / 1000));
   };
+
 
   const formatDuration = (seconds: number) => {
     const hours = Math.floor(seconds / 3600);
@@ -90,11 +98,29 @@ export function ActiveWorkout() {
           </h1>
           <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
             <Clock className="h-3 w-3" />
-            <WorkoutTimer startedAt={activeWorkout.started_at} className="text-sm !text-muted-foreground" />
+            <WorkoutTimer
+              startedAt={activeWorkout.started_at}
+              isPaused={isPaused}
+              pausedAt={pausedAt}
+              totalPausedMs={totalPausedMs}
+              className="text-sm !text-muted-foreground"
+            />
           </div>
         </div>
 
         <div className="flex items-center gap-2">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-10 w-10 rounded-full touch-target"
+            onClick={() => (isPaused ? resumeWorkout() : pauseWorkout(false))}
+            aria-label={isPaused ? 'Återuppta pass' : 'Pausa pass'}
+          >
+            {isPaused ? <Play className="h-4 w-4" /> : <Pause className="h-4 w-4" />}
+          </Button>
+          {isPaused && (
+            <Badge variant="outline" className="rounded-full">Pausad</Badge>
+          )}
           {/* Offline indicator */}
           {!isOnline && (
             <Badge variant="outline" className="text-warning border-warning rounded-full">
@@ -106,6 +132,7 @@ export function ActiveWorkout() {
             {totalSets} set
           </Badge>
         </div>
+
       </header>
 
       {/* Exercise list */}
