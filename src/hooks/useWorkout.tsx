@@ -618,8 +618,14 @@ function useWorkoutImpl() {
     updateCardioLog,
     deleteCardioLog,
     discardWorkout,
+    isPaused,
+    pausedAt,
+    totalPausedMs,
+    pauseWorkout,
+    resumeWorkout,
     refreshWorkout: checkActiveWorkout,
   };
+
 }
 
 type WorkoutContextValue = ReturnType<typeof useWorkoutImpl>;
