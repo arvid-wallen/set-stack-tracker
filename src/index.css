@@ -287,4 +287,23 @@
   /* Brand lime green is hard to read as text. Render `text-primary` as a
      deep readable green while keeping bg-primary lime for fills/buttons. */
   .text-primary { color: hsl(var(--primary-ink)) !important; }
+
+  /* Tasteful micro-interaction utilities */
+  .press-feedback {
+    @apply transition-transform duration-150 ease-out active:scale-[0.96];
+  }
+  .lift-on-hover {
+    @apply transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-ios;
+  }
+}
+
+/* Respect users that prefer no motion */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
 }
