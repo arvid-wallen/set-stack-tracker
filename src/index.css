@@ -283,4 +283,8 @@
   .animate-set-saved {
     animation: set-saved 0.3s ease-out;
   }
+
+  /* Brand lime green is hard to read as text. Render `text-primary` as a
+     deep readable green while keeping bg-primary lime for fills/buttons. */
+  .text-primary { color: hsl(var(--primary-ink)) !important; }
 }
