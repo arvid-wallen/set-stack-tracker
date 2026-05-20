@@ -88,10 +88,10 @@ export function SetRow({
         type="button"
         onClick={handleEdit}
         className={cn(
-          'w-full flex items-center gap-3 py-2.5 px-2 rounded-xl transition-colors text-left',
-          'active:bg-accent/60 hover:bg-accent/30',
+          'w-full flex items-center gap-3 py-2.5 px-2 rounded-xl text-left',
+          'transition-colors duration-150 active:bg-accent/60 hover:bg-accent/30 active:scale-[0.99]',
           isWarmup && 'bg-warning/5',
-          showSaveAnimation && 'bg-success/20'
+          showSaveAnimation && 'animate-success-flash'
         )}
       >
         <div className="w-7 h-7 flex items-center justify-center shrink-0 rounded-full bg-muted/60">
@@ -118,7 +118,7 @@ export function SetRow({
             e.stopPropagation();
             onDelete?.();
           }}
-          className="h-9 w-9 flex items-center justify-center rounded-full text-muted-foreground/60 active:bg-destructive/10 active:text-destructive shrink-0"
+          className="h-9 w-9 flex items-center justify-center rounded-full text-muted-foreground/60 active:bg-destructive/10 active:text-destructive shrink-0 transition-colors active:scale-90"
           aria-label="Ta bort set"
         >
           <X className="h-4 w-4" />
@@ -132,8 +132,9 @@ export function SetRow({
     <div
       className={cn(
         'rounded-xl p-2 transition-all',
+        isNew && 'animate-slide-in-bottom',
         isWarmup && 'bg-warning/5',
-        showSaveAnimation && 'bg-success/20 scale-[1.01]'
+        showSaveAnimation && 'animate-success-flash'
       )}
     >
       {/* Hint row: previous set */}
@@ -191,14 +192,14 @@ export function SetRow({
           onClick={handleSave}
           disabled={!canSave}
           className={cn(
-            'h-12 w-12 p-0 rounded-xl shrink-0 transition-all',
+            'h-12 w-12 p-0 rounded-xl shrink-0 transition-all duration-200 active:scale-90',
             canSave
-              ? 'bg-success hover:bg-success/90 text-white shadow-sm'
+              ? 'bg-success hover:bg-success/90 text-white shadow-sm animate-soft-glow'
               : 'bg-muted text-muted-foreground'
           )}
           aria-label="Spara set"
         >
-          <Check className="h-5 w-5" />
+          <Check className={cn('h-5 w-5', showSaveAnimation && 'animate-check-draw')} />
         </Button>
       </div>
 
