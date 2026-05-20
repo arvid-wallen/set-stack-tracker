@@ -28,24 +28,13 @@ export function useAuth() {
   };
 
   useEffect(() => {
-    // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      setIsLoading(false);
-      
-      if (session?.user) {
-        setTimeout(() => fetchProfile(session.user.id), 0);
-      }
-    });
-
-    // Listen for auth changes
+    // Subscribe first so we never miss an auth event between getSession and the listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (_event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
         setIsLoading(false);
-        
+
         if (session?.user) {
           setTimeout(() => fetchProfile(session.user.id), 0);
         } else {
@@ -53,6 +42,17 @@ export function useAuth() {
         }
       }
     );
+
+    // Then check for existing session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setUser(session?.user ?? null);
+      setIsLoading(false);
+
+      if (session?.user) {
+        setTimeout(() => fetchProfile(session.user.id), 0);
+      }
+    });
 
     return () => subscription.unsubscribe();
   }, []);

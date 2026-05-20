@@ -1,66 +1,41 @@
-const CACHE_NAME = 'gym-tracker-v1';
-const STATIC_ASSETS = [
-  '/',
-  '/index.html',
-  '/manifest.json',
-];
+// Bump this on any SW logic change to evict old caches
+const CACHE_NAME = 'gym-tracker-v2';
 
-// Install event - cache static assets
+// Only the app shell — hashed JS/CSS bypasses SW entirely
+const STATIC_ASSETS = ['/', '/index.html', '/manifest.json'];
+
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(STATIC_ASSETS);
-    })
+    caches.open(CACHE_NAME).then((cache) => cache.addAll(STATIC_ASSETS))
   );
   self.skipWaiting();
 });
 
-// Activate event - clean up old caches
 self.addEventListener('activate', (event) => {
   event.waitUntil(
-    caches.keys().then((cacheNames) => {
-      return Promise.all(
-        cacheNames
-          .filter((name) => name !== CACHE_NAME)
-          .map((name) => caches.delete(name))
-      );
-    })
+    caches.keys().then((names) =>
+      Promise.all(names.filter((n) => n !== CACHE_NAME).map((n) => caches.delete(n)))
+    )
   );
   self.clients.claim();
 });
 
-// Fetch event - network first, fallback to cache
+// Network-first ONLY for navigations (HTML). Everything else is passed through
+// to the browser so hashed JS/CSS chunks update normally with every deploy.
 self.addEventListener('fetch', (event) => {
-  // Skip non-GET requests
-  if (event.request.method !== 'GET') return;
-
-  // Skip API requests (let them fail naturally for offline handling)
-  if (event.request.url.includes('/rest/') || event.request.url.includes('/auth/')) {
-    return;
-  }
+  const req = event.request;
+  if (req.method !== 'GET') return;
+  if (req.mode !== 'navigate') return;
 
   event.respondWith(
-    fetch(event.request)
+    fetch(req)
       .then((response) => {
-        // Clone the response before caching
-        const responseClone = response.clone();
-        caches.open(CACHE_NAME).then((cache) => {
-          cache.put(event.request, responseClone);
-        });
+        const clone = response.clone();
+        caches.open(CACHE_NAME).then((cache) => cache.put(req, clone));
         return response;
       })
-      .catch(() => {
-        // Return cached version if network fails
-        return caches.match(event.request).then((cachedResponse) => {
-          if (cachedResponse) {
-            return cachedResponse;
-          }
-          // Return the offline page for navigation requests
-          if (event.request.mode === 'navigate') {
-            return caches.match('/');
-          }
-          return new Response('Offline', { status: 503 });
-        });
-      })
+      .catch(() =>
+        caches.match(req).then((cached) => cached || caches.match('/') || new Response('Offline', { status: 503 }))
+      )
   );
 });
