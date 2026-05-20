@@ -98,7 +98,7 @@ export function ExerciseCard({
     reps: number; 
     is_warmup: boolean; 
     is_bodyweight: boolean;
-    rpe?: number;
+    rpe?: number | null;
   }) => {
     onAddSet({
       ...data,
