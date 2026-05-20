@@ -111,9 +111,12 @@
     --ios-shadow-lg: 0 4px 16px hsla(0, 0%, 0%, 0.12);
     --ios-shadow-up: 0 -4px 16px hsla(0, 0%, 0%, 0.08);
 
-    --font-heading: 'Seriguela', serif;
+    --font-heading: 'Apercu', sans-serif;
     --font-body: 'Apercu', sans-serif;
-    --font-display: 'Seriguela Display', serif;
+    --font-display: 'Apercu', sans-serif;
+
+    /* Readable dark green used wherever brand green appears as text */
+    --primary-ink: 123 45% 22%;
   }
 
   .dark {
