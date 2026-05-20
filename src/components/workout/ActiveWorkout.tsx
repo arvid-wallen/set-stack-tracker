@@ -96,11 +96,29 @@ export function ActiveWorkout() {
           </h1>
           <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
             <Clock className="h-3 w-3" />
-            <WorkoutTimer startedAt={activeWorkout.started_at} className="text-sm !text-muted-foreground" />
+            <WorkoutTimer
+              startedAt={activeWorkout.started_at}
+              isPaused={isPaused}
+              pausedAt={pausedAt}
+              totalPausedMs={totalPausedMs}
+              className="text-sm !text-muted-foreground"
+            />
           </div>
         </div>
 
         <div className="flex items-center gap-2">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-10 w-10 rounded-full touch-target"
+            onClick={() => (isPaused ? resumeWorkout() : pauseWorkout(false))}
+            aria-label={isPaused ? 'Återuppta pass' : 'Pausa pass'}
+          >
+            {isPaused ? <Play className="h-4 w-4" /> : <Pause className="h-4 w-4" />}
+          </Button>
+          {isPaused && (
+            <Badge variant="outline" className="rounded-full">Pausad</Badge>
+          )}
           {/* Offline indicator */}
           {!isOnline && (
             <Badge variant="outline" className="text-warning border-warning rounded-full">
@@ -112,6 +130,7 @@ export function ActiveWorkout() {
             {totalSets} set
           </Badge>
         </div>
+
       </header>
 
       {/* Exercise list */}
