@@ -66,21 +66,46 @@ export function SettingsSection({ onExportData }: SettingsSectionProps) {
           </Button>
         </div>
 
-        {/* Export data */}
+        {/* Export CSV */}
         <div className="flex items-center justify-between p-4 rounded-2xl bg-muted/50 border border-border/50">
           <div className="flex items-center gap-3">
             <div className="p-2 rounded-ios-md bg-primary/10">
               <Download className="h-5 w-5 text-primary" />
             </div>
             <div>
-              <p className="text-sm font-medium">Exportera data</p>
+              <p className="text-sm font-medium">Exportera CSV</p>
               <p className="text-xs text-muted-foreground">
-                Ladda ner all din träningsdata
+                Pass och set i tabellformat
               </p>
             </div>
           </div>
-          <Button variant="outline" size="sm" className="rounded-ios-md" onClick={onExportData}>
+          <Button variant="outline" size="sm" className="rounded-ios-md" onClick={onExportData} aria-label="Exportera till CSV">
             Exportera
+          </Button>
+        </div>
+
+        {/* Export full JSON */}
+        <div className="flex items-center justify-between p-4 rounded-2xl bg-muted/50 border border-border/50">
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-ios-md bg-primary/10">
+              <FileJson className="h-5 w-5 text-primary" />
+            </div>
+            <div>
+              <p className="text-sm font-medium">Exportera all data (JSON)</p>
+              <p className="text-xs text-muted-foreground">
+                Full backup – profil, pass, mål, foton-länkar m.m.
+              </p>
+            </div>
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            className="rounded-ios-md"
+            onClick={handleExportJSON}
+            disabled={isExportingJson}
+            aria-label="Exportera all data som JSON"
+          >
+            {isExportingJson ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> : 'JSON'}
           </Button>
         </div>
 
