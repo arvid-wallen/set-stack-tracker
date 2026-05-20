@@ -219,7 +219,10 @@ function useWorkoutImpl() {
     try {
       const endTime = new Date();
       const startTime = new Date(activeWorkout.started_at);
-      const calculatedDuration = Math.floor((endTime.getTime() - startTime.getTime()) / 1000);
+      const pausedNowMs = isPaused && pausedAt ? Date.now() - pausedAt : 0;
+      const elapsedMs = endTime.getTime() - startTime.getTime() - totalPausedMs - pausedNowMs;
+      const calculatedDuration = Math.max(0, Math.floor(elapsedMs / 1000));
+
       
       // Use custom duration if provided, otherwise use calculated
       const durationSeconds = customDuration ?? calculatedDuration;
