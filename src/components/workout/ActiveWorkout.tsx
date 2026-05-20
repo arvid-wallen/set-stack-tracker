@@ -245,6 +245,7 @@ export function ActiveWorkout() {
         exerciseCount={workoutExercises.length}
         workoutExercises={workoutExercises}
         workoutStartedAt={activeWorkout.started_at}
+      />
     </div>
   );
 }
