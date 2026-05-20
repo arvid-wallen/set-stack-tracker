@@ -33,7 +33,10 @@ export function AccountSection({ email, onSignOut }: AccountSectionProps) {
   const [isUpdatingEmail, setIsUpdatingEmail] = useState(false);
   const [isUpdatingPassword, setIsUpdatingPassword] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isWiping, setIsWiping] = useState(false);
+  const [wipeConfirm, setWipeConfirm] = useState('');
   const { toast } = useToast();
+  const { user } = useAuth();
 
   const handleUpdateEmail = async () => {
     if (!newEmail.trim()) return;
