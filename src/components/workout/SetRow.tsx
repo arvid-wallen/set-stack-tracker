@@ -113,6 +113,11 @@ export function SetRow({
           <span className="text-muted-foreground/60">×</span>
           <span className="text-base font-semibold tabular-nums">{reps || '-'}</span>
           <span className="text-xs text-muted-foreground">reps</span>
+          {rpe != null && !isWarmup && (
+            <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-primary/15 text-foreground/80 ml-1">
+              RPE {rpe}
+            </span>
+          )}
         </div>
 
         <button
