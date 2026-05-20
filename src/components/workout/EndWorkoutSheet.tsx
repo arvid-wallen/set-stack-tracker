@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Star, Save, Pencil, Trash2 } from 'lucide-react';
+import { Star, Save, Pencil, Trash2, Trophy, TrendingUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
@@ -25,6 +25,8 @@ import {
 } from '@/components/ui/alert-dialog';
 import { cn } from '@/lib/utils';
 import { DurationInput } from '@/components/ui/duration-input';
+import { useWorkoutSummary } from '@/hooks/useWorkoutSummary';
+import { WorkoutExercise } from '@/types/workout';
 
 interface EndWorkoutSheetProps {
   isOpen: boolean;
@@ -35,6 +37,8 @@ interface EndWorkoutSheetProps {
   durationSeconds: number;
   workoutType: string;
   exerciseCount: number;
+  workoutExercises?: WorkoutExercise[];
+  workoutStartedAt?: string | null;
 }
 
 export function EndWorkoutSheet({ 
@@ -45,8 +49,11 @@ export function EndWorkoutSheet({
   totalSets,
   durationSeconds,
   workoutType,
-  exerciseCount
+  exerciseCount,
+  workoutExercises = [],
+  workoutStartedAt = null,
 }: EndWorkoutSheetProps) {
+  const summary = useWorkoutSummary(workoutExercises, workoutStartedAt, isOpen);
   const [rating, setRating] = useState(0);
   const [notes, setNotes] = useState('');
   const [saveAsTemplate, setSaveAsTemplate] = useState(false);
@@ -114,6 +121,46 @@ export function EndWorkoutSheet({
         </SheetHeader>
 
         <div className="space-y-6 pb-8">
+          {/* Workout summary: volume + new PRs */}
+          {(summary.workingSetsCount > 0 || summary.newPRs.length > 0) && (
+            <div className="rounded-xl bg-muted/40 border border-border p-4 space-y-3">
+              <div className="flex items-center gap-2 text-sm font-semibold">
+                <TrendingUp className="h-4 w-4 text-primary" aria-hidden="true" />
+                Sammanfattning
+              </div>
+              <div className="grid grid-cols-2 gap-3 text-center">
+                <div>
+                  <p className="text-2xl font-bold tabular-nums">{summary.totalVolumeKg.toLocaleString('sv-SE')}</p>
+                  <p className="text-[11px] uppercase tracking-wide text-muted-foreground">kg total volym</p>
+                </div>
+                <div>
+                  <p className="text-2xl font-bold tabular-nums">{summary.workingSetsCount}</p>
+                  <p className="text-[11px] uppercase tracking-wide text-muted-foreground">arbetsset</p>
+                </div>
+              </div>
+              {summary.newPRs.length > 0 && (
+                <div className="space-y-1.5 pt-1">
+                  <div className="flex items-center gap-1.5 text-xs font-semibold text-warning">
+                    <Trophy className="h-3.5 w-3.5" aria-hidden="true" />
+                    {summary.newPRs.length === 1 ? 'Nytt PR!' : `${summary.newPRs.length} nya PRs!`}
+                  </div>
+                  <ul className="space-y-1">
+                    {summary.newPRs.slice(0, 5).map((pr) => (
+                      <li key={pr.exerciseId} className="text-xs flex items-baseline justify-between gap-2">
+                        <span className="truncate font-medium">{pr.exerciseName}</span>
+                        <span className="tabular-nums text-muted-foreground shrink-0">
+                          {pr.previousMaxWeight != null ? `${pr.previousMaxWeight} → ` : ''}
+                          <span className="text-foreground font-semibold">{pr.newMaxWeight} kg</span>
+                          {' '}× {pr.reps}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+          )}
+
           {/* Rating */}
           <div>
             <label className="text-sm font-medium mb-3 block">

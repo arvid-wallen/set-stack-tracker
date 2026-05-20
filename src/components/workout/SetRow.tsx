@@ -10,7 +10,7 @@ interface SetRowProps {
   setNumber: number;
   isNew?: boolean;
   previousSet?: { weight_kg: number | null; reps: number | null };
-  onSave: (data: { weight_kg: number; reps: number; is_warmup: boolean; is_bodyweight: boolean; rpe?: number }) => void;
+  onSave: (data: { weight_kg: number; reps: number; is_warmup: boolean; is_bodyweight: boolean; rpe?: number | null }) => void;
   onDelete?: () => void;
   onStartRest?: () => void;
 }
@@ -28,6 +28,7 @@ export function SetRow({
   const [reps, setReps] = useState(set?.reps?.toString() || '');
   const [isWarmup, setIsWarmup] = useState(set?.is_warmup || false);
   const [isBodyweight, setIsBodyweight] = useState(set?.is_bodyweight || false);
+  const [rpe, setRpe] = useState<number | null>(set?.rpe ?? null);
   const [isEditing, setIsEditing] = useState(isNew);
   const [showSaveAnimation, setShowSaveAnimation] = useState(false);
 
@@ -46,6 +47,7 @@ export function SetRow({
       setReps(set.reps?.toString() || '');
       setIsWarmup(set.is_warmup || false);
       setIsBodyweight(set.is_bodyweight || false);
+      setRpe(set.rpe ?? null);
     }
   }, [set, isNew]);
 
@@ -61,6 +63,7 @@ export function SetRow({
       reps: parseInt(reps),
       is_warmup: isWarmup,
       is_bodyweight: isBodyweight,
+      rpe: isWarmup ? null : rpe,
     });
 
     setIsEditing(false);
@@ -110,6 +113,11 @@ export function SetRow({
           <span className="text-muted-foreground/60">×</span>
           <span className="text-base font-semibold tabular-nums">{reps || '-'}</span>
           <span className="text-xs text-muted-foreground">reps</span>
+          {rpe != null && !isWarmup && (
+            <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-primary/15 text-foreground/80 ml-1">
+              RPE {rpe}
+            </span>
+          )}
         </div>
 
         <button
@@ -245,6 +253,39 @@ export function SetRow({
           </button>
         )}
       </div>
+
+      {/* RPE chip row (hidden for warmup sets) */}
+      {!isWarmup && (
+        <div className="flex items-center gap-1.5 mt-2 px-1 overflow-x-auto">
+          <span className="text-[10px] font-medium text-muted-foreground/70 shrink-0 mr-0.5">RPE</span>
+          {[6, 7, 8, 9, 10].map((value) => (
+            <button
+              key={value}
+              type="button"
+              onClick={() => setRpe(rpe === value ? null : value)}
+              aria-label={`RPE ${value}`}
+              className={cn(
+                'h-7 min-w-[28px] px-2 rounded-full text-[11px] font-semibold tabular-nums transition-colors shrink-0',
+                rpe === value
+                  ? 'bg-primary/25 text-foreground ring-1 ring-primary/40'
+                  : 'bg-muted/40 text-muted-foreground/70 active:bg-muted'
+              )}
+            >
+              {value}
+            </button>
+          ))}
+          {rpe != null && (
+            <button
+              type="button"
+              onClick={() => setRpe(null)}
+              className="h-7 px-2 rounded-full text-[10px] text-muted-foreground/60 active:bg-muted shrink-0"
+              aria-label="Rensa RPE"
+            >
+              Rensa
+            </button>
+          )}
+        </div>
+      )}
     </div>
   );
 }

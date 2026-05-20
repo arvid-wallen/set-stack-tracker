@@ -7,6 +7,7 @@ interface Profile {
   first_name: string;
   last_name: string | null;
   avatar_url: string | null;
+  weekly_goal: number;
   created_at: string;
   updated_at: string;
 }
@@ -62,7 +63,7 @@ export function useProfile(userId: string | undefined) {
     fetchProfile();
   }, [userId]);
 
-  const updateProfile = async (updates: Partial<Pick<Profile, 'first_name' | 'last_name' | 'avatar_url'>>) => {
+  const updateProfile = async (updates: Partial<Pick<Profile, 'first_name' | 'last_name' | 'avatar_url' | 'weekly_goal'>>) => {
     if (!userId) return false;
     
     setIsSaving(true);
