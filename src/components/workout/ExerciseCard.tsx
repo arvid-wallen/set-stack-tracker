@@ -365,16 +365,7 @@ export function ExerciseCard({
             />
           ) : (
             /* Strength training sets */
-            <>
-              {/* Header row */}
-              <div className="flex items-center gap-2 sm:gap-3 pb-2 border-b border-border text-xs text-muted-foreground uppercase tracking-wide">
-                <div className="w-8 text-center shrink-0">Set</div>
-                <div className="w-14 text-center shrink-0">Förra</div>
-                <div className="flex-1 text-center min-w-0">Kg</div>
-                <div className="flex-1 text-center min-w-0">Reps</div>
-                <div className="w-auto shrink-0"></div>
-              </div>
-
+            <div className="space-y-1">
               {/* Warmup sets */}
               {warmupSets.map((set, i) => (
                 <SetRow
@@ -402,20 +393,17 @@ export function ExerciseCard({
               ))}
 
               {/* New set row - key changes force remount after save */}
-              <SetRow
-                key={`new-${newSetKey}`}
-                setNumber={workingSets.length + 1}
-                isNew
-                previousSet={previousSetData}
-                onSave={handleSaveNewSet}
-                onStartRest={onStartRest}
-              />
-
-              {/* Add set hint */}
-              <p className="text-xs text-muted-foreground text-center mt-3 py-2">
-                Fyll i och tryck ✓ för att logga set
-              </p>
-            </>
+              <div className="pt-2 mt-1 border-t border-dashed border-border/40">
+                <SetRow
+                  key={`new-${newSetKey}`}
+                  setNumber={workingSets.length + 1}
+                  isNew
+                  previousSet={previousSetData}
+                  onSave={handleSaveNewSet}
+                  onStartRest={onStartRest}
+                />
+              </div>
+            </div>
           )}
         </div>
       )}
