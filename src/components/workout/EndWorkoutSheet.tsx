@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Star, Save, Pencil, Trash2 } from 'lucide-react';
+import { Star, Save, Pencil, Trash2, Trophy, TrendingUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
@@ -25,6 +25,8 @@ import {
 } from '@/components/ui/alert-dialog';
 import { cn } from '@/lib/utils';
 import { DurationInput } from '@/components/ui/duration-input';
+import { useWorkoutSummary } from '@/hooks/useWorkoutSummary';
+import { WorkoutExercise } from '@/types/workout';
 
 interface EndWorkoutSheetProps {
   isOpen: boolean;
@@ -35,6 +37,8 @@ interface EndWorkoutSheetProps {
   durationSeconds: number;
   workoutType: string;
   exerciseCount: number;
+  workoutExercises?: WorkoutExercise[];
+  workoutStartedAt?: string | null;
 }
 
 export function EndWorkoutSheet({ 
@@ -45,8 +49,11 @@ export function EndWorkoutSheet({
   totalSets,
   durationSeconds,
   workoutType,
-  exerciseCount
+  exerciseCount,
+  workoutExercises = [],
+  workoutStartedAt = null,
 }: EndWorkoutSheetProps) {
+  const summary = useWorkoutSummary(workoutExercises, workoutStartedAt, isOpen);
   const [rating, setRating] = useState(0);
   const [notes, setNotes] = useState('');
   const [saveAsTemplate, setSaveAsTemplate] = useState(false);
