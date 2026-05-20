@@ -9,6 +9,8 @@ import { RestTimer } from './RestTimer';
 import { ExerciseCard } from './ExerciseCard';
 import { ExerciseSearch } from './ExerciseSearch';
 import { EndWorkoutSheet } from './EndWorkoutSheet';
+import { celebrate } from '@/lib/celebrate';
+
 import { useWorkout } from '@/hooks/useWorkout';
 import { useRoutines } from '@/hooks/useRoutines';
 import { WORKOUT_TYPE_LABELS, Exercise } from '@/types/workout';
@@ -225,9 +227,13 @@ export function ActiveWorkout() {
           // Avsluta workout FÖRST (så startsidan inte tror att ett pass fortfarande är aktivt)
           await endWorkout(rating, notes, customDuration);
 
+          // Konfetti-puff 🎉
+          celebrate();
+
           // Alltid tillbaka till hem
           navigate('/', { replace: true });
         }}
+
         onDiscard={async () => {
           setShowEndSheet(false);
           await discardWorkout();
