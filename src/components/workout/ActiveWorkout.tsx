@@ -243,7 +243,8 @@ export function ActiveWorkout() {
         durationSeconds={getDurationSeconds()}
         workoutType={activeWorkout.custom_type_name || WORKOUT_TYPE_LABELS[activeWorkout.workout_type]}
         exerciseCount={workoutExercises.length}
-      />
+        workoutExercises={workoutExercises}
+        workoutStartedAt={activeWorkout.started_at}
     </div>
   );
 }

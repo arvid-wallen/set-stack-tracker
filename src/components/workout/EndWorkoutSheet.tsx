@@ -121,6 +121,46 @@ export function EndWorkoutSheet({
         </SheetHeader>
 
         <div className="space-y-6 pb-8">
+          {/* Workout summary: volume + new PRs */}
+          {(summary.workingSetsCount > 0 || summary.newPRs.length > 0) && (
+            <div className="rounded-xl bg-muted/40 border border-border p-4 space-y-3">
+              <div className="flex items-center gap-2 text-sm font-semibold">
+                <TrendingUp className="h-4 w-4 text-primary" aria-hidden="true" />
+                Sammanfattning
+              </div>
+              <div className="grid grid-cols-2 gap-3 text-center">
+                <div>
+                  <p className="text-2xl font-bold tabular-nums">{summary.totalVolumeKg.toLocaleString('sv-SE')}</p>
+                  <p className="text-[11px] uppercase tracking-wide text-muted-foreground">kg total volym</p>
+                </div>
+                <div>
+                  <p className="text-2xl font-bold tabular-nums">{summary.workingSetsCount}</p>
+                  <p className="text-[11px] uppercase tracking-wide text-muted-foreground">arbetsset</p>
+                </div>
+              </div>
+              {summary.newPRs.length > 0 && (
+                <div className="space-y-1.5 pt-1">
+                  <div className="flex items-center gap-1.5 text-xs font-semibold text-warning">
+                    <Trophy className="h-3.5 w-3.5" aria-hidden="true" />
+                    {summary.newPRs.length === 1 ? 'Nytt PR!' : `${summary.newPRs.length} nya PRs!`}
+                  </div>
+                  <ul className="space-y-1">
+                    {summary.newPRs.slice(0, 5).map((pr) => (
+                      <li key={pr.exerciseId} className="text-xs flex items-baseline justify-between gap-2">
+                        <span className="truncate font-medium">{pr.exerciseName}</span>
+                        <span className="tabular-nums text-muted-foreground shrink-0">
+                          {pr.previousMaxWeight != null ? `${pr.previousMaxWeight} → ` : ''}
+                          <span className="text-foreground font-semibold">{pr.newMaxWeight} kg</span>
+                          {' '}× {pr.reps}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+          )}
+
           {/* Rating */}
           <div>
             <label className="text-sm font-medium mb-3 block">
