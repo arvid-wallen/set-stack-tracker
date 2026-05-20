@@ -175,54 +175,63 @@ export function ExerciseCard({
           </Badge>
         )}
         
-        <button 
-          className="flex-1 flex items-center gap-3 text-left touch-target"
-          onClick={() => setIsExpanded(!isExpanded)}
+        <button
+          className="flex-1 text-left touch-target min-w-0"
+          onClick={() => setShowHistory(true)}
+          aria-label="Visa historik"
         >
-          <div className="flex-1">
-            <div className="flex items-center gap-2 flex-wrap">
-              {isCardio && <Activity className="h-4 w-4 text-orange-500 shrink-0" />}
-              <h3 className={cn(
-                "font-semibold truncate max-w-[180px] sm:max-w-none",
-                isCompleted && "line-through text-muted-foreground"
-              )}>{exercise.name}</h3>
-              {isCardio && (
-                <Badge variant="secondary" className="text-xs bg-orange-500/20 text-orange-500 border-orange-500/30 shrink-0 rounded-full">
-                  Cardio
-                </Badge>
-              )}
-              {isCompleted && (
-                <Badge variant="secondary" className="text-xs bg-green-500/20 text-green-500 border-green-500/30 shrink-0 rounded-full">
-                  ✓ Klar
-                </Badge>
-              )}
-            </div>
-            <div className="flex gap-1 mt-1 flex-wrap">
-              {!isCardio && exercise.muscle_groups.slice(0, 2).map(mg => (
-                <Badge key={mg} variant="secondary" className="text-xs rounded-full">
-                  {MUSCLE_GROUP_LABELS[mg]}
-                </Badge>
-              ))}
-              {isCardio && cardioLog && (
-                <span className="text-xs text-muted-foreground">
-                  {cardioLog.duration_seconds && `${Math.floor(cardioLog.duration_seconds / 60)} min`}
-                  {cardioLog.distance_km && ` · ${cardioLog.distance_km} km`}
-                </span>
-              )}
-              {!isCardio && sets.length > 0 && (
-                <span className="text-xs text-muted-foreground ml-1">
-                  {workingSets.length} set{workingSets.length !== 1 ? 's' : ''}
-                  {warmupSets.length > 0 && ` + ${warmupSets.length} uppv.`}
-                </span>
-              )}
-            </div>
+          <div className="flex items-center gap-2 flex-wrap">
+            {isCardio && <Activity className="h-4 w-4 text-orange-500 shrink-0" />}
+            <h3 className={cn(
+              "font-semibold truncate max-w-[180px] sm:max-w-none underline-offset-4 decoration-dotted decoration-muted-foreground/40 hover:decoration-primary",
+              isCompleted && "line-through text-muted-foreground"
+            )}>{exercise.name}</h3>
+            <LineChart className="h-3.5 w-3.5 text-muted-foreground/60 shrink-0" />
+            {isCardio && (
+              <Badge variant="secondary" className="text-xs bg-orange-500/20 text-orange-500 border-orange-500/30 shrink-0 rounded-full">
+                Cardio
+              </Badge>
+            )}
+            {isCompleted && (
+              <Badge variant="secondary" className="text-xs bg-green-500/20 text-green-500 border-green-500/30 shrink-0 rounded-full">
+                ✓ Klar
+              </Badge>
+            )}
           </div>
+          <div className="flex gap-1 mt-1 flex-wrap">
+            {!isCardio && exercise.muscle_groups.slice(0, 2).map(mg => (
+              <Badge key={mg} variant="secondary" className="text-xs rounded-full">
+                {MUSCLE_GROUP_LABELS[mg]}
+              </Badge>
+            ))}
+            {isCardio && cardioLog && (
+              <span className="text-xs text-muted-foreground">
+                {cardioLog.duration_seconds && `${Math.floor(cardioLog.duration_seconds / 60)} min`}
+                {cardioLog.distance_km && ` · ${cardioLog.distance_km} km`}
+              </span>
+            )}
+            {!isCardio && sets.length > 0 && (
+              <span className="text-xs text-muted-foreground ml-1">
+                {workingSets.length} set{workingSets.length !== 1 ? 's' : ''}
+                {warmupSets.length > 0 && ` + ${warmupSets.length} uppv.`}
+              </span>
+            )}
+          </div>
+        </button>
+
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-10 w-10 touch-target rounded-ios-md shrink-0"
+          onClick={() => setIsExpanded(!isExpanded)}
+          aria-label={isExpanded ? "Fäll ihop" : "Visa set"}
+        >
           {isExpanded ? (
             <ChevronUp className="h-5 w-5 text-muted-foreground" />
           ) : (
             <ChevronDown className="h-5 w-5 text-muted-foreground" />
           )}
-        </button>
+        </Button>
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
