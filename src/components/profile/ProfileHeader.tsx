@@ -51,11 +51,12 @@ export function ProfileHeader({
           className="absolute bottom-0 right-0 h-9 w-9 rounded-full shadow-ios"
           onClick={() => fileInputRef.current?.click()}
           disabled={isSaving}
+          aria-label="Byt profilbild"
         >
           {isSaving ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
+            <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
           ) : (
-            <Camera className="h-4 w-4" />
+            <Camera className="h-4 w-4" aria-hidden="true" />
           )}
         </Button>
         <input
