@@ -83,6 +83,7 @@ export default function Profile() {
           <PersonalInfoSection
             firstName={profile.first_name}
             lastName={profile.last_name}
+            weeklyGoal={profile.weekly_goal ?? 3}
             isSaving={isSaving}
             onSave={updateProfile}
           />
