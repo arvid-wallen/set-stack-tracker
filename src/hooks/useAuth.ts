@@ -6,6 +6,7 @@ import { useToast } from '@/hooks/use-toast';
 interface Profile {
   id: string;
   first_name: string;
+  weekly_goal: number;
 }
 
 export function useAuth() {
@@ -18,12 +19,12 @@ export function useAuth() {
   const fetchProfile = async (userId: string) => {
     const { data, error } = await supabase
       .from('profiles')
-      .select('id, first_name')
+      .select('id, first_name, weekly_goal')
       .eq('id', userId)
       .single();
     
     if (!error && data) {
-      setProfile(data);
+      setProfile(data as Profile);
     }
   };
 
