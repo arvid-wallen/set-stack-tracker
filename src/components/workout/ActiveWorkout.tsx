@@ -57,10 +57,12 @@ export function ActiveWorkout() {
 
   const getDurationSeconds = () => {
     if (!activeWorkout) return 0;
-    const start = new Date(activeWorkout.started_at);
-    const now = new Date();
-    return Math.floor((now.getTime() - start.getTime()) / 1000);
+    const start = new Date(activeWorkout.started_at).getTime();
+    const pausedNow = isPaused && pausedAt ? Date.now() - pausedAt : 0;
+    const ms = Date.now() - start - totalPausedMs - pausedNow;
+    return Math.max(0, Math.floor(ms / 1000));
   };
+
 
   const formatDuration = (seconds: number) => {
     const hours = Math.floor(seconds / 3600);
