@@ -166,7 +166,7 @@ const Index = () => {
         <Button
           variant="pill"
           size="lg"
-          className="w-full h-14 text-lg font-semibold touch-target"
+          className="w-full h-14 text-lg font-semibold touch-target press-feedback transition-all duration-200 hover:shadow-ios-lg"
           onClick={() => setShowTypeSelector(true)}
           disabled={workoutLoading}
         >

@@ -17,7 +17,7 @@ export function WorkoutMiniBar() {
     <button
       onClick={expandWorkout}
       className={cn(
-        "fixed left-4 right-4 z-40",
+        "fixed left-4 right-4 z-40 animate-slide-in-bottom",
         "bottom-[calc(80px+env(safe-area-inset-bottom))]",
         "h-14 px-4",
         "flex items-center justify-between gap-3",

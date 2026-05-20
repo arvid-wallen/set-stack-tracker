@@ -152,7 +152,7 @@ export function ExerciseCard({
 
   return (
     <Card className={cn(
-      "rounded-2xl overflow-hidden transition-all duration-300 shadow-ios p-4",
+      "rounded-2xl overflow-hidden transition-all duration-300 shadow-ios p-4 animate-slide-in-bottom",
       supersetBadge && "border-l-4 border-l-primary",
       isCompleted && "opacity-60 bg-muted/30"
     )}>
@@ -160,12 +160,12 @@ export function ExerciseCard({
       <div className="flex items-center gap-3">
         {/* Complete toggle */}
         <button
-          className="touch-target flex items-center justify-center"
+          className="touch-target flex items-center justify-center transition-transform active:scale-90"
           onClick={handleToggleComplete}
           aria-label={isCompleted ? "Markera som ej klar" : "Markera som klar"}
         >
           {isCompleted ? (
-            <CheckCircle2 className="h-6 w-6 text-green-500" />
+            <CheckCircle2 className="h-6 w-6 text-green-500 animate-pop" />
           ) : (
             <Circle className="h-6 w-6 text-muted-foreground" />
           )}
