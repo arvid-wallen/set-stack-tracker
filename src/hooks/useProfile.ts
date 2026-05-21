@@ -61,7 +61,7 @@ export function useProfile(userId: string | undefined) {
           .single();
         
         if (!createError && newProfile) {
-          setProfile(newProfile);
+          setProfile(newProfile as unknown as Profile);
         }
       }
       setIsLoading(false);
