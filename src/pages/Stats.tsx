@@ -64,26 +64,25 @@ export default function Stats() {
         </header>
 
         <div className="px-5 py-6 space-y-6">
-          {/* Overview Stats */}
+          {/* Overview Stats — all-time totals */}
           <div className="grid grid-cols-2 gap-4">
             <StatCard
               icon={Calendar}
               label="Totalt pass"
               value={overviewStats.totalWorkouts}
-              trend={trends.workouts}
-              subtitle="denna vecka"
+              subtitle="alla pass"
             />
             <StatCard
               icon={Clock}
               label="Total tid"
               value={formatDuration(overviewStats.totalDuration)}
-              trend={trends.duration}
+              subtitle="alla pass"
             />
             <StatCard
               icon={Weight}
               label="Total volym"
               value={formatVolume(overviewStats.totalVolume)}
-              trend={trends.tonnage}
+              subtitle="alla pass"
             />
             <StatCard
               icon={Activity}
@@ -107,8 +106,26 @@ export default function Stats() {
             />
           </div>
 
+          {/* This-week trend row (compares to last week) */}
+          <div className="grid grid-cols-2 gap-4">
+            <StatCard
+              icon={Calendar}
+              label="Pass denna vecka"
+              value={weeklyData[weeklyData.length - 1]?.workouts ?? 0}
+              trend={trends.workouts}
+              subtitle="vs förra veckan"
+            />
+            <StatCard
+              icon={Weight}
+              label="Volym denna vecka"
+              value={formatVolume(weeklyData[weeklyData.length - 1]?.tonnage ?? 0)}
+              trend={trends.tonnage}
+              subtitle="vs förra veckan"
+            />
+          </div>
+
           {/* Exercise Stats Link */}
-          <Link to="/stats/exercise">
+          <Link to="/stats/exercise" className="block">
             <Card className="rounded-2xl shadow-ios bg-card/80 hover:bg-card transition-colors active:scale-[0.98]">
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
