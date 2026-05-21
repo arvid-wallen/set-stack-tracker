@@ -18,6 +18,7 @@ import NotFound from "./pages/NotFound";
 import { ActiveWorkout } from "@/components/workout/ActiveWorkout";
 import { WorkoutMiniBar } from "@/components/workout/WorkoutMiniBar";
 import { PTChatFAB } from "@/components/pt/PTChatFAB";
+import { OnboardingGate } from "@/components/onboarding/OnboardingGate";
 
 // Query client instance
 const queryClient = new QueryClient();
@@ -46,6 +47,7 @@ const App = () => (
               <ActiveWorkout />
               <WorkoutMiniBar />
               <PTChatFAB />
+              <OnboardingGate />
             </BrowserRouter>
           </TooltipProvider>
         </ThemeProvider>
