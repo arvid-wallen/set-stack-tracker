@@ -145,49 +145,120 @@ const Index = () => {
         {/* Adaptive suggestion based on recovery */}
         <SuggestedWorkoutCard onStart={(type) => handleStartWorkout(type)} />
 
-        {/* North Star card: progress ring + 28 day count + streak */}
-        <Card className="overflow-hidden">
-          <CardContent className="p-5">
-            <div className="flex items-center gap-5">
-              <ProgressRing
-                progress={metrics.weeklyProgress}
-                label={`${metrics.workoutsThisWeek}/${metrics.weeklyGoal}`}
-              />
-              <div className="flex-1 min-w-0">
-                <p className="text-xs uppercase tracking-wide text-muted-foreground font-medium">
-                  Veckomål
-                </p>
-                <p className="text-base font-semibold mt-0.5">
-                  {metrics.workoutsThisWeek >= metrics.weeklyGoal
-                    ? '🎯 Veckomålet är klart'
-                    : `${Math.max(0, metrics.weeklyGoal - metrics.workoutsThisWeek)} pass kvar`}
-                </p>
-                <div className="flex items-center gap-3 mt-3">
-                  <div className="flex items-center gap-1.5">
-                    <Flame
-                      className={cn(
-                        'h-4 w-4',
-                        metrics.currentWeekStreak > 0 ? 'text-warning' : 'text-muted-foreground/50'
-                      )}
-                      aria-hidden="true"
-                    />
-                    <span className="text-sm font-semibold tabular-nums">
-                      {metrics.currentWeekStreak}
-                    </span>
-                    <span className="text-xs text-muted-foreground">v streak</span>
-                  </div>
-                  <div className="h-3 w-px bg-border" aria-hidden="true" />
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-sm font-semibold tabular-nums">
-                      {metrics.workoutsLast28Days}
-                    </span>
-                    <span className="text-xs text-muted-foreground">pass / 28 d</span>
+        {/* North Star card: tap to toggle week/month, ⋯ to edit */}
+        {(() => {
+          const isMonth = goalView === 'month';
+          const current = isMonth ? metrics.workoutsThisMonth : metrics.workoutsThisWeek;
+          const goal = isMonth ? metrics.monthlyGoal : metrics.weeklyGoal;
+          const progress = isMonth ? metrics.monthlyProgress : metrics.weeklyProgress;
+          const breakdown = isMonth ? metrics.breakdownThisMonth : metrics.breakdownThisWeek;
+          const comp = metrics.goalComposition;
+          const hasComp = (comp.strength + comp.cardio) > 0;
+          const remaining = Math.max(0, goal - current);
+
+          return (
+            <Card className="overflow-hidden">
+              <CardContent className="p-0">
+                <div className="relative">
+                  <button
+                    type="button"
+                    onClick={toggleGoalView}
+                    aria-label="Byt mellan vecko- och månadsmål"
+                    className="w-full text-left p-5 press-feedback hover:bg-muted/30 transition-colors"
+                  >
+                    <div className="flex items-center gap-5">
+                      <ProgressRing
+                        progress={progress}
+                        label={`${current}/${goal}`}
+                      />
+                      <div className="flex-1 min-w-0 pr-10">
+                        <p className="text-xs uppercase tracking-wide text-muted-foreground font-medium">
+                          {isMonth ? 'Månadsmål' : 'Veckomål'}
+                        </p>
+                        <p className="text-base font-semibold mt-0.5">
+                          {current >= goal
+                            ? isMonth ? '🎯 Månadsmålet är klart' : '🎯 Veckomålet är klart'
+                            : `${remaining} pass kvar`}
+                        </p>
+                        <div className="flex items-center gap-3 mt-3 flex-wrap">
+                          <div className="flex items-center gap-1.5">
+                            <Flame
+                              className={cn(
+                                'h-4 w-4',
+                                metrics.currentWeekStreak > 0 ? 'text-warning' : 'text-muted-foreground/50'
+                              )}
+                              aria-hidden="true"
+                            />
+                            <span className="text-sm font-semibold tabular-nums">
+                              {metrics.currentWeekStreak}
+                            </span>
+                            <span className="text-xs text-muted-foreground">v streak</span>
+                          </div>
+                          <div className="h-3 w-px bg-border" aria-hidden="true" />
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-sm font-semibold tabular-nums">
+                              {metrics.workoutsLast28Days}
+                            </span>
+                            <span className="text-xs text-muted-foreground">pass / 28 d</span>
+                          </div>
+                        </div>
+                        {hasComp && (
+                          <div className="flex items-center gap-3 mt-3 text-xs flex-wrap">
+                            {comp.strength > 0 && (
+                              <div className="flex items-center gap-1.5">
+                                <Dumbbell className="h-3.5 w-3.5 text-primary" aria-hidden="true" />
+                                <span className="font-medium tabular-nums">
+                                  {breakdown.strength}/{comp.strength}
+                                </span>
+                                <span className="text-muted-foreground">styrka</span>
+                              </div>
+                            )}
+                            {comp.cardio > 0 && (
+                              <div className="flex items-center gap-1.5">
+                                <Heart className="h-3.5 w-3.5 text-primary" aria-hidden="true" />
+                                <span className="font-medium tabular-nums">
+                                  {breakdown.cardio}/{comp.cardio}
+                                </span>
+                                <span className="text-muted-foreground">kondition</span>
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </button>
+
+                  <div className="absolute top-3 right-3">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 rounded-full"
+                          aria-label="Redigera mål"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <MoreHorizontal className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => openGoalEditor('week')}>
+                          Redigera veckomål
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => openGoalEditor('month')}>
+                          Redigera månadsmål
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => openGoalEditor(goalView)}>
+                          Sätt sammansättning
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </div>
                 </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+              </CardContent>
+            </Card>
+          );
+        })()}
 
         {/* Badges row */}
         {metrics.badges.some((b) => b.unlocked) && (
