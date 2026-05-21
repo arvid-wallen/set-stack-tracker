@@ -6,6 +6,7 @@ import { StatCard } from '@/components/stats/StatCard';
 import { VolumeChart } from '@/components/stats/VolumeChart';
 import { WorkoutsChart } from '@/components/stats/WorkoutsChart';
 import { MuscleGroupChart } from '@/components/stats/MuscleGroupChart';
+import { MuscleRecoveryHeatmap } from '@/components/stats/MuscleRecoveryHeatmap';
 import { useStats } from '@/hooks/useStats';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Card, CardContent } from '@/components/ui/card';
@@ -127,6 +128,9 @@ export default function Stats() {
               </CardContent>
             </Card>
           </Link>
+
+          {/* Recovery heatmap */}
+          <MuscleRecoveryHeatmap />
 
           {/* Charts */}
           <VolumeChart data={weeklyData} />
