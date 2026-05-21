@@ -145,6 +145,7 @@ export function useAuth() {
     signUp,
     signIn,
     signOut,
+    refreshProfile,
     isAuthenticated: !!user,
   };
 }
