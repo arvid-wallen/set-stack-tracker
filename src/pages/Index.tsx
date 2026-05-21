@@ -354,10 +354,7 @@ const Index = () => {
         isSaving={profileSaving}
         onSave={async (data) => {
           const ok = await updateProfile(data);
-          if (ok) {
-            // refresh metrics so new goals reflect immediately
-            // useTrainingMetrics keys off user.id; profile state changes will re-render with new goals
-          }
+          if (ok) await refreshProfile();
           return ok;
         }}
       />
