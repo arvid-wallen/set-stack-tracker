@@ -77,7 +77,7 @@ export function useProfile(userId: string | undefined) {
     try {
       const { error } = await supabase
         .from('profiles')
-        .update(updates)
+        .update(updates as any)
         .eq('id', userId);
 
       if (error) throw error;
