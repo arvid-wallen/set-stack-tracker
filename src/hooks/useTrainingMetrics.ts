@@ -222,12 +222,19 @@ export function useTrainingMetrics(): TrainingMetrics {
   const newlyUnlocked = badges.filter((b) => b.unlocked && !seen.includes(b.key));
 
   const weeklyProgress = weeklyGoal > 0 ? Math.min(workoutsThisWeek / weeklyGoal, 1) : 0;
+  const monthlyProgress = monthlyGoal > 0 ? Math.min(workoutsThisMonth / monthlyGoal, 1) : 0;
 
   return {
     workoutsLast28Days,
     workoutsThisWeek,
     weeklyGoal,
     weeklyProgress,
+    workoutsThisMonth,
+    monthlyGoal,
+    monthlyProgress,
+    breakdownThisWeek,
+    breakdownThisMonth,
+    goalComposition,
     currentWeekStreak,
     longestWeekStreak,
     totalWorkouts: total,
