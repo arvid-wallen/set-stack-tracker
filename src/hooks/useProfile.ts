@@ -45,7 +45,7 @@ export function useProfile(userId: string | undefined) {
       }
 
       if (data) {
-        setProfile(data);
+        setProfile(data as unknown as Profile);
       } else {
         // Profile doesn't exist yet - create a basic one
         const { data: userData } = await supabase.auth.getUser();
