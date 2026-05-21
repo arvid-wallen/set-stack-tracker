@@ -237,8 +237,10 @@ export type Database = {
           avatar_url: string | null
           created_at: string
           first_name: string
+          goal_composition: Json
           id: string
           last_name: string | null
+          monthly_goal: number
           updated_at: string
           weekly_goal: number
         }
@@ -246,8 +248,10 @@ export type Database = {
           avatar_url?: string | null
           created_at?: string
           first_name: string
+          goal_composition?: Json
           id: string
           last_name?: string | null
+          monthly_goal?: number
           updated_at?: string
           weekly_goal?: number
         }
@@ -255,8 +259,10 @@ export type Database = {
           avatar_url?: string | null
           created_at?: string
           first_name?: string
+          goal_composition?: Json
           id?: string
           last_name?: string | null
+          monthly_goal?: number
           updated_at?: string
           weekly_goal?: number
         }
