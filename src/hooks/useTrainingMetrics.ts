@@ -20,11 +20,22 @@ export interface Badge {
   unlockedAt?: Date;
 }
 
+export interface GoalBreakdown {
+  strength: number;
+  cardio: number;
+}
+
 export interface TrainingMetrics {
   workoutsLast28Days: number;
   workoutsThisWeek: number;
   weeklyGoal: number;
   weeklyProgress: number; // 0..1
+  workoutsThisMonth: number;
+  monthlyGoal: number;
+  monthlyProgress: number; // 0..1
+  breakdownThisWeek: GoalBreakdown;
+  breakdownThisMonth: GoalBreakdown;
+  goalComposition: GoalBreakdown;
   currentWeekStreak: number;
   longestWeekStreak: number;
   totalWorkouts: number;
