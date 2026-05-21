@@ -127,10 +127,32 @@ export function useTrainingMetrics(): TrainingMetrics {
   // This week (Mon start)
   const wkStart = startOfWeek(now, { weekStartsOn: 1 });
   const wkEnd = endOfWeek(now, { weekStartsOn: 1 });
-  const workoutsThisWeek = sessions.filter((s) => {
+  const thisWeekSessions = sessions.filter((s) => {
     const d = new Date(s.started_at);
     return d >= wkStart && d <= wkEnd;
-  }).length;
+  });
+  const workoutsThisWeek = thisWeekSessions.length;
+
+  // This month
+  const moStart = startOfMonth(now);
+  const moEnd = endOfMonth(now);
+  const thisMonthSessions = sessions.filter((s) => {
+    const d = new Date(s.started_at);
+    return d >= moStart && d <= moEnd;
+  });
+  const workoutsThisMonth = thisMonthSessions.length;
+
+  const breakdown = (list: typeof sessions): GoalBreakdown => {
+    let cardio = 0;
+    let strength = 0;
+    for (const s of list) {
+      if ((s as any).workout_type === 'cardio') cardio += 1;
+      else strength += 1;
+    }
+    return { strength, cardio };
+  };
+  const breakdownThisWeek = breakdown(thisWeekSessions);
+  const breakdownThisMonth = breakdown(thisMonthSessions);
 
   // Streak: count consecutive weeks (back from this week) where goal was met.
   // Current week counts even if not yet met (grace) — only break streak on a *fully past* week that missed.
