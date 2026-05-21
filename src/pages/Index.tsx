@@ -32,10 +32,27 @@ const Index = () => {
   const { startWorkout, isLoading: workoutLoading } = useWorkout();
   const { workouts: fullWorkouts } = useWorkoutHistory();
   const metrics = useTrainingMetrics();
+  const { updateProfile, isSaving: profileSaving } = useProfile(user?.id);
   const [showTypeSelector, setShowTypeSelector] = useState(false);
   const [selectedWorkout, setSelectedWorkout] = useState<WorkoutWithDetails | null>(null);
   const [detailOpen, setDetailOpen] = useState(false);
   const [recentWorkouts, setRecentWorkouts] = useState<any[]>([]);
+  const [goalView, setGoalView] = useState<GoalView>(() => {
+    if (typeof window === 'undefined') return 'week';
+    return (localStorage.getItem('goal-card-view') as GoalView) || 'week';
+  });
+  const [goalEditorOpen, setGoalEditorOpen] = useState(false);
+  const [goalEditorTab, setGoalEditorTab] = useState<GoalView>('week');
+
+  useEffect(() => {
+    try { localStorage.setItem('goal-card-view', goalView); } catch {}
+  }, [goalView]);
+
+  const toggleGoalView = () => setGoalView((v) => (v === 'week' ? 'month' : 'week'));
+  const openGoalEditor = (tab: GoalView) => {
+    setGoalEditorTab(tab);
+    setGoalEditorOpen(true);
+  };
 
   // Fetch recent completed workouts (separate from metrics)
   useEffect(() => {
