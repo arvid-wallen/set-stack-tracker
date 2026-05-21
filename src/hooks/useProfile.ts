@@ -2,12 +2,19 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
+export interface GoalComposition {
+  strength?: number;
+  cardio?: number;
+}
+
 interface Profile {
   id: string;
   first_name: string;
   last_name: string | null;
   avatar_url: string | null;
   weekly_goal: number;
+  monthly_goal: number;
+  goal_composition: GoalComposition;
   created_at: string;
   updated_at: string;
 }
