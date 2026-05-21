@@ -28,7 +28,7 @@ import { SuggestedWorkoutCard } from '@/components/home/SuggestedWorkoutCard';
 import { GoalEditorSheet, GoalView } from '@/components/home/GoalEditorSheet';
 
 const Index = () => {
-  const { user, profile, isLoading: authLoading } = useAuth();
+  const { user, profile, isLoading: authLoading, refreshProfile } = useAuth();
   const { startWorkout, isLoading: workoutLoading } = useWorkout();
   const { workouts: fullWorkouts } = useWorkoutHistory();
   const metrics = useTrainingMetrics();
