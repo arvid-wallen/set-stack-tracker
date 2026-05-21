@@ -1,128 +1,69 @@
+## Mål: Förbättra Veckomål-kortet på startsidan
 
-# Plan: Gör appen bättre baserat på rapporten
+Idag visar kortet bara veckomålet (3 pass/vecka). Vi gör det mer flexibelt:
 
-Rapporten är skriven för en kommersiell flerproduktsmarknad. Eftersom vår app är en **personlig single-user PWA** filtrerar jag bort allt som inte är relevant (social, gruppträning, paywall, AR/VR, freemium, marknadsföring). Kvar blir det som faktiskt höjer **kärnloopen**: logga → se framsteg → komma tillbaka.
+1. **Klick på kortet → roterar mellan Vecka- och Månadsvy**
+2. **"⋯"-meny för snabbredigering** av mål + sammansättning (t.ex. 6 pass/vecka = 4 styrka + 2 kondition)
+3. **Visar progress per typ** (t.ex. "Styrka 2/4 · Kondition 1/2")
 
-## Vad vi redan har ✅
+---
 
-- Passloggning med set/reps/vikt (kg), supersets, warmup, cardio
-- Routines/mallar + eget övningsbibliotek
-- Progressive overload-förslag (AI)
-- 1RM, per-övningsmål, PRs, volym/muskelgrupp-grafer
-- Kalender/historik, CSV-export
-- PT-chat (AI-coach)
-- Progress photos
-- PWA + offline + auto-pause + konfetti
+### 1. Datamodell (migration)
 
-## Vad rapporten pekar på att vi saknar — sorterat efter effekt/insats
+Lägg till två fält på `profiles`:
+- `monthly_goal` (int, default 12) — totalt antal pass per månad
+- `goal_composition` (jsonb, default `{}`) — fördelning per workout-typ, t.ex. `{"strength": 4, "cardio": 2}`
 
-### 🟢 Snabba vinster (låg insats, hög effekt)
+"Strength" är ett samlat alias som matchar alla `workout_type` förutom `cardio` (push/pull/legs/full_body/upper/lower/custom). Det håller UI:t enkelt — användaren behöver bara välja Styrka vs Kondition.
 
-**1. Streaks och milestones (gamification light)**
-Rapporten: streaks/badges driver vanebildning utan att överlasta. Vi har konfetti men inget som binder veckor ihop.
-- Veckostreak (X veckor i rad med ≥ målantal pass)
-- "Träningsdagar senaste 28 dagarna" som central siffra på Home (matchar rapportens föreslagna **North Star: completed workouts per 28 days**)
-- Badges vid milstolpar: 10/50/100 pass, första PR på övning, första 4-veckors-streak
+### 2. `useTrainingMetrics` utökas
 
-**2. Veckomål + progress-ring på Home**
-Idag finns greeting men ingen "var står jag denna vecka". Lägg till mål "X pass/vecka" i profilen och en ring/bar på Home som fylls.
+Returnerar även:
+- `workoutsThisMonth`, `monthlyGoal`, `monthlyProgress`
+- `breakdownThisWeek` / `breakdownThisMonth`: `{ strength: number, cardio: number }`
+- `goalComposition`: `{ strength: number, cardio: number }` (default härleds från totalmål)
 
-**3. RPE/RIR i UI**
-Fältet finns i schemat men exponeras inte tydligt i SetRow. Snabbval (1–5) gör data rikare för framtida adaptiv logik.
+### 3. UI-ändringar i `src/pages/Index.tsx`
 
-**4. Tillgänglighet-svep**
-Audit av kontrast (kolla `#aafcae` på `#f2f0eb`), `aria-label` på ikonknappar, fokus-ringar, touch-targets ≥ 44px, screen reader-test av SetRow.
+North Star-kortet ("Veckomål"):
+- Görs till en `button` som togglar lokal state `view: 'week' | 'month'`
+- Etiketten byter mellan **VECKOMÅL** och **MÅNADSMÅL**
+- Progress-ring + räknare visar aktuell vy
+- Under huvudraden visas en liten kompositions-progress: `Styrka 2/4 · Kondition 1/2` (om composition finns)
+- I övre högra hörnet: `DropdownMenu` med `MoreHorizontal`-ikon (⋯) — `stopPropagation` så toggle inte triggas
+  - Meny-items: *Redigera vecko­mål*, *Redigera månads­mål*, *Sätt sammansättning*
+  - Alla öppnar en `Sheet` (`GoalEditorSheet`) förvald på rätt flik
 
-**5. Data-portabilitet utökad**
-CSV finns. Lägg till **JSON-export av allt** (övningar, mallar, pass, foton-metadata) + **"radera alla mina data"**-knapp i Profile → uppfyller dataminimering/portabilitet i rapporten.
+### 4. Ny komponent: `src/components/home/GoalEditorSheet.tsx`
 
-### 🟡 Strategiska satsningar (medel insats, hög effekt)
+Bottom-sheet med två flikar (Tabs): **Vecka** / **Månad**
+- Stepper (−/+) för totalt antal pass (1–14 vecka, 1–60 månad)
+- Två rader för sammansättning: **Styrka** och **Kondition**, var och en med stepper
+- Validering: summan av styrka+kondition får inte överstiga totalen; om < total visas "X pass valfri typ"
+- "Spara"-knapp anropar `updateProfile({ weekly_goal, monthly_goal, goal_composition })`
 
-**6. Riktig profilbaserad onboarding**
-Idag dyker man rakt in i appen. Förstagångsflöde:
-- Mål (styrka / kondition / hälsa / återkomst efter uppehåll)
-- Erfarenhetsnivå
-- Tillgänglig utrustning (filtrerar övningsbibliotek)
-- Tid per pass + pass/vecka
-- Skador/begränsningar (frikodtext + förvalda muskelgrupper att undvika)
-Sparar i `profiles`-tabellen och styr förslag, mallar och PT-chat-kontext.
+### 5. Profil-edit (`PersonalInfoSection`)
 
-**7. Träningsbelastning + återhämtning per muskelgrupp**
-Rapportens "adaptiva program" i light-version: visa per muskelgrupp **dagar sedan senaste set** och **veckovolym vs föregående**. Hjälper användaren själv att fatta beslut utan komplicerad AI.
-- Liten heatmap-vy på Stats: "Bröst tränades senast för 5 dagar sedan, 12 set"
-- Varning på Home om någon grupp inte tränats på >10 dagar (om relevant för målet)
+`updateProfile`-typen utökas med `monthly_goal` och `goal_composition`. Befintliga profil­fält påverkas inte visuellt — endast typen.
 
-**8. Adaptivt veckoprogram (light)**
-Vi har routines men inget förslag "vad ska jag göra idag?". Bygg en `suggestNextWorkout()`-hook som baseras på:
-- Användarens målfrekvens
-- Vad som tränats senaste 7 dagarna
-- Vilka muskelgrupper som är "skyldiga"
-Visas som ett kort på Home: "Föreslaget pass idag: Pull (3 dagar sedan)".
+---
 
-**9. PWA-push-notiser för påminnelser**
-Rapporten: notisrespons är ett KPI för engagemang. Aktivera Web Push:
-- Daglig påminnelse om dagar man brukar träna
-- "Du har inte tränat på X dagar"
-- Streak-skydd: "Du behöver träna idag för att behålla din streak"
-Kräver service worker (har vi) + VAPID-keys + opt-in i Profile.
+### Tekniska detaljer
 
-**10. Pass-sammanfattning vid avslut**
-EndWorkoutSheet finns men kunde visa mer värde: nya PRs som slogs i passet, total volym vs förra gången samma övning, badges som låstes upp. Pumpar upp dopaminet på rätt sätt.
+- Persistens av valt vy-läge: `localStorage` (`goal-card-view`) så det överlever omladdning
+- Strength-klassificering i metrics:
+  ```ts
+  const isStrength = s.workout_type !== 'cardio'
+  ```
+- Månads­fönster: `startOfMonth(now)` → `endOfMonth(now)` via `date-fns`
+- Tillgänglighet: knappen får `aria-label="Byt mellan vecko- och månads­mål"`; ⋯-knappen `aria-label="Redigera mål"`
+- Inga ändringar i `SuggestedWorkoutCard` eller `pt_profiles` denna sprint
 
-### 🟠 Större men värdefulla (medel-hög insats)
+### Filer som ändras
 
-**11. Apple Health-sync (skriv)**
-Beslutet i tidigare meddelanden: fortsätt som PWA, men sync. Eftersom vi är PWA kan vi inte använda HealthKit direkt. Två vägar:
-- **a)** Kalorier/duration som CSV-export till Apple Health via "Health Auto Export"-appen (dokumentera bara, ingen kod)
-- **b)** En liten companion Shortcuts-receptberedning som POSTar till en edge function. Mer jobb.
-Rekommenderar (a) som dokumentation-only nu.
-
-**12. Readiness/daily check-in (lätt)**
-Innan pass: 3 frågor (sömn 1–5, energi 1–5, ömhet 1–5). Sparas och visas i grafer. Kostar lite kod men ger fin långsiktig data.
-
-**13. Smärt-/skadetracker för rehab-läge**
-Om "skador" sätts i onboarding: visa varning på övningar som triggar berörda muskelgrupper + smärtskattning per pass. Light-version av rapportens "rehab-läge".
-
-## Vad jag medvetet hoppar över (passar inte vår app)
-
-- Social/grupp/följ-vänner — single-user
-- Paywall/freemium/Stripe — personlig app
-- Klassbokning, drop-in — personlig app
-- AR/VR och kameraform-korrigering — för dyrt/bräckligt och du tränar på gym, inte hemma framför kamera
-- Computer vision — samma
-- Klinisk QA av rehab-innehåll — vi gör light-version, inte medicinsk produkt
-
-## Föreslagen ordning att bygga (i sprintar)
-
-**Sprint 1 — Quick wins (1 omgång)**
-Punkt 1 (streaks + badges + 28-dagars North Star på Home), 2 (veckomål + ring), 3 (RPE/RIR i UI), 10 (pass-summary med PRs)
-
-**Sprint 2 — Hygien & data (1 omgång)**
-Punkt 4 (a11y-audit), 5 (JSON-export + radera-allt)
-
-**Sprint 3 — Profil & adaptivt (2 omgångar)**
-Punkt 6 (onboarding), 7 (recovery-heatmap), 8 (suggestNextWorkout)
-
-**Sprint 4 — Engagement loop (1 omgång)**
-Punkt 9 (push), 12 (readiness check-in)
-
-**Sprint 5 — Specialiserat (om/när relevant)**
-Punkt 11 (Health-sync dokumentation), 13 (skadetracker)
-
-## Teknisk sammanfattning
-
-| Område | Filer som påverkas |
-|---|---|
-| Streaks/badges/28d | Ny `useStreaks.ts`, `Home/Index.tsx`, ny `badges`-tabell |
-| Veckomål | `profiles`-tabell (kolumn `weekly_goal`), `Index.tsx` |
-| RPE/RIR UI | `SetRow.tsx` |
-| A11y | hela `src/components` (audit) |
-| JSON-export + radera | `lib/export-utils.ts`, `Profile.tsx`, ny edge function för cascade-delete |
-| Onboarding | `profiles`-tabell (flera kolumner), ny `OnboardingFlow.tsx` |
-| Recovery-heatmap | Ny `useRecovery.ts`, `Stats.tsx` |
-| Adaptivt förslag | Ny `useSuggestedWorkout.ts`, `Index.tsx` |
-| Push | `sw.js`, ny edge function `send-push`, `subscriptions`-tabell, VAPID secrets |
-| Pass-summary | `EndWorkoutSheet.tsx`, `useWorkout.tsx` |
-| Readiness | Ny `readiness_logs`-tabell, ny `ReadinessCheck.tsx`, `ActiveWorkout.tsx` |
-
-Säg till om du vill att jag kör Sprint 1 direkt, eller om du vill ändra ordningen/skippa något.
+- `supabase/migrations/...` (ny) — lägger till `monthly_goal`, `goal_composition` på `profiles`
+- `src/hooks/useProfile.ts` — uppdatera typ + tillåtna update-fält
+- `src/hooks/useAuth.ts` — profile-typ får nya fält
+- `src/hooks/useTrainingMetrics.ts` — månadsmetrics + breakdown
+- `src/pages/Index.tsx` — gör kortet klickbart, lägg till ⋯-meny + composition-rad
+- `src/components/home/GoalEditorSheet.tsx` (ny)

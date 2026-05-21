@@ -7,6 +7,8 @@ interface Profile {
   id: string;
   first_name: string;
   weekly_goal: number;
+  monthly_goal: number;
+  goal_composition: { strength?: number; cardio?: number };
 }
 
 export function useAuth() {
@@ -19,13 +21,17 @@ export function useAuth() {
   const fetchProfile = async (userId: string) => {
     const { data, error } = await supabase
       .from('profiles')
-      .select('id, first_name, weekly_goal')
+      .select('id, first_name, weekly_goal, monthly_goal, goal_composition')
       .eq('id', userId)
       .single();
     
     if (!error && data) {
-      setProfile(data as Profile);
+      setProfile(data as unknown as Profile);
     }
+  };
+
+  const refreshProfile = async () => {
+    if (user?.id) await fetchProfile(user.id);
   };
 
   useEffect(() => {
@@ -139,6 +145,7 @@ export function useAuth() {
     signUp,
     signIn,
     signOut,
+    refreshProfile,
     isAuthenticated: !!user,
   };
 }

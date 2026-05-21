@@ -5,6 +5,8 @@ import {
   startOfDay,
   startOfWeek,
   endOfWeek,
+  startOfMonth,
+  endOfMonth,
   subDays,
   differenceInCalendarWeeks,
   isSameWeek,
@@ -18,11 +20,22 @@ export interface Badge {
   unlockedAt?: Date;
 }
 
+export interface GoalBreakdown {
+  strength: number;
+  cardio: number;
+}
+
 export interface TrainingMetrics {
   workoutsLast28Days: number;
   workoutsThisWeek: number;
   weeklyGoal: number;
   weeklyProgress: number; // 0..1
+  workoutsThisMonth: number;
+  monthlyGoal: number;
+  monthlyProgress: number; // 0..1
+  breakdownThisWeek: GoalBreakdown;
+  breakdownThisMonth: GoalBreakdown;
+  goalComposition: GoalBreakdown;
   currentWeekStreak: number;
   longestWeekStreak: number;
   totalWorkouts: number;
@@ -71,6 +84,12 @@ export function markBadgesSeen(keys: string[]) {
 export function useTrainingMetrics(): TrainingMetrics {
   const { user, profile } = useAuth();
   const weeklyGoal = (profile as any)?.weekly_goal ?? 3;
+  const monthlyGoal = (profile as any)?.monthly_goal ?? 12;
+  const rawComposition = ((profile as any)?.goal_composition ?? {}) as { strength?: number; cardio?: number };
+  const goalComposition: GoalBreakdown = {
+    strength: Math.max(0, Number(rawComposition.strength ?? 0)),
+    cardio: Math.max(0, Number(rawComposition.cardio ?? 0)),
+  };
 
   const { data, isLoading } = useQuery({
     queryKey: ['training-metrics', user?.id],
@@ -79,7 +98,7 @@ export function useTrainingMetrics(): TrainingMetrics {
       const since = subDays(startOfDay(new Date()), 120); // 120 days for streak calc
       const { data: sessions, error } = await supabase
         .from('workout_sessions')
-        .select('id, started_at')
+        .select('id, started_at, workout_type')
         .eq('user_id', user!.id)
         .eq('is_active', false)
         .gte('started_at', since.toISOString())
@@ -108,10 +127,32 @@ export function useTrainingMetrics(): TrainingMetrics {
   // This week (Mon start)
   const wkStart = startOfWeek(now, { weekStartsOn: 1 });
   const wkEnd = endOfWeek(now, { weekStartsOn: 1 });
-  const workoutsThisWeek = sessions.filter((s) => {
+  const thisWeekSessions = sessions.filter((s) => {
     const d = new Date(s.started_at);
     return d >= wkStart && d <= wkEnd;
-  }).length;
+  });
+  const workoutsThisWeek = thisWeekSessions.length;
+
+  // This month
+  const moStart = startOfMonth(now);
+  const moEnd = endOfMonth(now);
+  const thisMonthSessions = sessions.filter((s) => {
+    const d = new Date(s.started_at);
+    return d >= moStart && d <= moEnd;
+  });
+  const workoutsThisMonth = thisMonthSessions.length;
+
+  const breakdown = (list: typeof sessions): GoalBreakdown => {
+    let cardio = 0;
+    let strength = 0;
+    for (const s of list) {
+      if ((s as any).workout_type === 'cardio') cardio += 1;
+      else strength += 1;
+    }
+    return { strength, cardio };
+  };
+  const breakdownThisWeek = breakdown(thisWeekSessions);
+  const breakdownThisMonth = breakdown(thisMonthSessions);
 
   // Streak: count consecutive weeks (back from this week) where goal was met.
   // Current week counts even if not yet met (grace) — only break streak on a *fully past* week that missed.
@@ -181,12 +222,19 @@ export function useTrainingMetrics(): TrainingMetrics {
   const newlyUnlocked = badges.filter((b) => b.unlocked && !seen.includes(b.key));
 
   const weeklyProgress = weeklyGoal > 0 ? Math.min(workoutsThisWeek / weeklyGoal, 1) : 0;
+  const monthlyProgress = monthlyGoal > 0 ? Math.min(workoutsThisMonth / monthlyGoal, 1) : 0;
 
   return {
     workoutsLast28Days,
     workoutsThisWeek,
     weeklyGoal,
     weeklyProgress,
+    workoutsThisMonth,
+    monthlyGoal,
+    monthlyProgress,
+    breakdownThisWeek,
+    breakdownThisMonth,
+    goalComposition,
     currentWeekStreak,
     longestWeekStreak,
     totalWorkouts: total,

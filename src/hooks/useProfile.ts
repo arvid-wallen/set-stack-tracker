@@ -2,12 +2,19 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
+export interface GoalComposition {
+  strength?: number;
+  cardio?: number;
+}
+
 interface Profile {
   id: string;
   first_name: string;
   last_name: string | null;
   avatar_url: string | null;
   weekly_goal: number;
+  monthly_goal: number;
+  goal_composition: GoalComposition;
   created_at: string;
   updated_at: string;
 }
@@ -38,7 +45,7 @@ export function useProfile(userId: string | undefined) {
       }
 
       if (data) {
-        setProfile(data);
+        setProfile(data as unknown as Profile);
       } else {
         // Profile doesn't exist yet - create a basic one
         const { data: userData } = await supabase.auth.getUser();
@@ -54,7 +61,7 @@ export function useProfile(userId: string | undefined) {
           .single();
         
         if (!createError && newProfile) {
-          setProfile(newProfile);
+          setProfile(newProfile as unknown as Profile);
         }
       }
       setIsLoading(false);
@@ -63,14 +70,14 @@ export function useProfile(userId: string | undefined) {
     fetchProfile();
   }, [userId]);
 
-  const updateProfile = async (updates: Partial<Pick<Profile, 'first_name' | 'last_name' | 'avatar_url' | 'weekly_goal'>>) => {
+  const updateProfile = async (updates: Partial<Pick<Profile, 'first_name' | 'last_name' | 'avatar_url' | 'weekly_goal' | 'monthly_goal' | 'goal_composition'>>) => {
     if (!userId) return false;
     
     setIsSaving(true);
     try {
       const { error } = await supabase
         .from('profiles')
-        .update(updates)
+        .update(updates as any)
         .eq('id', userId);
 
       if (error) throw error;
