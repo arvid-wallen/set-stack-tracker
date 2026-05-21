@@ -70,7 +70,7 @@ export function useProfile(userId: string | undefined) {
     fetchProfile();
   }, [userId]);
 
-  const updateProfile = async (updates: Partial<Pick<Profile, 'first_name' | 'last_name' | 'avatar_url' | 'weekly_goal'>>) => {
+  const updateProfile = async (updates: Partial<Pick<Profile, 'first_name' | 'last_name' | 'avatar_url' | 'weekly_goal' | 'monthly_goal' | 'goal_composition'>>) => {
     if (!userId) return false;
     
     setIsSaving(true);
