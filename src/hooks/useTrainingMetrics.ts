@@ -84,6 +84,12 @@ export function markBadgesSeen(keys: string[]) {
 export function useTrainingMetrics(): TrainingMetrics {
   const { user, profile } = useAuth();
   const weeklyGoal = (profile as any)?.weekly_goal ?? 3;
+  const monthlyGoal = (profile as any)?.monthly_goal ?? 12;
+  const rawComposition = ((profile as any)?.goal_composition ?? {}) as { strength?: number; cardio?: number };
+  const goalComposition: GoalBreakdown = {
+    strength: Math.max(0, Number(rawComposition.strength ?? 0)),
+    cardio: Math.max(0, Number(rawComposition.cardio ?? 0)),
+  };
 
   const { data, isLoading } = useQuery({
     queryKey: ['training-metrics', user?.id],
@@ -92,7 +98,7 @@ export function useTrainingMetrics(): TrainingMetrics {
       const since = subDays(startOfDay(new Date()), 120); // 120 days for streak calc
       const { data: sessions, error } = await supabase
         .from('workout_sessions')
-        .select('id, started_at')
+        .select('id, started_at, workout_type')
         .eq('user_id', user!.id)
         .eq('is_active', false)
         .gte('started_at', since.toISOString())
