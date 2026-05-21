@@ -1,7 +1,13 @@
 import { useState, useEffect, useMemo } from 'react';
-import { Play, Dumbbell, Flame, Trophy, ChevronRight } from 'lucide-react';
+import { Play, Dumbbell, Flame, Trophy, ChevronRight, MoreHorizontal, Heart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { AuthForm } from '@/components/auth/AuthForm';
 import { WorkoutTypeSelector } from '@/components/workout/WorkoutTypeSelector';
 import { BottomNav } from '@/components/layout/BottomNav';
@@ -10,6 +16,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useWorkout } from '@/hooks/useWorkout';
 import { useWorkoutHistory, WorkoutWithDetails } from '@/hooks/useWorkoutHistory';
 import { useTrainingMetrics, markBadgesSeen } from '@/hooks/useTrainingMetrics';
+import { useProfile } from '@/hooks/useProfile';
 import { WorkoutType, WORKOUT_TYPE_LABELS } from '@/types/workout';
 import { supabase } from '@/integrations/supabase/client';
 import { format } from 'date-fns';
@@ -18,6 +25,7 @@ import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import hausLogo from '@/assets/haus-logo.png';
 import { SuggestedWorkoutCard } from '@/components/home/SuggestedWorkoutCard';
+import { GoalEditorSheet, GoalView } from '@/components/home/GoalEditorSheet';
 
 const Index = () => {
   const { user, profile, isLoading: authLoading } = useAuth();
