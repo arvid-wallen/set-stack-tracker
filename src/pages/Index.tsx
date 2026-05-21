@@ -17,6 +17,7 @@ import { sv } from 'date-fns/locale';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import hausLogo from '@/assets/haus-logo.png';
+import { SuggestedWorkoutCard } from '@/components/home/SuggestedWorkoutCard';
 
 const Index = () => {
   const { user, profile, isLoading: authLoading } = useAuth();
@@ -115,6 +116,9 @@ const Index = () => {
           <Play className="mr-3 h-6 w-6" aria-hidden="true" />
           Starta nytt pass
         </Button>
+
+        {/* Adaptive suggestion based on recovery */}
+        <SuggestedWorkoutCard onStart={(type) => handleStartWorkout(type)} />
 
         {/* North Star card: progress ring + 28 day count + streak */}
         <Card className="overflow-hidden">
