@@ -18,6 +18,7 @@ export interface PTProfile {
   available_equipment: string[];
   preferred_workout_duration: number | null;
   training_days_per_week: number | null;
+  training_split: string | null;
   onboarding_completed: boolean;
   created_at: string;
   updated_at: string;
@@ -36,8 +37,10 @@ export interface PTProfileInput {
   available_equipment?: string[];
   preferred_workout_duration?: number | null;
   training_days_per_week?: number | null;
+  training_split?: string | null;
   onboarding_completed?: boolean;
 }
+
 
 export function usePTProfile() {
   const { user } = useAuth();
