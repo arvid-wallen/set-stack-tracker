@@ -18,22 +18,23 @@ export function BottomNav() {
       <div className="ios-tab-bar-inner">
         {NAV_ITEMS.map(({ icon: Icon, label, path }) => {
           const isActive = location.pathname === path;
-          
+
           return (
             <Link
               key={path}
               to={path}
+              aria-label={label}
               className={cn(
-                "flex flex-col items-center justify-center px-3 py-2 transition-all",
-                isActive 
-                  ? "text-primary-foreground" 
+                "flex items-center justify-center px-3 transition-all",
+                isActive
+                  ? "text-primary-foreground"
                   : "text-muted-foreground active:scale-95"
               )}
             >
               <div className={cn(
                 "flex items-center justify-center w-11 h-11 rounded-full transition-all duration-200",
-                isActive 
-                  ? "bg-primary shadow-lg" 
+                isActive
+                  ? "bg-primary shadow-lg"
                   : "hover:bg-muted/50"
               )}>
                 <Icon className={cn(
@@ -41,12 +42,6 @@ export function BottomNav() {
                   isActive && "stroke-[2.5px]"
                 )} />
               </div>
-              <span className={cn(
-                "text-[10px] font-medium mt-1 transition-colors",
-                isActive ? "text-primary" : "text-muted-foreground"
-              )}>
-                {label}
-              </span>
             </Link>
           );
         })}
