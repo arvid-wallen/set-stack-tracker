@@ -426,7 +426,7 @@ export function usePTChat() {
         variant: 'destructive',
       });
     }
-  }, [messages, allExercises, activeWorkout, startWorkout, addWorkoutExercise, expandWorkout, toast]);
+  }, [messages, allExercises, activeWorkout, startWorkout, addWorkoutExercise, expandWorkout, toast, createCustomExercise]);
 
   const clearChat = useCallback(async () => {
     try {
