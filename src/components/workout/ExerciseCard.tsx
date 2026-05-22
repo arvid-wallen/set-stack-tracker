@@ -13,9 +13,8 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { SetRow } from './SetRow';
 import { CardioLogRow } from './CardioLogRow';
-import { ProgressiveOverloadSuggestion } from './ProgressiveOverloadSuggestion';
+import { AISetSuggestionCard } from './AISetSuggestionCard';
 import { ExerciseHistorySheet } from './ExerciseHistorySheet';
-import { useProgressiveOverload } from '@/hooks/useProgressiveOverload';
 import { useExerciseNotes } from '@/hooks/useExerciseNotes';
 import { WorkoutExercise, ExerciseSet, CardioLog, MUSCLE_GROUP_LABELS, CardioType } from '@/types/workout';
 import { cn } from '@/lib/utils';
@@ -79,19 +78,20 @@ export function ExerciseCard({
     onMarkComplete?.(!isCompleted);
   }, [onMarkComplete, isCompleted]);
 
-  // Fetch progressive overload data for auto-fill from previous session
-  const { suggestion } = useProgressiveOverload(isCardio ? null : workoutExercise.exercise_id);
-
   const lastWorkingSet = workingSets[workingSets.length - 1];
-  
-  // Use last set from current workout, or fall back to historical data from previous session
+
+  // Only show "Förra: ..." hint from actual last set in current workout. No auto-prefill.
   const previousSetData = lastWorkingSet ? {
     weight_kg: lastWorkingSet.weight_kg,
     reps: lastWorkingSet.reps,
-  } : suggestion?.suggestedWeight ? {
-    weight_kg: suggestion.suggestedWeight,
-    reps: suggestion.suggestedReps ?? null,
   } : undefined;
+
+  // Prefill from accepted AI suggestion (imperative)
+  const [prefill, setPrefill] = useState<{ weight_kg: number; reps: number; rpe?: number | null } | undefined>();
+  const handleAcceptSuggestion = useCallback((weight: number, reps: number, rpeVal: number | null) => {
+    setPrefill({ weight_kg: weight, reps, rpe: rpeVal });
+    setNewSetKey(prev => prev + 1);
+  }, []);
 
   const handleSaveNewSet = useCallback((data: { 
     weight_kg: number; 
@@ -345,10 +345,14 @@ export function ExerciseCard({
       {/* Content: Cardio or Sets */}
       {isExpanded && (
         <div className="mt-4">
-          {/* Progressive Overload Suggestion */}
+          {/* AI suggestion (accept/reject card — never auto-fills the input) */}
           {!isCardio && !isCompleted && (
             <div className="mb-4">
-              <ProgressiveOverloadSuggestion exerciseId={workoutExercise.exercise_id} />
+              <AISetSuggestionCard
+                exerciseId={workoutExercise.exercise_id}
+                workoutSessionId={workoutExercise.workout_session_id}
+                onAccept={handleAcceptSuggestion}
+              />
             </div>
           )}
 
@@ -401,6 +405,7 @@ export function ExerciseCard({
                   setNumber={workingSets.length + 1}
                   isNew
                   previousSet={previousSetData}
+                  prefill={prefill}
                   onSave={handleSaveNewSet}
                   onStartRest={onStartRest}
                 />

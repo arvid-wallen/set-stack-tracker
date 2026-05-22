@@ -10,6 +10,7 @@ interface SetRowProps {
   setNumber: number;
   isNew?: boolean;
   previousSet?: { weight_kg: number | null; reps: number | null };
+  prefill?: { weight_kg: number; reps: number; rpe?: number | null };
   onSave: (data: { weight_kg: number; reps: number; is_warmup: boolean; is_bodyweight: boolean; rpe?: number | null }) => void;
   onDelete?: () => void;
   onStartRest?: () => void;
@@ -20,6 +21,7 @@ export function SetRow({
   setNumber,
   isNew = false,
   previousSet,
+  prefill,
   onSave,
   onDelete,
   onStartRest,
@@ -32,13 +34,19 @@ export function SetRow({
   const [isEditing, setIsEditing] = useState(isNew);
   const [showSaveAnimation, setShowSaveAnimation] = useState(false);
 
-  // Pre-fill from previous set for new rows
+  // Imperative prefill (e.g. user accepted AI suggestion). No auto-prefill from previousSet.
   useEffect(() => {
-    if (isNew && previousSet && !weight && !reps) {
-      if (previousSet.weight_kg) setWeight(previousSet.weight_kg.toString());
-      if (previousSet.reps) setReps(previousSet.reps.toString());
+    if (isNew && prefill) {
+      if (prefill.weight_kg === 0) {
+        setIsBodyweight(true);
+        setWeight('');
+      } else {
+        setWeight(prefill.weight_kg.toString());
+      }
+      setReps(prefill.reps.toString());
+      if (prefill.rpe != null) setRpe(prefill.rpe);
     }
-  }, [isNew, previousSet]);
+  }, [isNew, prefill]);
 
   // Sync state when set prop changes (for editing existing sets)
   useEffect(() => {
