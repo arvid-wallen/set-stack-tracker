@@ -193,13 +193,12 @@ function AddExerciseActionButton({
       )}
       <div className="text-left">
         <div className="font-medium">
-          {action.applied ? 'Tillagd' : `Lägg till ${data.exercise_name}`}
+          {action.applied ? 'Tillagd i passet ✓' : 'Lägg till i pass'}
         </div>
-        {data.sets && data.reps && (
-          <div className="text-xs opacity-80">
-            {data.sets} set × {data.reps} reps
-          </div>
-        )}
+        <div className="text-xs opacity-80">
+          {data.exercise_name}
+          {data.sets && data.reps ? ` · ${data.sets} × ${data.reps}` : ''}
+        </div>
       </div>
     </Button>
   );

@@ -5,7 +5,7 @@ import { useExercises } from '@/hooks/useExercises';
 import { usePTProfile } from '@/hooks/usePTProfile';
 import { useTrainingHistory } from '@/hooks/useTrainingHistory';
 import { findBestExerciseMatch } from '@/lib/exercise-matcher';
-import { WorkoutType } from '@/types/workout';
+import { WorkoutType, MuscleGroup, EquipmentType } from '@/types/workout';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 
@@ -37,6 +37,10 @@ export interface CreateWorkoutData {
 
 export interface AddExerciseData {
   exercise_name: string;
+  muscle_groups?: MuscleGroup[];
+  equipment_type?: EquipmentType;
+  is_cardio?: boolean;
+  description?: string;
   sets?: number;
   reps?: number;
   notes?: string;
@@ -49,7 +53,7 @@ export function usePTChat() {
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
   const { activeWorkout, startWorkout, addExercise: addWorkoutExercise, expandWorkout } = useWorkout();
-  const { exercises: allExercises } = useExercises();
+  const { exercises: allExercises, createCustomExercise } = useExercises();
   const { ptProfile } = usePTProfile();
   const { trainingHistory } = useTrainingHistory();
   const queryClient = useQueryClient();
@@ -358,20 +362,40 @@ export function usePTChat() {
           return;
         }
 
+        let exerciseId: string | null = null;
+        let exerciseName = data.exercise_name;
+        let wasCreated = false;
+
         const match = findBestExerciseMatch(data.exercise_name, allExercises);
-        if (!match) {
-          toast({
-            title: 'Övning hittades inte',
-            description: `Kunde inte hitta "${data.exercise_name}" i biblioteket`,
-            variant: 'destructive',
+        if (match) {
+          exerciseId = match.id;
+          exerciseName = match.name;
+        } else {
+          // Skapa övningen i biblioteket med AI:s metadata
+          const created = await createCustomExercise({
+            name: data.exercise_name,
+            description: data.description,
+            muscle_groups: data.muscle_groups || [],
+            equipment_type: data.equipment_type || 'bodyweight',
+            is_cardio: data.is_cardio || false,
           });
-          return;
+          if (!created) {
+            toast({
+              title: 'Kunde inte skapa övning',
+              description: `"${data.exercise_name}" gick inte att lägga till`,
+              variant: 'destructive',
+            });
+            return;
+          }
+          exerciseId = created.id;
+          exerciseName = created.name;
+          wasCreated = true;
         }
 
-        await addWorkoutExercise(match.id);
+        await addWorkoutExercise(exerciseId);
         toast({
-          title: 'Övning tillagd! 💪',
-          description: match.name,
+          title: wasCreated ? 'Skapad och tillagd! 💪' : 'Övning tillagd! 💪',
+          description: exerciseName,
         });
       }
 
@@ -402,7 +426,7 @@ export function usePTChat() {
         variant: 'destructive',
       });
     }
-  }, [messages, allExercises, activeWorkout, startWorkout, addWorkoutExercise, expandWorkout, toast]);
+  }, [messages, allExercises, activeWorkout, startWorkout, addWorkoutExercise, expandWorkout, toast, createCustomExercise]);
 
   const clearChat = useCallback(async () => {
     try {

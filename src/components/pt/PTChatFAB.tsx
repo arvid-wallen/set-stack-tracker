@@ -97,8 +97,8 @@ export function PTChatFAB() {
         onTouchEnd={handleTouchEnd}
         onClick={handleClick}
         className={cn(
-          // Position: fixed on right edge
-          "fixed right-0 z-40",
+          // Position: fixed on right edge (above ActiveWorkout overlay z-50)
+          "fixed right-0 z-[60]",
           // Size: slim notch
           "h-11 w-7 pl-1.5",
           // Shape: rounded left side, flat right
