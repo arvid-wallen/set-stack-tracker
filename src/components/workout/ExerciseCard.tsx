@@ -13,9 +13,8 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { SetRow } from './SetRow';
 import { CardioLogRow } from './CardioLogRow';
-import { ProgressiveOverloadSuggestion } from './ProgressiveOverloadSuggestion';
+import { AISetSuggestionCard } from './AISetSuggestionCard';
 import { ExerciseHistorySheet } from './ExerciseHistorySheet';
-import { useProgressiveOverload } from '@/hooks/useProgressiveOverload';
 import { useExerciseNotes } from '@/hooks/useExerciseNotes';
 import { WorkoutExercise, ExerciseSet, CardioLog, MUSCLE_GROUP_LABELS, CardioType } from '@/types/workout';
 import { cn } from '@/lib/utils';
