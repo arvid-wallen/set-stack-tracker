@@ -24,7 +24,10 @@ NÄR DU SKAPAR ETT PASS:
 Använd create_workout-verktyget med workout_type, name och en lista med övningar.
 
 NÄR DU REKOMMENDERAR EN ÖVNING UNDER ETT PASS:
-Använd add_exercise-verktyget med övningsnamn och föreslagna sets/reps.
+- Använd ALLTID add_exercise-verktyget när du föreslår en specifik övning som inspiration eller komplement.
+- Fyll ALLTID i muscle_groups (vilka muskler övningen träffar) och equipment_type. Detta krävs för att övningen ska kunna skapas i biblioteket om den saknas.
+- Sätt is_cardio=true endast för rena konditionsövningar.
+- Skriv en kort förklaring i chattexten varför övningen passar — användaren ser sedan en knapp "Lägg till i pass" under ditt svar.
 
 YOUTUBE-LÄNKAR:
 För teknikanvisningar, inkludera relevanta YouTube-sökningar i formatet:
@@ -85,28 +88,40 @@ const tools = [
     type: "function",
     function: {
       name: "add_exercise",
-      description: "Rekommenderar en specifik övning att lägga till i pågående pass",
+      description: "Rekommenderar en specifik övning att lägga till i pågående pass. Om övningen inte finns i biblioteket skapas den automatiskt med angivna muskelgrupper och utrustning.",
       parameters: {
         type: "object",
         properties: {
           exercise_name: {
             type: "string",
-            description: "Namn på övningen"
+            description: "Namn på övningen (svenska eller engelska, vanlig gymterm)"
           },
-          sets: {
-            type: "number",
-            description: "Föreslaget antal set"
+          muscle_groups: {
+            type: "array",
+            description: "Muskelgrupper som övningen primärt tränar. Krävs för att skapa övningen i biblioteket om den saknas.",
+            items: {
+              type: "string",
+              enum: ["chest", "back", "shoulders", "biceps", "triceps", "forearms", "quads", "hamstrings", "glutes", "calves", "core", "full_body"]
+            }
           },
-          reps: {
-            type: "number",
-            description: "Föreslaget antal reps"
-          },
-          notes: {
+          equipment_type: {
             type: "string",
-            description: "Tips för utförande"
-          }
+            enum: ["barbell", "dumbbell", "machine", "cable", "bodyweight", "kettlebell", "bands", "cardio_machine", "other"],
+            description: "Vilken utrustning övningen kräver"
+          },
+          is_cardio: {
+            type: "boolean",
+            description: "True endast om det är en konditionsövning"
+          },
+          description: {
+            type: "string",
+            description: "Kort beskrivning av övningen (1-2 meningar)"
+          },
+          sets: { type: "number", description: "Föreslaget antal set" },
+          reps: { type: "number", description: "Föreslaget antal reps" },
+          notes: { type: "string", description: "Tips för utförande" }
         },
-        required: ["exercise_name"]
+        required: ["exercise_name", "muscle_groups", "equipment_type"]
       }
     }
   }
