@@ -7,6 +7,7 @@ import { useAuth } from '@/hooks/useAuth';
 const STORAGE_KEY = 'pt-fab-position';
 
 export function PTChatFAB() {
+  const { isAuthenticated, isLoading } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
   const [position, setPosition] = useState(() => {
     const saved = localStorage.getItem(STORAGE_KEY);
