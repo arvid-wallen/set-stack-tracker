@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Bot } from 'lucide-react';
 import { PTChatSheet } from './PTChatSheet';
 import { cn } from '@/lib/utils';
+import { useAuth } from '@/hooks/useAuth';
 
 const STORAGE_KEY = 'pt-fab-position';
 
