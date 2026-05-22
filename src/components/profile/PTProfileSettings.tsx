@@ -9,7 +9,9 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { usePTProfile, PTProfileInput } from '@/hooks/usePTProfile';
+import { TRAINING_SPLIT_OPTIONS, TrainingSplitId } from '@/lib/training-splits';
 import { cn } from '@/lib/utils';
+
 
 const GOALS = [
   { id: 'muscle_gain', label: 'Bygga muskler', emoji: '💪' },
