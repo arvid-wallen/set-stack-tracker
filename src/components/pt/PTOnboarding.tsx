@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ChevronLeft, ChevronRight, Target, Dumbbell, Clock, AlertCircle, Sparkles } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Target, Dumbbell, Clock, AlertCircle, Sparkles, Calendar } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
@@ -7,6 +7,8 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
 import { PTProfileInput } from '@/hooks/usePTProfile';
+import { TRAINING_SPLIT_OPTIONS, TrainingSplitId } from '@/lib/training-splits';
+
 
 interface PTOnboardingProps {
   onComplete: (data: PTProfileInput) => void;
