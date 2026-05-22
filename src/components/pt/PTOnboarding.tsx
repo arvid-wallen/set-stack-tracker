@@ -277,6 +277,36 @@ export function PTOnboarding({ onComplete }: PTOnboardingProps) {
         {step === 4 && (
           <div className="space-y-4">
             <div className="text-center mb-6">
+              <span className="text-4xl mb-2 block">🗓️</span>
+              <h2 className="text-xl font-semibold">Vilken split kör du?</h2>
+              <p className="text-sm text-muted-foreground mt-1">
+                Vi använder den för att föreslå nästa pass automatiskt
+              </p>
+            </div>
+            <div className="space-y-2">
+              {TRAINING_SPLIT_OPTIONS.map((opt) => (
+                <button
+                  key={opt.id}
+                  onClick={() => setTrainingSplit(opt.id)}
+                  className={cn(
+                    'w-full p-3 rounded-xl border-2 text-left transition-all',
+                    trainingSplit === opt.id
+                      ? 'border-primary bg-primary/5'
+                      : 'border-border hover:border-primary/50'
+                  )}
+                >
+                  <p className="font-medium text-sm">{opt.label}</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">{opt.description}</p>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {step === 5 && (
+
+          <div className="space-y-4">
+            <div className="text-center mb-6">
               <span className="text-4xl mb-2 block">🩺</span>
               <h2 className="text-xl font-semibold">Något vi bör ta hänsyn till?</h2>
               <p className="text-sm text-muted-foreground mt-1">Helt valfritt</p>
