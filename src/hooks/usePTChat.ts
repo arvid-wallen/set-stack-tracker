@@ -5,7 +5,7 @@ import { useExercises } from '@/hooks/useExercises';
 import { usePTProfile } from '@/hooks/usePTProfile';
 import { useTrainingHistory } from '@/hooks/useTrainingHistory';
 import { findBestExerciseMatch } from '@/lib/exercise-matcher';
-import { WorkoutType } from '@/types/workout';
+import { WorkoutType, MuscleGroup, EquipmentType } from '@/types/workout';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 
@@ -37,6 +37,10 @@ export interface CreateWorkoutData {
 
 export interface AddExerciseData {
   exercise_name: string;
+  muscle_groups?: MuscleGroup[];
+  equipment_type?: EquipmentType;
+  is_cardio?: boolean;
+  description?: string;
   sets?: number;
   reps?: number;
   notes?: string;
@@ -49,7 +53,7 @@ export function usePTChat() {
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
   const { activeWorkout, startWorkout, addExercise: addWorkoutExercise, expandWorkout } = useWorkout();
-  const { exercises: allExercises } = useExercises();
+  const { exercises: allExercises, createCustomExercise } = useExercises();
   const { ptProfile } = usePTProfile();
   const { trainingHistory } = useTrainingHistory();
   const queryClient = useQueryClient();
