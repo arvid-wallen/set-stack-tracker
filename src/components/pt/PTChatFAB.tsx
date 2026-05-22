@@ -90,6 +90,8 @@ export function PTChatFAB() {
     }
   };
 
+  if (isLoading || !isAuthenticated) return null;
+
   return (
     <>
       <button
