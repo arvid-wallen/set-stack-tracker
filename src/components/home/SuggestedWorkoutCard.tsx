@@ -5,7 +5,7 @@ import { useSuggestedWorkout } from '@/hooks/useSuggestedWorkout';
 import { WorkoutType } from '@/types/workout';
 
 interface Props {
-  onStart: (type: WorkoutType) => void;
+  onStart: (type: WorkoutType, customName?: string) => void;
 }
 
 export function SuggestedWorkoutCard({ onStart }: Props) {
@@ -45,14 +45,19 @@ export function SuggestedWorkoutCard({ onStart }: Props) {
           </p>
           <p className="text-base font-semibold mt-0.5 truncate">{suggestion.label}</p>
           <p className="text-sm text-muted-foreground mt-0.5">{suggestion.reason}</p>
+          {suggestion.splitLabel && (
+            <p className="text-xs text-muted-foreground/80 mt-0.5">
+              Enligt din split: {suggestion.splitLabel}
+            </p>
+          )}
           <Button
             size="sm"
             variant="pill"
             className="mt-3 h-9"
-            onClick={() => onStart(suggestion.type)}
+            onClick={() => onStart(suggestion.type, suggestion.customName)}
           >
             <Play className="mr-1.5 h-3.5 w-3.5" aria-hidden="true" />
-            Starta {suggestion.type === 'full_body' ? 'helkropp' : suggestion.type}
+            Starta {suggestion.label}
           </Button>
         </div>
       </CardContent>
