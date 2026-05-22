@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
@@ -19,60 +20,51 @@ interface Profile {
   updated_at: string;
 }
 
+async function fetchOrCreateProfile(userId: string): Promise<Profile | null> {
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('*')
+    .eq('id', userId)
+    .maybeSingle();
+
+  if (error) {
+    console.error('Error fetching profile:', error);
+    return null;
+  }
+
+  if (data) return data as unknown as Profile;
+
+  // Profile doesn't exist yet — create a basic one
+  const { data: userData } = await supabase.auth.getUser();
+  const firstName = userData?.user?.user_metadata?.first_name || 'Användare';
+
+  const { data: newProfile, error: createError } = await supabase
+    .from('profiles')
+    .insert({ id: userId, first_name: firstName })
+    .select()
+    .single();
+
+  if (createError || !newProfile) return null;
+  return newProfile as unknown as Profile;
+}
+
 export function useProfile(userId: string | undefined) {
-  const [profile, setProfile] = useState<Profile | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const { toast } = useToast();
+  const queryClient = useQueryClient();
 
-  useEffect(() => {
-    if (!userId) {
-      setIsLoading(false);
-      return;
-    }
+  const { data: profile, isLoading } = useQuery({
+    queryKey: ['profile', userId],
+    enabled: !!userId,
+    staleTime: 5 * 60_000,
+    queryFn: () => fetchOrCreateProfile(userId!),
+  });
 
-    const fetchProfile = async () => {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', userId)
-        .maybeSingle();
-
-      if (error) {
-        console.error('Error fetching profile:', error);
-        setIsLoading(false);
-        return;
-      }
-
-      if (data) {
-        setProfile(data as unknown as Profile);
-      } else {
-        // Profile doesn't exist yet - create a basic one
-        const { data: userData } = await supabase.auth.getUser();
-        const firstName = userData?.user?.user_metadata?.first_name || 'Användare';
-        
-        const { data: newProfile, error: createError } = await supabase
-          .from('profiles')
-          .insert({
-            id: userId,
-            first_name: firstName,
-          })
-          .select()
-          .single();
-        
-        if (!createError && newProfile) {
-          setProfile(newProfile as unknown as Profile);
-        }
-      }
-      setIsLoading(false);
-    };
-
-    fetchProfile();
-  }, [userId]);
-
-  const updateProfile = async (updates: Partial<Pick<Profile, 'first_name' | 'last_name' | 'avatar_url' | 'weekly_goal' | 'monthly_goal' | 'goal_composition'>>) => {
+  const updateProfile = async (
+    updates: Partial<Pick<Profile, 'first_name' | 'last_name' | 'avatar_url' | 'weekly_goal' | 'monthly_goal' | 'goal_composition'>>,
+  ) => {
     if (!userId) return false;
-    
+
     setIsSaving(true);
     try {
       const { error } = await supabase
@@ -82,14 +74,16 @@ export function useProfile(userId: string | undefined) {
 
       if (error) throw error;
 
-      setProfile(prev => prev ? { ...prev, ...updates } : null);
+      queryClient.setQueryData<Profile | null>(['profile', userId], (prev) =>
+        prev ? { ...prev, ...updates } : prev,
+      );
       toast({ title: 'Profil uppdaterad!' });
       return true;
     } catch (error: any) {
-      toast({ 
-        title: 'Kunde inte uppdatera profil', 
+      toast({
+        title: 'Kunde inte uppdatera profil',
         description: error.message,
-        variant: 'destructive' 
+        variant: 'destructive',
       });
       return false;
     } finally {
@@ -115,16 +109,15 @@ export function useProfile(userId: string | undefined) {
         .from('avatars')
         .getPublicUrl(filePath);
 
-      // Add cache buster
       const urlWithCacheBuster = `${publicUrl}?t=${Date.now()}`;
-      
+
       await updateProfile({ avatar_url: urlWithCacheBuster });
       return urlWithCacheBuster;
     } catch (error: any) {
-      toast({ 
-        title: 'Kunde inte ladda upp bild', 
+      toast({
+        title: 'Kunde inte ladda upp bild',
         description: error.message,
-        variant: 'destructive' 
+        variant: 'destructive',
       });
       return null;
     } finally {
@@ -133,7 +126,7 @@ export function useProfile(userId: string | undefined) {
   };
 
   return {
-    profile,
+    profile: profile ?? null,
     isLoading,
     isSaving,
     updateProfile,

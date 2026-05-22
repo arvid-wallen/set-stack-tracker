@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
@@ -11,46 +12,42 @@ interface ProgressPhoto {
   created_at: string;
 }
 
+async function fetchProgressPhotos(userId: string): Promise<ProgressPhoto[]> {
+  const { data, error } = await supabase
+    .from('progress_photos')
+    .select('*')
+    .eq('user_id', userId)
+    .order('taken_at', { ascending: false });
+
+  if (error || !data) return [];
+
+  // Generate signed URLs in parallel
+  const photosWithUrls = await Promise.all(
+    data.map(async (photo) => {
+      const { data: signedData } = await supabase.storage
+        .from('progress-photos')
+        .createSignedUrl(photo.photo_url, 3600);
+      return {
+        ...photo,
+        photo_url: signedData?.signedUrl || photo.photo_url,
+      };
+    }),
+  );
+  return photosWithUrls;
+}
+
 export function useProgressPhotos(userId: string | undefined) {
-  const [photos, setPhotos] = useState<ProgressPhoto[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
   const [isUploading, setIsUploading] = useState(false);
   const { toast } = useToast();
+  const queryClient = useQueryClient();
 
-  useEffect(() => {
-    if (!userId) {
-      setIsLoading(false);
-      return;
-    }
-
-    const fetchPhotos = async () => {
-      const { data, error } = await supabase
-        .from('progress_photos')
-        .select('*')
-        .eq('user_id', userId)
-        .order('taken_at', { ascending: false });
-
-      if (!error && data) {
-        // Generate signed URLs for each photo
-        const photosWithUrls = await Promise.all(
-          data.map(async (photo) => {
-            const { data: signedData } = await supabase.storage
-              .from('progress-photos')
-              .createSignedUrl(photo.photo_url, 3600); // 1 hour
-            
-            return {
-              ...photo,
-              photo_url: signedData?.signedUrl || photo.photo_url
-            };
-          })
-        );
-        setPhotos(photosWithUrls);
-      }
-      setIsLoading(false);
-    };
-
-    fetchPhotos();
-  }, [userId]);
+  const { data: photos = [], isLoading } = useQuery({
+    queryKey: ['progress-photos', userId],
+    enabled: !!userId,
+    // Signed URLs live for 1h — refetch a bit before that, but keep cache fresh between navigations.
+    staleTime: 5 * 60_000,
+    queryFn: () => fetchProgressPhotos(userId!),
+  });
 
   const uploadPhoto = async (file: File, takenAt: Date, notes?: string) => {
     if (!userId) return null;
@@ -73,31 +70,32 @@ export function useProgressPhotos(userId: string | undefined) {
           user_id: userId,
           photo_url: filePath,
           taken_at: takenAt.toISOString().split('T')[0],
-          notes: notes || null
+          notes: notes || null,
         })
         .select()
         .single();
 
       if (insertError) throw insertError;
 
-      // Get signed URL for the new photo
       const { data: signedData } = await supabase.storage
         .from('progress-photos')
         .createSignedUrl(filePath, 3600);
 
-      const newPhoto = {
-        ...data,
-        photo_url: signedData?.signedUrl || filePath
+      const newPhoto: ProgressPhoto = {
+        ...(data as any),
+        photo_url: signedData?.signedUrl || filePath,
       };
 
-      setPhotos(prev => [newPhoto, ...prev]);
+      queryClient.setQueryData<ProgressPhoto[]>(['progress-photos', userId], (prev) =>
+        prev ? [newPhoto, ...prev] : [newPhoto],
+      );
       toast({ title: 'Progressbild uppladdad!' });
       return newPhoto;
     } catch (error: any) {
-      toast({ 
-        title: 'Kunde inte ladda upp bild', 
+      toast({
+        title: 'Kunde inte ladda upp bild',
         description: error.message,
-        variant: 'destructive' 
+        variant: 'destructive',
       });
       return null;
     } finally {
@@ -107,15 +105,12 @@ export function useProgressPhotos(userId: string | undefined) {
 
   const deletePhoto = async (photoId: string, photoPath: string) => {
     try {
-      // Extract just the path part if it's a signed URL
-      const path = photoPath.includes('progress-photos/') 
-        ? photoPath.split('progress-photos/')[1]?.split('?')[0] 
+      const path = photoPath.includes('progress-photos/')
+        ? photoPath.split('progress-photos/')[1]?.split('?')[0]
         : photoPath;
 
       if (path) {
-        await supabase.storage
-          .from('progress-photos')
-          .remove([path]);
+        await supabase.storage.from('progress-photos').remove([path]);
       }
 
       const { error } = await supabase
@@ -125,14 +120,16 @@ export function useProgressPhotos(userId: string | undefined) {
 
       if (error) throw error;
 
-      setPhotos(prev => prev.filter(p => p.id !== photoId));
+      queryClient.setQueryData<ProgressPhoto[]>(['progress-photos', userId], (prev) =>
+        prev ? prev.filter((p) => p.id !== photoId) : prev,
+      );
       toast({ title: 'Bild raderad' });
       return true;
     } catch (error: any) {
-      toast({ 
-        title: 'Kunde inte radera bild', 
+      toast({
+        title: 'Kunde inte radera bild',
         description: error.message,
-        variant: 'destructive' 
+        variant: 'destructive',
       });
       return false;
     }

@@ -4,6 +4,7 @@ import { useMemo } from 'react';
 import { startOfWeek, subWeeks, format, parseISO } from 'date-fns';
 import { sv } from 'date-fns/locale';
 import { MuscleGroup, MUSCLE_GROUP_LABELS } from '@/types/workout';
+import { useAuth } from '@/hooks/useAuth';
 
 export type TimePeriod = 'week' | 'month' | 'year' | 'all';
 
@@ -49,63 +50,67 @@ const MUSCLE_GROUP_COLORS: Record<MuscleGroup, string> = {
   full_body: 'hsl(300, 70%, 50%)',
 };
 
-export function useStats(period: TimePeriod = 'all') {
-  // Fetch all workout sessions with exercises and sets
+const PAGE_SIZE = 1000;
+
+async function fetchAllSets(userId: string) {
+  // Page through exercise_sets for this user; uses RLS to scope, but we still
+  // need to paginate past the 1000-row default response cap.
+  const all: any[] = [];
+  let from = 0;
+  while (true) {
+    const { data, error } = await supabase
+      .from('exercise_sets')
+      .select(
+        `id, weight_kg, reps, is_warmup, completed_at,
+         workout_exercises!inner (
+           workout_session_id,
+           exercises!inner ( muscle_groups )
+         )`
+      )
+      .eq('is_warmup', false)
+      .range(from, from + PAGE_SIZE - 1);
+    if (error) throw error;
+    const rows = data ?? [];
+    all.push(...rows);
+    if (rows.length < PAGE_SIZE) break;
+    from += PAGE_SIZE;
+  }
+  return all;
+}
+
+export function useStats(_period: TimePeriod = 'all') {
+  const { user } = useAuth();
+  const userId = user?.id;
+
+  // Single sessions query — also serves as the date map (no separate fetch).
   const { data: workoutData, isLoading: workoutsLoading } = useQuery({
-    queryKey: ['stats-workouts', period],
-    queryFn: async () => {
-      const { data: sessions, error } = await supabase
-        .from('workout_sessions')
-        .select('id, started_at, ended_at, duration_seconds, workout_type')
-        .eq('is_active', false)
-        .order('started_at', { ascending: false });
-
-      if (error) throw error;
-      return sessions || [];
-    },
-  });
-
-  // Fetch all sets with exercise info for volume calculations
-  const { data: setsData, isLoading: setsLoading } = useQuery({
-    queryKey: ['stats-sets', period],
+    queryKey: ['stats-workouts', userId],
+    enabled: !!userId,
+    staleTime: 60_000,
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('exercise_sets')
-        .select(`
-          id,
-          weight_kg,
-          reps,
-          is_warmup,
-          completed_at,
-          workout_exercises!inner (
-            workout_session_id,
-            exercises!inner (
-              muscle_groups
-            )
-          )
-        `)
-        .eq('is_warmup', false);
-
+        .from('workout_sessions')
+        .select('id, started_at, ended_at, duration_seconds, workout_type')
+        .eq('user_id', userId!)
+        .eq('is_active', false)
+        .order('started_at', { ascending: false });
       if (error) throw error;
       return data || [];
     },
   });
 
-  // Fetch workout session dates for set mapping
-  const { data: sessionDates } = useQuery({
-    queryKey: ['stats-session-dates'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('workout_sessions')
-        .select('id, started_at')
-        .eq('is_active', false);
-
-      if (error) throw error;
-      return new Map(data?.map(s => [s.id, s.started_at]) || []);
-    },
+  const { data: setsData, isLoading: setsLoading } = useQuery({
+    queryKey: ['stats-sets', userId],
+    enabled: !!userId,
+    staleTime: 60_000,
+    queryFn: () => fetchAllSets(userId!),
   });
 
-  // Calculate overview stats
+  // Session date map derived from workoutData (was a redundant 3rd query).
+  const sessionDates = useMemo(() => {
+    return new Map((workoutData ?? []).map((s) => [s.id, s.started_at]));
+  }, [workoutData]);
+
   const overviewStats = useMemo<OverviewStats>(() => {
     if (!workoutData || !setsData) {
       return {
@@ -123,7 +128,6 @@ export function useStats(period: TimePeriod = 'all') {
     const totalVolume = setsData.reduce((acc, s) => acc + (s.weight_kg || 0) * (s.reps || 0), 0);
     const totalSets = setsData.length;
 
-    // Calculate weeks since first workout
     const firstWorkout = workoutData[workoutData.length - 1];
     const weeksSinceFirst = firstWorkout
       ? Math.max(1, Math.ceil((Date.now() - new Date(firstWorkout.started_at).getTime()) / (7 * 24 * 60 * 60 * 1000)))
@@ -139,14 +143,12 @@ export function useStats(period: TimePeriod = 'all') {
     };
   }, [workoutData, setsData]);
 
-  // Calculate weekly data for charts
   const weeklyData = useMemo<WeeklyData[]>(() => {
-    if (!workoutData || !setsData || !sessionDates) return [];
+    if (!workoutData || !setsData) return [];
 
     const weeks = new Map<string, WeeklyData>();
     const now = new Date();
 
-    // Initialize last 12 weeks
     for (let i = 11; i >= 0; i--) {
       const weekStart = startOfWeek(subWeeks(now, i), { weekStartsOn: 1 });
       const key = format(weekStart, 'yyyy-MM-dd');
@@ -160,7 +162,6 @@ export function useStats(period: TimePeriod = 'all') {
       });
     }
 
-    // Count workouts per week
     workoutData.forEach(workout => {
       const weekStart = startOfWeek(parseISO(workout.started_at), { weekStartsOn: 1 });
       const key = format(weekStart, 'yyyy-MM-dd');
@@ -171,7 +172,6 @@ export function useStats(period: TimePeriod = 'all') {
       }
     });
 
-    // Calculate tonnage per week
     setsData.forEach(set => {
       const sessionId = (set.workout_exercises as any)?.workout_session_id;
       const sessionDate = sessionDates.get(sessionId);
@@ -189,7 +189,6 @@ export function useStats(period: TimePeriod = 'all') {
     return Array.from(weeks.values());
   }, [workoutData, setsData, sessionDates]);
 
-  // Calculate muscle group distribution
   const muscleGroupData = useMemo<MuscleGroupData[]>(() => {
     if (!setsData) return [];
 
@@ -222,7 +221,6 @@ export function useStats(period: TimePeriod = 'all') {
       .sort((a, b) => b.sets - a.sets);
   }, [setsData]);
 
-  // Calculate trends (this week vs last week)
   const trends = useMemo(() => {
     if (weeklyData.length < 2) {
       return { workouts: 0, tonnage: 0, duration: 0 };
