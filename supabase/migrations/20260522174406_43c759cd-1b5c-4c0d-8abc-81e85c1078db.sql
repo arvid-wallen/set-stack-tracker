@@ -1,0 +1,1 @@
+ALTER TABLE public.pt_profiles ADD COLUMN IF NOT EXISTS training_split text;

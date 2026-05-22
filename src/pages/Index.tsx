@@ -143,7 +143,7 @@ const Index = () => {
         </Button>
 
         {/* Adaptive suggestion based on recovery */}
-        <SuggestedWorkoutCard onStart={(type) => handleStartWorkout(type)} />
+        <SuggestedWorkoutCard onStart={(type, customName) => handleStartWorkout(type, customName)} />
 
         {/* North Star card: tap to toggle week/month, ⋯ to edit */}
         {(() => {

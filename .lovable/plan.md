@@ -1,42 +1,76 @@
 ## Mål
-Gör PT-chatten tillgänglig under ett pågående pass och låt AI:n lägga till en rekommenderad övning i passet via en "Lägg till i pass"-knapp. Om övningen inte finns i biblioteket skapas den automatiskt som custom-övning med rätt muskelgruppstaggar och utrustning.
+"Förslag idag" på startsidan ska följa användarens valda träningssplit och rotera genom den baserat på senaste passet — inte bara välja den muskelgrupp som vilat längst (som idag).
+
+## Idag: AI eller inte?
+**Inte AI.** `useSuggestedWorkout` är ren heuristik baserad på `useRecovery` (dagar sedan muskelgrupp tränades) + 4 hårdkodade templates (push/pull/legs/full_body). Den vet inte om PPL 6-dagars, Upper/Lower, Bro split etc.
+
+## Rekommendation: regelbaserat med splits, inte AI
+Splits är deterministiska rotationer — perfekt för regler. AI för detta vore overkill (kostar pengar, långsammare, kan hallucinera, kräver nätverk). Regelbaserat ger förutsägbart resultat och fungerar offline (kritiskt enligt projektets core-memory).
+
+## Splits som täcks
+Researchade vanliga splits — vi stödjer dessa rotationsmönster:
+
+| Split | Dagar/v | Rotation |
+|---|---|---|
+| Full body | 1–3 | Helkropp → vila → Helkropp |
+| Upper/Lower (2-dagars) | 2 | Upper → Lower |
+| Upper/Lower (4-dagars) | 4 | Upper → Lower → Upper → Lower |
+| Push/Pull (2-dagars) | 2 | Push → Pull |
+| PPL (3-dagars) | 3 | Push → Pull → Legs |
+| PPL (6-dagars) | 6 | Push → Pull → Legs → Push → Pull → Legs |
+| Bro split (5-dagars) | 5 | Bröst → Rygg → Ben → Axlar → Armar |
+| Arnold split (6-dagars) | 6 | Bröst+Rygg → Axlar+Armar → Ben (× 2) |
+| 4-dagars klassisk | 4 | Bröst+Triceps → Rygg+Biceps → Ben → Axlar |
+| Custom | – | Ingen rotation, faller tillbaka till nuvarande recovery-heuristik |
 
 ## Förändringar
 
-### 1. Synlig chatt under pass (`src/components/pt/PTChatFAB.tsx`)
-- Höj z-index på FAB-knappen och chatt-sheeten så de hamnar ovanpå `ActiveWorkout` (som ligger på `z-50`). FAB:en blir `z-[60]` så den syns som en flik i sidan även under passet.
-- Sheeten öppnas över passet — användaren behåller kontexten och kan stänga den för att fortsätta logga set.
+### 1. Databas — split-val på profilen
+- Lägg till `training_split` (text, nullable) på `pt_profiles` med enum-värden ovan (`full_body`, `upper_lower_2`, `upper_lower_4`, `push_pull_2`, `ppl_3`, `ppl_6`, `bro_5`, `arnold_6`, `classic_4`, `custom`).
 
-### 2. Smartare `add_exercise`-tool (`supabase/functions/pt-chat/index.ts`)
-- Utöka tool-schemat för `add_exercise` med:
-  - `muscle_groups`: array av enum (`chest, back, shoulders, biceps, triceps, forearms, quads, hamstrings, glutes, calves, core, full_body`)
-  - `equipment_type`: enum (`barbell, dumbbell, machine, cable, bodyweight, kettlebell, bands, cardio_machine, other`)
-  - `is_cardio`: boolean
-  - `description`: kort beskrivning (valfri)
-- Uppdatera systemprompten så att AI:n ALLTID fyller i muskelgrupper + utrustning när den rekommenderar en övning, och nämner att användaren kan klicka "Lägg till i pass".
-- Förtydliga att när användaren frågar efter inspiration/rekommendation under ett pågående pass ska AI:n svara med kort motivering + anropa `add_exercise`.
+### 2. Onboarding & profil-redigering
+- I `PTOnboarding.tsx` / `PTProfileSettings.tsx`: lägg till ett steg/fält "Träningssplit" (visual_choice-style) där användaren väljer split. Defaultar till `custom` om man hoppar över.
 
-### 3. Auto-skapa övning om den saknas (`src/hooks/usePTChat.ts`)
-- Utöka `AddExerciseData` med `muscle_groups`, `equipment_type`, `is_cardio`, `description`.
-- I `applyAction` för `add_exercise`:
-  1. Försök matcha mot befintlig övning via `findBestExerciseMatch`.
-  2. Om ingen träff: anropa `createCustomExercise` med AI:ns metadata (namn + muskelgrupper + utrustning). Lägg till resultatet i workout.
-  3. Om träff: lägg till som idag.
-- Visa toast som säger antingen "Tillagd i passet" eller "Skapad och tillagd i passet".
-- Använd `useExercises().createCustomExercise` — den lägger automatiskt övningen i biblioteket med `is_custom: true` och rätt taggar.
+### 3. Ny modul `src/lib/training-splits.ts`
+- Definierar varje split som en ordnad lista av "pass-templates" (typ + label + muskelgrupper):
+  ```ts
+  SPLITS = {
+    ppl_6: [
+      { type: 'push', label: 'Push', groups: [...] },
+      { type: 'pull', label: 'Pull', groups: [...] },
+      { type: 'legs', label: 'Ben', groups: [...] },
+      ...
+    ],
+    bro_5: [
+      { type: 'custom', custom_name: 'Bröst', groups: ['chest', 'triceps'] },
+      ...
+    ],
+    ...
+  }
+  ```
+- Helper `getNextInSplit(split, lastWorkouts)`: tar de senaste N passen, matchar dem mot rotationen via `workout_type` + `custom_type_name`, och returnerar nästa steg.
 
-### 4. UX i action-knappen (`src/components/pt/PTChatMessage.tsx`)
-- Ändra knapptexten för `add_exercise` till **"Lägg till i pass"** (idag står det "Lägg till X"). Behåll övning + sets/reps som undertext.
-- När `applied: true`: visa "Tillagd i passet ✓".
-- Disabla knappen om inget aktivt pass finns och visa hint "Starta ett pass först".
+### 4. Uppdaterad `useSuggestedWorkout`
+- Hämta `ptProfile.training_split` + senaste 7 passens `workout_type` & `custom_type_name` (ny query mot `workout_sessions`).
+- Om split är satt (≠ `custom`): kör `getNextInSplit` för att hitta nästa pass.
+- Behåll vilodags-logiken (om `workoutsThisWeek >= weeklyTarget` → vilodag, om split tillåter det).
+- Om split = `custom` eller historik saknas: använd nuvarande recovery-baserade heuristik som fallback.
+- Reason-text uppdateras: "Du körde Push igår — dags för Pull enligt din PPL-split".
+
+### 5. SuggestedWorkoutCard
+- Visa split-namnet diskret ("PPL 6-dagars") under reason-texten.
+- "Starta {nästa pass-label}" istället för bara typ.
 
 ## Tekniska detaljer
-- Inga DB-ändringar krävs — `exercises`-tabellen stödjer redan custom-övningar med `muscle_groups[]` och `equipment_type`.
-- `ActiveWorkout` lyssnar redan på workout_exercises-state via `useWorkout`, så nya övningar dyker upp direkt utan reload.
-- `PTChatFAB` är redan global i `App.tsx` — vi behöver bara fixa z-index, inte mounta den separat i `ActiveWorkout`.
+- För custom splits (bro, arnold, classic_4) startas passet som `workout_type='custom'` med ett deterministiskt `custom_type_name` (t.ex. "Bröst-dag", "Push A") som används både för att starta passet och för att matcha tillbaka i rotationen.
+- Match-logik: jämför case-insensitive på `custom_type_name` när det finns, annars `workout_type`.
+- Senaste pass hämtas via `workout_sessions` ordered by `started_at desc`, ignorera aktiva pass.
 
 ## Filer som ändras
-- `src/components/pt/PTChatFAB.tsx` — z-index
-- `src/components/pt/PTChatMessage.tsx` — knapptext
-- `src/hooks/usePTChat.ts` — utökad `AddExerciseData`, fallback till `createCustomExercise`
-- `supabase/functions/pt-chat/index.ts` — utökat tool-schema + prompt
+- **Ny migration**: lägga till `training_split` på `pt_profiles`.
+- **Ny**: `src/lib/training-splits.ts` (split-definitioner + helper).
+- `src/hooks/useSuggestedWorkout.ts` — använd split-helper.
+- `src/components/home/SuggestedWorkoutCard.tsx` — visa split-namn + bättre CTA.
+- `src/components/pt/PTOnboarding.tsx` — steg för split-val.
+- `src/components/profile/PTProfileSettings.tsx` — redigera split.
+- `src/hooks/usePTProfile.ts` — typ + read/write för nytt fält.

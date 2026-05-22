@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ChevronLeft, ChevronRight, Target, Dumbbell, Clock, AlertCircle, Sparkles } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Target, Dumbbell, Clock, AlertCircle, Sparkles, Calendar } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
@@ -7,6 +7,8 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
 import { PTProfileInput } from '@/hooks/usePTProfile';
+import { TRAINING_SPLIT_OPTIONS, TrainingSplitId } from '@/lib/training-splits';
+
 
 interface PTOnboardingProps {
   onComplete: (data: PTProfileInput) => void;
@@ -43,6 +45,7 @@ export function PTOnboarding({ onComplete }: PTOnboardingProps) {
   const [equipment, setEquipment] = useState<string[]>([]);
   const [duration, setDuration] = useState<number>(60);
   const [daysPerWeek, setDaysPerWeek] = useState<number>(4);
+  const [trainingSplit, setTrainingSplit] = useState<TrainingSplitId>('custom');
   const [injuries, setInjuries] = useState('');
 
   const steps = [
@@ -50,6 +53,7 @@ export function PTOnboarding({ onComplete }: PTOnboardingProps) {
     { title: 'Erfarenhet', icon: Dumbbell, emoji: '💪' },
     { title: 'Utrustning', icon: Dumbbell, emoji: '🏋️' },
     { title: 'Tid', icon: Clock, emoji: '⏱️' },
+    { title: 'Split', icon: Calendar, emoji: '🗓️' },
     { title: 'Begränsningar', icon: AlertCircle, emoji: '🩺' },
   ];
 
@@ -59,7 +63,8 @@ export function PTOnboarding({ onComplete }: PTOnboardingProps) {
       case 1: return !!experienceLevel;
       case 2: return equipment.length > 0;
       case 3: return true;
-      case 4: return true;
+      case 4: return !!trainingSplit;
+      case 5: return true;
       default: return false;
     }
   };
@@ -71,9 +76,11 @@ export function PTOnboarding({ onComplete }: PTOnboardingProps) {
       available_equipment: equipment,
       preferred_workout_duration: duration,
       training_days_per_week: daysPerWeek,
+      training_split: trainingSplit,
       injuries: injuries.trim() || null,
     });
   };
+
 
   const toggleGoal = (goalId: string) => {
     setGoals(prev => 
@@ -268,6 +275,36 @@ export function PTOnboarding({ onComplete }: PTOnboardingProps) {
         )}
 
         {step === 4 && (
+          <div className="space-y-4">
+            <div className="text-center mb-6">
+              <span className="text-4xl mb-2 block">🗓️</span>
+              <h2 className="text-xl font-semibold">Vilken split kör du?</h2>
+              <p className="text-sm text-muted-foreground mt-1">
+                Vi använder den för att föreslå nästa pass automatiskt
+              </p>
+            </div>
+            <div className="space-y-2">
+              {TRAINING_SPLIT_OPTIONS.map((opt) => (
+                <button
+                  key={opt.id}
+                  onClick={() => setTrainingSplit(opt.id)}
+                  className={cn(
+                    'w-full p-3 rounded-xl border-2 text-left transition-all',
+                    trainingSplit === opt.id
+                      ? 'border-primary bg-primary/5'
+                      : 'border-border hover:border-primary/50'
+                  )}
+                >
+                  <p className="font-medium text-sm">{opt.label}</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">{opt.description}</p>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {step === 5 && (
+
           <div className="space-y-4">
             <div className="text-center mb-6">
               <span className="text-4xl mb-2 block">🩺</span>

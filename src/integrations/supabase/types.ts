@@ -337,6 +337,7 @@ export type Database = {
           onboarding_completed: boolean | null
           preferred_workout_duration: number | null
           training_days_per_week: number | null
+          training_split: string | null
           training_years: number | null
           updated_at: string | null
           user_id: string
@@ -356,6 +357,7 @@ export type Database = {
           onboarding_completed?: boolean | null
           preferred_workout_duration?: number | null
           training_days_per_week?: number | null
+          training_split?: string | null
           training_years?: number | null
           updated_at?: string | null
           user_id: string
@@ -375,6 +377,7 @@ export type Database = {
           onboarding_completed?: boolean | null
           preferred_workout_duration?: number | null
           training_days_per_week?: number | null
+          training_split?: string | null
           training_years?: number | null
           updated_at?: string | null
           user_id?: string

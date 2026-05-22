@@ -9,7 +9,9 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { usePTProfile, PTProfileInput } from '@/hooks/usePTProfile';
+import { TRAINING_SPLIT_OPTIONS, TrainingSplitId } from '@/lib/training-splits';
 import { cn } from '@/lib/utils';
+
 
 const GOALS = [
   { id: 'muscle_gain', label: 'Bygga muskler', emoji: '💪' },
@@ -46,6 +48,7 @@ export function PTProfileSettings() {
   const [equipment, setEquipment] = useState<string[]>([]);
   const [duration, setDuration] = useState<number>(60);
   const [daysPerWeek, setDaysPerWeek] = useState<number>(4);
+  const [trainingSplit, setTrainingSplit] = useState<TrainingSplitId>('custom');
   const [injuries, setInjuries] = useState('');
 
   // Load profile data when opening
@@ -56,9 +59,11 @@ export function PTProfileSettings() {
       setEquipment(ptProfile.available_equipment || []);
       setDuration(ptProfile.preferred_workout_duration || 60);
       setDaysPerWeek(ptProfile.training_days_per_week || 4);
+      setTrainingSplit((ptProfile.training_split as TrainingSplitId) || 'custom');
       setInjuries(ptProfile.injuries || '');
     }
   }, [ptProfile, isOpen]);
+
 
   const toggleGoal = (goalId: string) => {
     setGoals(prev => 
@@ -84,11 +89,13 @@ export function PTProfileSettings() {
       available_equipment: equipment,
       preferred_workout_duration: duration,
       training_days_per_week: daysPerWeek,
+      training_split: trainingSplit,
       injuries: injuries.trim() || null,
     });
     setIsSaving(false);
     setIsOpen(false);
   };
+
 
   // Show different state if onboarding not completed
   const hasProfile = ptProfile && !needsOnboarding;
@@ -269,6 +276,33 @@ export function PTProfileSettings() {
                   ))}
                 </div>
               </div>
+
+              {/* Training split */}
+              <div>
+                <Label className="text-sm font-medium mb-3 block">Träningssplit</Label>
+                <p className="text-xs text-muted-foreground mb-2">
+                  Används för att automatiskt föreslå nästa pass på startsidan
+                </p>
+                <div className="space-y-2">
+                  {TRAINING_SPLIT_OPTIONS.map((opt) => (
+                    <button
+                      key={opt.id}
+                      onClick={() => setTrainingSplit(opt.id)}
+                      className={cn(
+                        'w-full p-3 rounded-lg border text-left transition-all',
+                        trainingSplit === opt.id
+                          ? 'border-primary bg-primary/5'
+                          : 'border-border hover:border-primary/50'
+                      )}
+                    >
+                      <p className="text-sm font-medium">{opt.label}</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">{opt.description}</p>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+
 
               {/* Injuries */}
               <div>
