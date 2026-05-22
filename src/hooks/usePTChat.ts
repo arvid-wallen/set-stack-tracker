@@ -362,20 +362,40 @@ export function usePTChat() {
           return;
         }
 
+        let exerciseId: string | null = null;
+        let exerciseName = data.exercise_name;
+        let wasCreated = false;
+
         const match = findBestExerciseMatch(data.exercise_name, allExercises);
-        if (!match) {
-          toast({
-            title: 'Övning hittades inte',
-            description: `Kunde inte hitta "${data.exercise_name}" i biblioteket`,
-            variant: 'destructive',
+        if (match) {
+          exerciseId = match.id;
+          exerciseName = match.name;
+        } else {
+          // Skapa övningen i biblioteket med AI:s metadata
+          const created = await createCustomExercise({
+            name: data.exercise_name,
+            description: data.description,
+            muscle_groups: data.muscle_groups || [],
+            equipment_type: data.equipment_type || 'bodyweight',
+            is_cardio: data.is_cardio || false,
           });
-          return;
+          if (!created) {
+            toast({
+              title: 'Kunde inte skapa övning',
+              description: `"${data.exercise_name}" gick inte att lägga till`,
+              variant: 'destructive',
+            });
+            return;
+          }
+          exerciseId = created.id;
+          exerciseName = created.name;
+          wasCreated = true;
         }
 
-        await addWorkoutExercise(match.id);
+        await addWorkoutExercise(exerciseId);
         toast({
-          title: 'Övning tillagd! 💪',
-          description: match.name,
+          title: wasCreated ? 'Skapad och tillagd! 💪' : 'Övning tillagd! 💪',
+          description: exerciseName,
         });
       }
 
