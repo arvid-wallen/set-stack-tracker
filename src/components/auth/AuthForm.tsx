@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Mail, Lock, Eye, EyeOff, Dumbbell, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -16,16 +17,27 @@ export function AuthForm() {
   const [rememberMe, setRememberMe] = useState(() => {
     return localStorage.getItem('rememberMe') === 'true';
   });
-  
-  const { signIn, signUp, isLoading } = useAuth();
+
+  const navigate = useNavigate();
+  const { signIn, signUp, isLoading, isAuthenticated } = useAuth();
+
+  // If a session shows up (e.g. signup with auto-confirm, or already logged in),
+  // bounce out of /auth so the user doesn't get stuck on the form.
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate('/', { replace: true });
+    }
+  }, [isAuthenticated, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (isLogin) {
-      await signIn(email, password, rememberMe);
+      const result = await signIn(email, password, rememberMe);
+      if (result?.session) navigate('/', { replace: true });
     } else {
-      await signUp(email, password, firstName);
+      const result = await signUp(email, password, firstName);
+      if (result?.session) navigate('/', { replace: true });
     }
   };
 
