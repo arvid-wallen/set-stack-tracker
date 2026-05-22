@@ -277,6 +277,33 @@ export function PTProfileSettings() {
                 </div>
               </div>
 
+              {/* Training split */}
+              <div>
+                <Label className="text-sm font-medium mb-3 block">Träningssplit</Label>
+                <p className="text-xs text-muted-foreground mb-2">
+                  Används för att automatiskt föreslå nästa pass på startsidan
+                </p>
+                <div className="space-y-2">
+                  {TRAINING_SPLIT_OPTIONS.map((opt) => (
+                    <button
+                      key={opt.id}
+                      onClick={() => setTrainingSplit(opt.id)}
+                      className={cn(
+                        'w-full p-3 rounded-lg border text-left transition-all',
+                        trainingSplit === opt.id
+                          ? 'border-primary bg-primary/5'
+                          : 'border-border hover:border-primary/50'
+                      )}
+                    >
+                      <p className="text-sm font-medium">{opt.label}</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">{opt.description}</p>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+
+
               {/* Injuries */}
               <div>
                 <Label htmlFor="injuries-edit" className="text-sm font-medium mb-2 block">
