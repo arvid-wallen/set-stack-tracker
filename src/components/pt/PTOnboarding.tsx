@@ -45,6 +45,7 @@ export function PTOnboarding({ onComplete }: PTOnboardingProps) {
   const [equipment, setEquipment] = useState<string[]>([]);
   const [duration, setDuration] = useState<number>(60);
   const [daysPerWeek, setDaysPerWeek] = useState<number>(4);
+  const [trainingSplit, setTrainingSplit] = useState<TrainingSplitId>('custom');
   const [injuries, setInjuries] = useState('');
 
   const steps = [
@@ -52,6 +53,7 @@ export function PTOnboarding({ onComplete }: PTOnboardingProps) {
     { title: 'Erfarenhet', icon: Dumbbell, emoji: '💪' },
     { title: 'Utrustning', icon: Dumbbell, emoji: '🏋️' },
     { title: 'Tid', icon: Clock, emoji: '⏱️' },
+    { title: 'Split', icon: Calendar, emoji: '🗓️' },
     { title: 'Begränsningar', icon: AlertCircle, emoji: '🩺' },
   ];
 
@@ -61,7 +63,8 @@ export function PTOnboarding({ onComplete }: PTOnboardingProps) {
       case 1: return !!experienceLevel;
       case 2: return equipment.length > 0;
       case 3: return true;
-      case 4: return true;
+      case 4: return !!trainingSplit;
+      case 5: return true;
       default: return false;
     }
   };
@@ -73,9 +76,11 @@ export function PTOnboarding({ onComplete }: PTOnboardingProps) {
       available_equipment: equipment,
       preferred_workout_duration: duration,
       training_days_per_week: daysPerWeek,
+      training_split: trainingSplit,
       injuries: injuries.trim() || null,
     });
   };
+
 
   const toggleGoal = (goalId: string) => {
     setGoals(prev => 
