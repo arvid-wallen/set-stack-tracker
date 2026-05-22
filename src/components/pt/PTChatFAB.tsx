@@ -115,7 +115,9 @@ export function PTChatFAB() {
           // Cursor feedback
           isDragging ? "cursor-grabbing" : "cursor-grab",
           // Prevent text selection during drag
-          "select-none touch-none"
+          "select-none touch-none",
+          // Hide when sheet is open
+          isOpen && "opacity-0 pointer-events-none"
         )}
         style={{ 
           top: `${position}%`, 
