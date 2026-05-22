@@ -78,19 +78,20 @@ export function ExerciseCard({
     onMarkComplete?.(!isCompleted);
   }, [onMarkComplete, isCompleted]);
 
-  // Fetch progressive overload data for auto-fill from previous session
-  const { suggestion } = useProgressiveOverload(isCardio ? null : workoutExercise.exercise_id);
-
   const lastWorkingSet = workingSets[workingSets.length - 1];
-  
-  // Use last set from current workout, or fall back to historical data from previous session
+
+  // Only show "Förra: ..." hint from actual last set in current workout. No auto-prefill.
   const previousSetData = lastWorkingSet ? {
     weight_kg: lastWorkingSet.weight_kg,
     reps: lastWorkingSet.reps,
-  } : suggestion?.suggestedWeight ? {
-    weight_kg: suggestion.suggestedWeight,
-    reps: suggestion.suggestedReps ?? null,
   } : undefined;
+
+  // Prefill from accepted AI suggestion (imperative)
+  const [prefill, setPrefill] = useState<{ weight_kg: number; reps: number; rpe?: number | null } | undefined>();
+  const handleAcceptSuggestion = useCallback((weight: number, reps: number, rpeVal: number | null) => {
+    setPrefill({ weight_kg: weight, reps, rpe: rpeVal });
+    setNewSetKey(prev => prev + 1);
+  }, []);
 
   const handleSaveNewSet = useCallback((data: { 
     weight_kg: number; 
