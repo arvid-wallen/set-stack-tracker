@@ -1,76 +1,70 @@
-## Mål
-"Förslag idag" på startsidan ska följa användarens valda träningssplit och rotera genom den baserat på senaste passet — inte bara välja den muskelgrupp som vilat längst (som idag).
+## Diagnos
 
-## Idag: AI eller inte?
-**Inte AI.** `useSuggestedWorkout` är ren heuristik baserad på `useRecovery` (dagar sedan muskelgrupp tränades) + 4 hårdkodade templates (push/pull/legs/full_body). Den vet inte om PPL 6-dagars, Upper/Lower, Bro split etc.
+Profil-sidan är seg för att den triggar 8+ tunga Supabase-anrop parallellt vid mount, varav flera laddar HELA träningshistoriken — bara för att kunna visa ett par siffror och aktivera en exportknapp.
 
-## Rekommendation: regelbaserat med splits, inte AI
-Splits är deterministiska rotationer — perfekt för regler. AI för detta vore overkill (kostar pengar, långsammare, kan hallucinera, kräver nätverk). Regelbaserat ger förutsägbart resultat och fungerar offline (kritiskt enligt projektets core-memory).
+### Vad som händer när `/profile` öppnas
 
-## Splits som täcks
-Researchade vanliga splits — vi stödjer dessa rotationsmönster:
+1. **`useWorkoutHistory()`** (kallas bara för exportknappen) gör 4 sekventiella queries: alla `workout_sessions` → alla `workout_exercises` med joins → alla `exercise_sets` → alla `cardio_logs`. Resultatet visas inte ens på sidan.
+2. **`useStats()`** (i `StatsOverview`) gör 3 parallella queries: alla sessions, alla `exercise_sets` med deep joins, och alla session-datum *igen*.
+3. **`useProgressPhotos()`** hämtar alla foton och anropar sen `createSignedUrl` en gång per foto (N round-trips).
+4. **`useProfile()`** och `useProgressPhotos()` använder `useState/useEffect` istället för react-query → refetchar varje gång man navigerar tillbaka, ingen cache.
 
-| Split | Dagar/v | Rotation |
-|---|---|---|
-| Full body | 1–3 | Helkropp → vila → Helkropp |
-| Upper/Lower (2-dagars) | 2 | Upper → Lower |
-| Upper/Lower (4-dagars) | 4 | Upper → Lower → Upper → Lower |
-| Push/Pull (2-dagars) | 2 | Push → Pull |
-| PPL (3-dagars) | 3 | Push → Pull → Legs |
-| PPL (6-dagars) | 6 | Push → Pull → Legs → Push → Pull → Legs |
-| Bro split (5-dagars) | 5 | Bröst → Rygg → Ben → Axlar → Armar |
-| Arnold split (6-dagars) | 6 | Bröst+Rygg → Axlar+Armar → Ben (× 2) |
-| 4-dagars klassisk | 4 | Bröst+Triceps → Rygg+Biceps → Ben → Axlar |
-| Custom | – | Ingen rotation, faller tillbaka till nuvarande recovery-heuristik |
+Totalt: hela tabellen `exercise_sets` hämtas två gånger, `workout_sessions` 3 gånger, plus N storage-anrop. Allt detta bara för att visa avatar, namn och 6 statistikrutor.
 
-## Förändringar
+### Bugar som hittats samtidigt
 
-### 1. Databas — split-val på profilen
-- Lägg till `training_split` (text, nullable) på `pt_profiles` med enum-värden ovan (`full_body`, `upper_lower_2`, `upper_lower_4`, `push_pull_2`, `ppl_3`, `ppl_6`, `bro_5`, `arnold_6`, `classic_4`, `custom`).
+- **1000-radersbegränsning**: `useStats` och `useWorkoutHistory` hämtar `exercise_sets`/`workout_exercises` utan paginering. Supabase returnerar max 1000 rader → totalvolym/sets blir tyst fel när historiken växer.
+- **Cache-bugg i `useStats`**: `queryKey: ['stats-workouts', period]` men `period` används aldrig i query — så cachen invalideras i onödan vid bytt period.
+- **Saknad user-isolering i query-key**: `'stats-session-dates'` har inget `user_id` → kan returnera fel cache mellan användare.
+- **`useStats` dubbelhämtar `workout_sessions`**: en gång för stats, en gång för "sessionDates" — kan slås ihop.
+- **`useWorkoutHistory` på Profil**: kallas trots att inget från den visas. Bara `workouts.length` används för att gråa exportknapp.
+- **`useProgressPhotos` saknar cache**: ingen react-query → refetchar och signerar om URL:er varje besök, även om inget ändrats.
 
-### 2. Onboarding & profil-redigering
-- I `PTOnboarding.tsx` / `PTProfileSettings.tsx`: lägg till ett steg/fält "Träningssplit" (visual_choice-style) där användaren väljer split. Defaultar till `custom` om man hoppar över.
+## Åtgärder
 
-### 3. Ny modul `src/lib/training-splits.ts`
-- Definierar varje split som en ordnad lista av "pass-templates" (typ + label + muskelgrupper):
-  ```ts
-  SPLITS = {
-    ppl_6: [
-      { type: 'push', label: 'Push', groups: [...] },
-      { type: 'pull', label: 'Pull', groups: [...] },
-      { type: 'legs', label: 'Ben', groups: [...] },
-      ...
-    ],
-    bro_5: [
-      { type: 'custom', custom_name: 'Bröst', groups: ['chest', 'triceps'] },
-      ...
-    ],
-    ...
-  }
-  ```
-- Helper `getNextInSplit(split, lastWorkouts)`: tar de senaste N passen, matchar dem mot rotationen via `workout_type` + `custom_type_name`, och returnerar nästa steg.
+### 1. Profil-sidan: ladda bara det som visas
+- Ta bort `useWorkoutHistory()` från `Profile.tsx`. Använd istället ett lätt count-query (eller bara låt exportknappen alltid vara aktiv och visa "inget att exportera"-toast om tomt) — eller lazy-loada export först när användaren klickar.
+- Resultat: 4 tunga queries försvinner från sidladdningen.
 
-### 4. Uppdaterad `useSuggestedWorkout`
-- Hämta `ptProfile.training_split` + senaste 7 passens `workout_type` & `custom_type_name` (ny query mot `workout_sessions`).
-- Om split är satt (≠ `custom`): kör `getNextInSplit` för att hitta nästa pass.
-- Behåll vilodags-logiken (om `workoutsThisWeek >= weeklyTarget` → vilodag, om split tillåter det).
-- Om split = `custom` eller historik saknas: använd nuvarande recovery-baserade heuristik som fallback.
-- Reason-text uppdateras: "Du körde Push igår — dags för Pull enligt din PPL-split".
+### 2. Slå ihop `useStats`-queries och paginera bort 1000-radersgränsen
+- Ta bort den separata `stats-session-dates`-queryn — sessions-queryn redan har `id` + `started_at`, bygg `Map` av det.
+- Lägg `user_id` i alla query keys (`['stats-workouts', userId]`, `['stats-sets', userId]`).
+- Ta bort oanvänd `period` ur query key.
+- Hämta `exercise_sets` paginerat (loopa med `.range(from, to)` tills färre än sidans storlek returneras) — eller switcha till ett aggregerat snapshot via en RPC. Steg 1: paginerad client-loop räcker, snabbt fix.
+- Samma paginerings-fix på `workout_exercises` och `exercise_sets` i `useWorkoutHistory`.
 
-### 5. SuggestedWorkoutCard
-- Visa split-namnet diskret ("PPL 6-dagars") under reason-texten.
-- "Starta {nästa pass-label}" istället för bara typ.
+### 3. Konvertera `useProfile` och `useProgressPhotos` till react-query
+- Cache + automatisk dedup mellan navigeringar (`staleTime: 5 min`).
+- För progressfoton: behåll signerings-loop men cache:a hela listan så den inte körs om vid varje navigering.
 
-## Tekniska detaljer
-- För custom splits (bro, arnold, classic_4) startas passet som `workout_type='custom'` med ett deterministiskt `custom_type_name` (t.ex. "Bröst-dag", "Push A") som används både för att starta passet och för att matcha tillbaka i rotationen.
-- Match-logik: jämför case-insensitive på `custom_type_name` när det finns, annars `workout_type`.
-- Senaste pass hämtas via `workout_sessions` ordered by `started_at desc`, ignorera aktiva pass.
+### 4. Lazy-load tunga sektioner på Profil
+- Wrappa `StatsOverview`, `ProgressPhotos` och `PTProfileSettings` i `React.lazy` + `Suspense` med en liten skeleton, så top-of-page (header + namn + epost) målas direkt och resten strömmar in.
+- Alternativ: behåll synkron import men låt sektionerna ha egna `isLoading`-skeletons (de har redan det) — sidan kommer då rendera direkt utan att vänta på att alla queries löst.
+
+### 5. Snabbvinst: ta bort vänteblockaden i Profile.tsx
+- Idag: `if (authLoading || profileLoading) return <SkeletonScreen/>` — hela sidan är blank tills profil-queryn klar.
+- Fix: returnera layouten direkt, låt varje sektion visa egen skeleton tills dess data finns. Användaren ser strukturen omedelbart.
+
+## Övriga sidor (snabbsweep)
+
+Samma underliggande hookar driver också Hem och Stats:
+
+- `Index.tsx` använder `useWorkoutHistory()` för att kunna öppna detaljvyn på ett historiskt pass. Det blockar inte first paint, men ladar fortfarande hela historiken. Vi kan ändra så att detaljvyn fetchar ett enskilt pass on-demand när användaren klickar.
+- `Stats.tsx` använder samma `useStats` — vinner samma snabbhetsförbättringar gratis när vi fixar (2).
+- `useProgressPhotos.uploadPhoto`/`deletePhoto`: ingen bugg, men signed URLs cachas inte mellan sessioner — låg prio.
 
 ## Filer som ändras
-- **Ny migration**: lägga till `training_split` på `pt_profiles`.
-- **Ny**: `src/lib/training-splits.ts` (split-definitioner + helper).
-- `src/hooks/useSuggestedWorkout.ts` — använd split-helper.
-- `src/components/home/SuggestedWorkoutCard.tsx` — visa split-namn + bättre CTA.
-- `src/components/pt/PTOnboarding.tsx` — steg för split-val.
-- `src/components/profile/PTProfileSettings.tsx` — redigera split.
-- `src/hooks/usePTProfile.ts` — typ + read/write för nytt fält.
+
+- `src/pages/Profile.tsx` — ta bort `useWorkoutHistory`, ta bort full-screen skeleton, lazy-loada tunga sektioner.
+- `src/hooks/useStats.ts` — slå ihop sessions/sessionDates, lägg user_id i keys, ta bort period från keys, paginera sets.
+- `src/hooks/useWorkoutHistory.ts` — paginera workout_exercises och sets, lägg user_id i query key.
+- `src/hooks/useProfile.ts` — flytta till react-query.
+- `src/hooks/useProgressPhotos.ts` — flytta till react-query (cache + dedup).
+- `src/pages/Index.tsx` — (mindre) hämta enskilt pass on-demand istället för hela historiken för detaljvyn.
+
+## Förväntat resultat
+
+- Profil målas på <300 ms istället för 2–5 s.
+- Bakgrundsstatistik dyker upp progressivt utan att blockera headern.
+- Totalvolym/sets blir korrekta även när historiken passerar 1000 sets.
+- Mindre Supabase-trafik på samtliga sidor.
