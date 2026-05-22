@@ -1,70 +1,106 @@
-## Diagnos
+## Mål
 
-Profil-sidan är seg för att den triggar 8+ tunga Supabase-anrop parallellt vid mount, varav flera laddar HELA träningshistoriken — bara för att kunna visa ett par siffror och aktivera en exportknapp.
+Bygg om hela onboarding-flödet så att en användare som precis skapat konto:
 
-### Vad som händer när `/profile` öppnas
+1. Inte trillar tillbaka till inloggningssidan efter PT-onboardingen
+2. Möts av ett trevligt, animerat onboarding-flöde med alla viktiga frågor
+3. Landar direkt i appen (inloggat läge) och får en guidad, animerad rundtur över vyerna
+4. Avslutar med en pepp-animation och ett "Nu kör vi!"
 
-1. **`useWorkoutHistory()`** (kallas bara för exportknappen) gör 4 sekventiella queries: alla `workout_sessions` → alla `workout_exercises` med joins → alla `exercise_sets` → alla `cardio_logs`. Resultatet visas inte ens på sidan.
-2. **`useStats()`** (i `StatsOverview`) gör 3 parallella queries: alla sessions, alla `exercise_sets` med deep joins, och alla session-datum *igen*.
-3. **`useProgressPhotos()`** hämtar alla foton och anropar sen `createSignedUrl` en gång per foto (N round-trips).
-4. **`useProfile()`** och `useProgressPhotos()` använder `useState/useEffect` istället för react-query → refetchar varje gång man navigerar tillbaka, ingen cache.
+---
 
-Totalt: hela tabellen `exercise_sets` hämtas två gånger, `workout_sessions` 3 gånger, plus N storage-anrop. Allt detta bara för att visa avatar, namn och 6 statistikrutor.
+## Buggen vi fixar först
 
-### Bugar som hittats samtidigt
+Idag renderas `OnboardingGate` globalt i `App.tsx`. När en användare skapar konto via `/auth` och får en session, öppnas `PTOnboarding` ovanpå auth-sidan. När onboardingen sparas stängs bara dialogen — användaren står kvar på `/auth` och ser inloggningsformuläret igen, fast hen är inloggad.
 
-- **1000-radersbegränsning**: `useStats` och `useWorkoutHistory` hämtar `exercise_sets`/`workout_exercises` utan paginering. Supabase returnerar max 1000 rader → totalvolym/sets blir tyst fel när historiken växer.
-- **Cache-bugg i `useStats`**: `queryKey: ['stats-workouts', period]` men `period` används aldrig i query — så cachen invalideras i onödan vid bytt period.
-- **Saknad user-isolering i query-key**: `'stats-session-dates'` har inget `user_id` → kan returnera fel cache mellan användare.
-- **`useStats` dubbelhämtar `workout_sessions`**: en gång för stats, en gång för "sessionDates" — kan slås ihop.
-- **`useWorkoutHistory` på Profil**: kallas trots att inget från den visas. Bara `workouts.length` används för att gråa exportknapp.
-- **`useProgressPhotos` saknar cache**: ingen react-query → refetchar och signerar om URL:er varje besök, även om inget ändrats.
+**Fix:** När onboardingen är klar navigerar vi till `/` (Index) så användaren möts av appen i inloggat läge. Vi ser också till att `Index` inte visar `AuthForm` när det finns en aktiv session.
 
-## Åtgärder
+---
 
-### 1. Profil-sidan: ladda bara det som visas
-- Ta bort `useWorkoutHistory()` från `Profile.tsx`. Använd istället ett lätt count-query (eller bara låt exportknappen alltid vara aktiv och visa "inget att exportera"-toast om tomt) — eller lazy-loada export först när användaren klickar.
-- Resultat: 4 tunga queries försvinner från sidladdningen.
+## Steg 1 — Utökad första-onboarding (PT + profil)
 
-### 2. Slå ihop `useStats`-queries och paginera bort 1000-radersgränsen
-- Ta bort den separata `stats-session-dates`-queryn — sessions-queryn redan har `id` + `started_at`, bygg `Map` av det.
-- Lägg `user_id` i alla query keys (`['stats-workouts', userId]`, `['stats-sets', userId]`).
-- Ta bort oanvänd `period` ur query key.
-- Hämta `exercise_sets` paginerat (loopa med `.range(from, to)` tills färre än sidans storlek returneras) — eller switcha till ett aggregerat snapshot via en RPC. Steg 1: paginerad client-loop räcker, snabbt fix.
-- Samma paginerings-fix på `workout_exercises` och `exercise_sets` i `useWorkoutHistory`.
+Slå ihop dagens 6-stegs PT-onboarding med profilfält så vi får ALLT på en gång. Nytt flöde, 7 korta steg, en fråga per skärm med animerade övergångar (fade + slide via Tailwind `animate-fade-in`/`animate-scale-in`):
 
-### 3. Konvertera `useProfile` och `useProgressPhotos` till react-query
-- Cache + automatisk dedup mellan navigeringar (`staleTime: 5 min`).
-- För progressfoton: behåll signerings-loop men cache:a hela listan så den inte körs om vid varje navigering.
+1. **Välkomst** — animerad logga, "Hej {förnamn}! Vi sätter upp din profil på en minut."
+2. **Om dig** — kön (chips), ålder (slider), längd (cm), vikt (kg)
+3. **Mål** — flerval med emojis (befintlig logik)
+4. **Erfarenhet** — nybörjare/medel/avancerad
+5. **Utrustning + tid** — utrustning (flerval), minuter per pass, dagar per vecka
+6. **Split** — välj training split (befintliga `TRAINING_SPLIT_OPTIONS`)
+7. **Begränsningar (valfritt)** — skador/hälsa fritext
+8. **Klar!** — celebration-skärm med konfetti (`celebrate()` från `src/lib/celebrate.ts`) + knapp "Visa mig runt"
 
-### 4. Lazy-load tunga sektioner på Profil
-- Wrappa `StatsOverview`, `ProgressPhotos` och `PTProfileSettings` i `React.lazy` + `Suspense` med en liten skeleton, så top-of-page (header + namn + epost) målas direkt och resten strömmar in.
-- Alternativ: behåll synkron import men låt sektionerna ha egna `isLoading`-skeletons (de har redan det) — sidan kommer då rendera direkt utan att vänta på att alla queries löst.
+Tekniskt:
+- Bygg om `src/components/pt/PTOnboarding.tsx` (eller skapa `src/components/onboarding/FirstRunOnboarding.tsx`) som driver alla 8 steg och returnerar både PT-profil-data och ev. profil-uppdateringar (kön/ålder/längd/vikt finns redan på `pt_profiles`, namn finns redan på `profiles` via signup).
+- Progressindikator-baren i toppen behålls, animeras smidigt.
+- Stegövergångar: wrappa varje steg i en `key`-baserad div med `animate-fade-in` så den re-mountas och animerar in.
+- Knappar har `press-feedback` + scale-on-tap för känsla.
 
-### 5. Snabbvinst: ta bort vänteblockaden i Profile.tsx
-- Idag: `if (authLoading || profileLoading) return <SkeletonScreen/>` — hela sidan är blank tills profil-queryn klar.
-- Fix: returnera layouten direkt, låt varje sektion visa egen skeleton tills dess data finns. Användaren ser strukturen omedelbart.
+---
 
-## Övriga sidor (snabbsweep)
+## Steg 2 — Guidad rundtur i appen (in-app coachmarks)
 
-Samma underliggande hookar driver också Hem och Stats:
+När användaren trycker "Visa mig runt" stängs onboarding-dialogen, vi navigerar till `/` och en ny komponent `<AppTour />` tar över ovanpå Index-sidan.
 
-- `Index.tsx` använder `useWorkoutHistory()` för att kunna öppna detaljvyn på ett historiskt pass. Det blockar inte first paint, men ladar fortfarande hela historiken. Vi kan ändra så att detaljvyn fetchar ett enskilt pass on-demand när användaren klickar.
-- `Stats.tsx` använder samma `useStats` — vinner samma snabbhetsförbättringar gratis när vi fixar (2).
-- `useProgressPhotos.uploadPhoto`/`deletePhoto`: ingen bugg, men signed URLs cachas inte mellan sessioner — låg prio.
+`AppTour` är ett fullskärmsoverlay med:
 
-## Filer som ändras
+- Mörk backdrop med blur
+- Ett centrerat kort som animerar in (`animate-scale-in`)
+- Stora ikoner (Lucide) som motsvarar varje vy + kort beskrivning
+- Animerad pekare/markering som "hoppar" till motsvarande knapp i `BottomNav` (vi använder absolut positionering relativt nav-baren, eller bara highlightar nav-iconen via en pulsande ring som styrs från Tour-state)
+- Pillerknappar "Hoppa över" och "Nästa"
 
-- `src/pages/Profile.tsx` — ta bort `useWorkoutHistory`, ta bort full-screen skeleton, lazy-loada tunga sektioner.
-- `src/hooks/useStats.ts` — slå ihop sessions/sessionDates, lägg user_id i keys, ta bort period från keys, paginera sets.
-- `src/hooks/useWorkoutHistory.ts` — paginera workout_exercises och sets, lägg user_id i query key.
-- `src/hooks/useProfile.ts` — flytta till react-query.
-- `src/hooks/useProgressPhotos.ts` — flytta till react-query (cache + dedup).
-- `src/pages/Index.tsx` — (mindre) hämta enskilt pass on-demand istället för hela historiken för detaljvyn.
+Steg i rundturen (5 korta + 1 outro):
 
-## Förväntat resultat
+1. **Hem** — "Starta pass och se dina mål"
+2. **Kalender** — "All historik på ett ställe"
+3. **Statistik** — "Följ din utveckling och PRs"
+4. **Bibliotek** — "Övningar och färdiga rutiner"
+5. **Profil** — "Mål, foton och inställningar"
+6. **Nu kör vi!** — stor rubrik, konfetti-burst, knapp "Sätt igång" som stänger touren
 
-- Profil målas på <300 ms istället för 2–5 s.
-- Bakgrundsstatistik dyker upp progressivt utan att blockera headern.
-- Totalvolym/sets blir korrekta även när historiken passerar 1000 sets.
-- Mindre Supabase-trafik på samtliga sidor.
+Tekniskt:
+- Ny fil: `src/components/onboarding/AppTour.tsx`
+- Persistens: när touren är klar/skippas, sätt `localStorage.setItem('app-tour-completed', '1')` så den aldrig visas igen.
+- Triggning: efter `savePTProfile()` lyckas, sätt ett state `showTour=true` i `OnboardingGate` (eller flytta logiken till en ny `OnboardingFlow`-komponent som äger både stegen och touren).
+- Animationer: ren Tailwind/CSS — fade, scale, pulse på nav-target, samt `celebrate()` på sista steget.
+
+---
+
+## Steg 3 — Rensa upp routing-buggen
+
+I `OnboardingGate.tsx`:
+- Använd `useNavigate()` från react-router.
+- När `savePTProfile` returnerar OK: `navigate('/', { replace: true })` innan dialogen stängs.
+
+I `src/pages/Index.tsx`:
+- Behåll `if (!user) return <AuthForm/>` men säkerställ att den inte triggas under en kort race när session redan finns (auth-loading hanteras redan).
+
+I `src/components/auth/AuthForm.tsx`:
+- När signup lyckas och det redan finns en session (auto-confirm är på) — navigera direkt till `/`. Om e-postverifiering krävs, visa befintlig toast.
+
+---
+
+## Filer som ändras / skapas
+
+**Skapas**
+- `src/components/onboarding/AppTour.tsx` — den guidade rundturen
+- `src/components/onboarding/OnboardingFlow.tsx` (valfritt) — wrapper som äger steg + tour
+- ev. `src/components/onboarding/WelcomeStep.tsx`, `AboutYouStep.tsx` etc. om vi splittar
+
+**Ändras**
+- `src/components/pt/PTOnboarding.tsx` — utökat flöde, snyggare animationer, celebration-skärm
+- `src/components/onboarding/OnboardingGate.tsx` — navigera efter klar, trigga AppTour
+- `src/hooks/usePTProfile.ts` — `PTProfileInput` täcker redan kön/ålder/längd/vikt, ingen DB-migration behövs
+- `src/components/auth/AuthForm.tsx` — navigera till `/` när session finns efter signup
+- ev. `src/pages/Index.tsx` — säkerställ tour-mount
+
+---
+
+## Vad som INTE ingår
+
+- Ingen DB-migration (alla fält finns redan på `pt_profiles`/`profiles`)
+- Ingen ny dependency (`canvas-confetti` finns redan, allt animeras med Tailwind/CSS)
+- Inga ändringar i resten av appen (workouts, stats etc.)
+
+Säg till om du vill ändra/lägga till något i flödet innan jag bygger.
