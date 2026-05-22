@@ -405,6 +405,7 @@ export function ExerciseCard({
                   setNumber={workingSets.length + 1}
                   isNew
                   previousSet={previousSetData}
+                  prefill={prefill}
                   onSave={handleSaveNewSet}
                   onStartRest={onStartRest}
                 />
