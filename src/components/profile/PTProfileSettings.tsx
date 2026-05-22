@@ -89,11 +89,13 @@ export function PTProfileSettings() {
       available_equipment: equipment,
       preferred_workout_duration: duration,
       training_days_per_week: daysPerWeek,
+      training_split: trainingSplit,
       injuries: injuries.trim() || null,
     });
     setIsSaving(false);
     setIsOpen(false);
   };
+
 
   // Show different state if onboarding not completed
   const hasProfile = ptProfile && !needsOnboarding;
