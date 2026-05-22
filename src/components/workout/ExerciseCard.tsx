@@ -345,10 +345,14 @@ export function ExerciseCard({
       {/* Content: Cardio or Sets */}
       {isExpanded && (
         <div className="mt-4">
-          {/* Progressive Overload Suggestion */}
+          {/* AI suggestion (accept/reject card — never auto-fills the input) */}
           {!isCardio && !isCompleted && (
             <div className="mb-4">
-              <ProgressiveOverloadSuggestion exerciseId={workoutExercise.exercise_id} />
+              <AISetSuggestionCard
+                exerciseId={workoutExercise.exercise_id}
+                workoutSessionId={workoutExercise.workout_session_id}
+                onAccept={handleAcceptSuggestion}
+              />
             </div>
           )}
 
