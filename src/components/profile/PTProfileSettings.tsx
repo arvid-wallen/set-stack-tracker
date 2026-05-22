@@ -48,6 +48,7 @@ export function PTProfileSettings() {
   const [equipment, setEquipment] = useState<string[]>([]);
   const [duration, setDuration] = useState<number>(60);
   const [daysPerWeek, setDaysPerWeek] = useState<number>(4);
+  const [trainingSplit, setTrainingSplit] = useState<TrainingSplitId>('custom');
   const [injuries, setInjuries] = useState('');
 
   // Load profile data when opening
@@ -58,9 +59,11 @@ export function PTProfileSettings() {
       setEquipment(ptProfile.available_equipment || []);
       setDuration(ptProfile.preferred_workout_duration || 60);
       setDaysPerWeek(ptProfile.training_days_per_week || 4);
+      setTrainingSplit((ptProfile.training_split as TrainingSplitId) || 'custom');
       setInjuries(ptProfile.injuries || '');
     }
   }, [ptProfile, isOpen]);
+
 
   const toggleGoal = (goalId: string) => {
     setGoals(prev => 
