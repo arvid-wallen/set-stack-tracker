@@ -2,10 +2,12 @@ import { useState, useEffect, useRef } from 'react';
 import { Bot } from 'lucide-react';
 import { PTChatSheet } from './PTChatSheet';
 import { cn } from '@/lib/utils';
+import { useAuth } from '@/hooks/useAuth';
 
 const STORAGE_KEY = 'pt-fab-position';
 
 export function PTChatFAB() {
+  const { isAuthenticated, isLoading } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
   const [position, setPosition] = useState(() => {
     const saved = localStorage.getItem(STORAGE_KEY);
@@ -87,6 +89,8 @@ export function PTChatFAB() {
       setIsOpen(true);
     }
   };
+
+  if (isLoading || !isAuthenticated) return null;
 
   return (
     <>
