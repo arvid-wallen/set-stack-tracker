@@ -193,6 +193,7 @@ function useWorkoutImpl() {
           workout_type: workoutType,
           custom_type_name: customName || null,
           is_active: true,
+          status: 'active',
         })
         .select()
         .single();
@@ -231,6 +232,7 @@ function useWorkoutImpl() {
         .from('workout_sessions')
         .update({
           is_active: false,
+          status: 'completed',
           ended_at: endTime.toISOString(),
           duration_seconds: durationSeconds,
           rating,
