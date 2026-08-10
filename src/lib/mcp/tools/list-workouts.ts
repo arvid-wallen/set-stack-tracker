@@ -76,7 +76,7 @@ export default defineTool({
             w.duration_seconds != null ? Math.round(w.duration_seconds / 60) : null,
           rating: w.rating,
           notes: w.notes,
-          exercises: ((w.workout_exercises ?? []) as Array<{
+          exercises: ((w.workout_exercises ?? []) as unknown as Array<{
             order_index: number;
             exercises: { name: string } | null;
           }>)
