@@ -598,7 +598,37 @@ function useWorkoutImpl() {
     }
   };
 
+  // Starts a previously planned session (from the app or the MCP coach)
+  const startPlannedWorkout = async (plannedId: string) => {
+    setIsLoading(true);
+    try {
+      const { error } = await supabase
+        .from('workout_sessions')
+        .update({
+          status: 'active',
+          is_active: true,
+          started_at: new Date().toISOString(),
+        })
+        .eq('id', plannedId)
+        .eq('status', 'planned');
+
+      if (error) throw error;
+
+      await checkActiveWorkout();
+      setIsMinimized(false);
+      toast({ title: 'Pass startat! 💪' });
+      return true;
+    } catch (error) {
+      console.error('Error starting planned workout:', error);
+      toast({ title: 'Kunde inte starta passet', variant: 'destructive' });
+      return false;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return {
+    startPlannedWorkout,
     activeWorkout,
     exercises,
     isLoading,
