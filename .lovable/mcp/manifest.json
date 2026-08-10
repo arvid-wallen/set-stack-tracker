@@ -1,0 +1,438 @@
+{
+  "version": 1,
+  "sdk_version": "0.26.1",
+  "path": "/functions/v1/mcp",
+  "auth": {
+    "type": "oauth",
+    "issuer": "https://aoibiphmvcffolrznqmn.supabase.co/auth/v1",
+    "accepted_audiences": [
+      "authenticated"
+    ]
+  },
+  "mcp": {
+    "server": {
+      "name": "gymbro3000",
+      "version": "0.1.0",
+      "title": "GymBro3000"
+    },
+    "tools": [
+      {
+        "name": "list_workouts",
+        "title": "List workouts",
+        "description": "Use when you need an overview of the user's training sessions in a date range, for example 'what did I train last week'. Returns compact summaries (id, date, type, duration, status, exercise names), newest first. Defaults to the last 4 weeks. Use get_workout for the full set-by-set detail of a single session.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "from": {
+              "type": "string",
+              "description": "Start date, YYYY-MM-DD. Defaults to 28 days ago."
+            },
+            "to": {
+              "type": "string",
+              "description": "End date, YYYY-MM-DD. Defaults to today."
+            },
+            "type": {
+              "type": "string",
+              "enum": [
+                "push",
+                "pull",
+                "legs",
+                "full_body",
+                "cardio",
+                "upper",
+                "lower",
+                "custom"
+              ],
+              "description": "Filter by workout type."
+            },
+            "status": {
+              "type": "string",
+              "enum": [
+                "planned",
+                "active",
+                "completed",
+                "any"
+              ],
+              "description": "Filter by status. Defaults to 'completed'. Use 'planned' to see upcoming planned sessions."
+            },
+            "limit": {
+              "type": "integer",
+              "description": "Max results, default 20, max 100."
+            },
+            "cursor": {
+              "type": "string",
+              "description": "Opaque cursor from a previous response's next_cursor."
+            }
+          },
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "get_workout",
+        "title": "Get workout",
+        "description": "Use when you need every detail of one training session: exercises with muscle groups, all sets with weight, reps, warmup flag and RPE, cardio data, plus target values when the session came from a plan. Get the id from list_workouts.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "workout_id": {
+              "type": "string",
+              "description": "The workout session id from list_workouts."
+            }
+          },
+          "required": [
+            "workout_id"
+          ],
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "get_exercise_history",
+        "title": "Get exercise history",
+        "description": "Use when you need the progression for a single exercise over time, for example 'how has my squat developed'. Returns one entry per training day with the working sets and the best estimated 1RM that day. Cardio exercises return duration, distance, pace and heart rate instead of weight and reps. Names are alias-resolved, so 'db curl' and 'Dumbbell Curl' hit the same exercise.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "exercise": {
+              "type": "string",
+              "description": "Exercise id or name (aliases are resolved)."
+            },
+            "from": {
+              "type": "string",
+              "description": "Start date, YYYY-MM-DD. Defaults to 6 months ago."
+            },
+            "to": {
+              "type": "string",
+              "description": "End date, YYYY-MM-DD. Defaults to today."
+            },
+            "include_warmups": {
+              "type": "boolean",
+              "description": "Include warmup sets. Default false."
+            },
+            "limit": {
+              "type": "integer",
+              "description": "Max training days, default 50, max 200."
+            },
+            "cursor": {
+              "type": "string",
+              "description": "Opaque cursor from a previous response."
+            }
+          },
+          "required": [
+            "exercise"
+          ],
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "list_exercises",
+        "title": "List exercises",
+        "description": "Use before planning a workout to see which exercises exist, with their canonical ids, names, aliases, muscle groups and equipment. Always plan with names from this catalog so no duplicate exercises are created.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "search": {
+              "type": "string",
+              "description": "Optional free-text filter on name or alias."
+            },
+            "muscle_group": {
+              "type": "string",
+              "description": "Filter by muscle group, e.g. 'chest'."
+            },
+            "is_cardio": {
+              "type": "boolean",
+              "description": "Only cardio (true) or only strength (false)."
+            },
+            "limit": {
+              "type": "integer",
+              "description": "Max results, default 100, max 300."
+            },
+            "cursor": {
+              "type": "string",
+              "description": "Opaque cursor from a previous response."
+            }
+          },
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "create_planned_workout",
+        "title": "Create planned workout",
+        "description": "Use to write a planned training session into the app for a future date, so the user can open and run it. Exercise names must resolve against the existing catalog; unknown names return an error with suggestions instead of creating duplicates. Always check list_exercises first.",
+        "annotations": {
+          "readOnlyHint": false,
+          "destructiveHint": false,
+          "idempotentHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "date": {
+              "type": "string",
+              "description": "Planned date, YYYY-MM-DD."
+            },
+            "workout_type": {
+              "type": "string",
+              "enum": [
+                "push",
+                "pull",
+                "legs",
+                "full_body",
+                "cardio",
+                "upper",
+                "lower",
+                "custom"
+              ],
+              "description": "Workout type."
+            },
+            "title": {
+              "type": "string",
+              "description": "Short session title, e.g. 'Ben med Tina'."
+            },
+            "notes": {
+              "type": "string",
+              "description": "Session-level notes for the user."
+            },
+            "exercises": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "exercise": {
+                    "type": "string",
+                    "description": "Exercise name or id from list_exercises."
+                  },
+                  "sets": {
+                    "type": "integer",
+                    "description": "Number of planned sets."
+                  },
+                  "target_reps": {
+                    "type": "string",
+                    "description": "Target reps as text, e.g. '5' or '8-10'."
+                  },
+                  "target_weight_kg": {
+                    "type": "number",
+                    "description": "Target working weight in kilograms."
+                  },
+                  "notes": {
+                    "type": "string",
+                    "description": "Short coaching note for this exercise."
+                  }
+                },
+                "required": [
+                  "exercise"
+                ],
+                "additionalProperties": false
+              },
+              "description": "Planned exercises in order."
+            }
+          },
+          "required": [
+            "date",
+            "workout_type",
+            "exercises"
+          ],
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "update_planned_workout",
+        "title": "Update planned workout",
+        "description": "Use to change a session that is still planned: its date, type, title, notes, or the full exercise list. Completed and active sessions cannot be modified. Passing 'exercises' replaces the whole planned exercise list.",
+        "annotations": {
+          "readOnlyHint": false,
+          "destructiveHint": false,
+          "idempotentHint": true
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "workout_id": {
+              "type": "string",
+              "description": "Id of the planned workout."
+            },
+            "date": {
+              "type": "string",
+              "description": "New planned date, YYYY-MM-DD."
+            },
+            "workout_type": {
+              "type": "string",
+              "enum": [
+                "push",
+                "pull",
+                "legs",
+                "full_body",
+                "cardio",
+                "upper",
+                "lower",
+                "custom"
+              ],
+              "description": "New workout type."
+            },
+            "title": {
+              "type": "string",
+              "description": "New title."
+            },
+            "notes": {
+              "type": "string",
+              "description": "New session notes."
+            },
+            "exercises": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "exercise": {
+                    "type": "string",
+                    "description": "Exercise name or id from list_exercises."
+                  },
+                  "sets": {
+                    "type": "integer",
+                    "description": "Number of planned sets."
+                  },
+                  "target_reps": {
+                    "type": "string",
+                    "description": "Target reps as text, e.g. '5' or '8-10'."
+                  },
+                  "target_weight_kg": {
+                    "type": "number",
+                    "description": "Target working weight in kilograms."
+                  },
+                  "notes": {
+                    "type": "string",
+                    "description": "Short coaching note for this exercise."
+                  }
+                },
+                "required": [
+                  "exercise"
+                ],
+                "additionalProperties": false
+              },
+              "description": "Replaces the full planned exercise list when provided."
+            }
+          },
+          "required": [
+            "workout_id"
+          ],
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "delete_planned_workout",
+        "title": "Delete planned workout",
+        "description": "Use to remove a session that is still planned and has not been performed. Completed and active sessions can never be deleted through this server.",
+        "annotations": {
+          "readOnlyHint": false,
+          "destructiveHint": true,
+          "idempotentHint": true
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "workout_id": {
+              "type": "string",
+              "description": "Id of the planned workout to delete."
+            }
+          },
+          "required": [
+            "workout_id"
+          ],
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "get_body_weight",
+        "title": "Get body weight",
+        "description": "Use when body weight matters for the coaching, for example bodyweight progression, cutting or bulking. Returns logged weights in kilograms for a date range, newest first, plus the change over the range.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "from": {
+              "type": "string",
+              "description": "Start date, YYYY-MM-DD. Defaults to 180 days ago."
+            },
+            "to": {
+              "type": "string",
+              "description": "End date, YYYY-MM-DD. Defaults to today."
+            },
+            "limit": {
+              "type": "integer",
+              "description": "Max entries, default 100, max 365."
+            },
+            "cursor": {
+              "type": "string",
+              "description": "Opaque cursor from a previous response."
+            }
+          },
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "get_week_summary",
+        "title": "Get weekly summary",
+        "description": "Use for a high-level training load overview: sessions, working sets and volume per muscle group, grouped by ISO week. Good for spotting neglected muscle groups or a drop in volume.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "from": {
+              "type": "string",
+              "description": "Start date, YYYY-MM-DD. Defaults to 8 weeks ago."
+            },
+            "to": {
+              "type": "string",
+              "description": "End date, YYYY-MM-DD. Defaults to today."
+            }
+          },
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      }
+    ]
+  }
+}
