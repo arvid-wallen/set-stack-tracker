@@ -56,7 +56,7 @@ export function useSuggestedWorkout(): WorkoutSuggestion | null {
         .from('workout_sessions')
         .select('workout_type, custom_type_name, started_at, is_active')
         .eq('user_id', user!.id)
-        .eq('is_active', false)
+        .eq('status', 'completed')
         .order('started_at', { ascending: false })
         .limit(10);
       if (error) throw error;

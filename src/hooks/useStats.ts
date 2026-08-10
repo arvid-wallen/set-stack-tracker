@@ -92,7 +92,7 @@ export function useStats(_period: TimePeriod = 'all') {
         .from('workout_sessions')
         .select('id, started_at, ended_at, duration_seconds, workout_type')
         .eq('user_id', userId!)
-        .eq('is_active', false)
+        .eq('status', 'completed')
         .order('started_at', { ascending: false });
       if (error) throw error;
       return data || [];

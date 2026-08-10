@@ -93,7 +93,7 @@ export async function fetchWorkoutHistory(): Promise<WorkoutWithDetails[]> {
       .from('workout_sessions')
       .select('*')
       .eq('user_id', user.id)
-      .eq('is_active', false)
+      .eq('status', 'completed')
       .order('started_at', { ascending: false })
       .range(from, from + PAGE_SIZE - 1);
     if (error) throw error;
