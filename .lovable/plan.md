@@ -1,106 +1,74 @@
-## Mål
+# MCP-server för gymappen
 
-Bygg om hela onboarding-flödet så att en användare som precis skapat konto:
+Bygger en remote MCP-server (streamable HTTP) så en AI-coach kan läsa färsk träningsdata och skriva in planerade pass direkt i appen. Plus det app-UI som krävs för att planerade pass, kroppsvikt och övningsalias ska funka på riktigt.
 
-1. Inte trillar tillbaka till inloggningssidan efter PT-onboardingen
-2. Möts av ett trevligt, animerat onboarding-flöde med alla viktiga frågor
-3. Landar direkt i appen (inloggat läge) och får en guidad, animerad rundtur över vyerna
-4. Avslutar med en pepp-animation och ett "Nu kör vi!"
+## 1. Databasändringar
 
----
+**Planerade pass** — `workout_sessions` får:
+- `status` (`planned` / `active` / `completed`) härlett från nuvarande `is_active`/`ended_at`
+- `planned_date` (datum utan tid, för pass som ännu inte körts)
+- `title` (fritext, t.ex. "Ben med Tina")
+- `source` (`app` / `mcp`)
 
-## Buggen vi fixar först
+**Målvärden per övning** — `workout_exercises` får:
+- `target_sets` (heltal)
+- `target_reps` (text, tillåter intervall "5-6", "12-15")
+- `target_weight_kg` (decimal)
 
-Idag renderas `OnboardingGate` globalt i `App.tsx`. När en användare skapar konto via `/auth` och får en session, öppnas `PTOnboarding` ovanpå auth-sidan. När onboardingen sparas stängs bara dialogen — användaren står kvar på `/auth` och ser inloggningsformuläret igen, fast hen är inloggad.
+Sets ärver mål från sin övning, så `get_workout` kan visa mål vs utfall på samma set.
 
-**Fix:** När onboardingen är klar navigerar vi till `/` (Index) så användaren möts av appen i inloggat läge. Vi ser också till att `Index` inte visar `AuthForm` när det finns en aktiv session.
+**Kroppsvikt** — ny tabell `body_weight_logs`: vikt i kg (decimal), datum, valfri anteckning. Bara du ser dina egna rader.
 
----
+**Övningsalias** — ny tabell `exercise_aliases`: alias-text → övning. Gör att "Db curl", "Decline DB curl" och "Cable curl" kan mappas mot rätt kanonisk övning så historiken inte splittras. Seedas med normaliserade varianter av befintliga övningsnamn.
 
-## Steg 1 — Utökad första-onboarding (PT + profil)
+**Cardio-fält för framtiden** — `cardio_logs` får `avg_heart_rate`, `max_heart_rate`, `pace_sec_per_km`.
 
-Slå ihop dagens 6-stegs PT-onboarding med profilfält så vi får ALLT på en gång. Nytt flöde, 7 korta steg, en fråga per skärm med animerade övergångar (fade + slide via Tailwind `animate-fade-in`/`animate-scale-in`):
+**Validering (databasnivå)**
+- Pass-längd max 6 timmar, annars flaggas passet
+- Vikt och reps får inte vara negativa
+- RPE begränsas till 6–10 (fältet finns redan)
 
-1. **Välkomst** — animerad logga, "Hej {förnamn}! Vi sätter upp din profil på en minut."
-2. **Om dig** — kön (chips), ålder (slider), längd (cm), vikt (kg)
-3. **Mål** — flerval med emojis (befintlig logik)
-4. **Erfarenhet** — nybörjare/medel/avancerad
-5. **Utrustning + tid** — utrustning (flerval), minuter per pass, dagar per vecka
-6. **Split** — välj training split (befintliga `TRAINING_SPLIT_OPTIONS`)
-7. **Begränsningar (valfritt)** — skador/hälsa fritext
-8. **Klar!** — celebration-skärm med konfetti (`celebrate()` från `src/lib/celebrate.ts`) + knapp "Visa mig runt"
+## 2. MCP-server
 
-Tekniskt:
-- Bygg om `src/components/pt/PTOnboarding.tsx` (eller skapa `src/components/onboarding/FirstRunOnboarding.tsx`) som driver alla 8 steg och returnerar både PT-profil-data och ev. profil-uppdateringar (kön/ålder/längd/vikt finns redan på `pt_profiles`, namn finns redan på `profiles` via signup).
-- Progressindikator-baren i toppen behålls, animeras smidigt.
-- Stegövergångar: wrappa varje steg i en `key`-baserad div med `animate-fade-in` så den re-mountas och animerar in.
-- Knappar har `press-feedback` + scale-on-tap för känsla.
+Byggs med `@lovable.dev/mcp-js` och deployas som en edge function. Autentisering via OAuth så coachen kopplar in sig som dig och all data skyddas av befintliga åtkomstregler. Läs- och skrivverktyg hålls separerade så read-only-läge är möjligt.
 
----
+**P1 – läsverktyg**
+- `list_workouts` — `from` (default: senaste 4 veckorna), `to`, `type`, `status`, `limit` (20/max 100), `cursor`. Returnerar id, datum med tidszon, typ, längd i minuter, betyg, status och en kort lista övningsnamn.
+- `get_workout` — fullt pass: övningar med muskelgrupper, alla set med vikt, reps, warmup, RPE, samt `target_*` när passet kommer från en plan.
+- `get_exercise_history` — `exercise` (id eller namn, alias-upplöst), `from`/`to` (default 6 mån), `include_warmups` (default false). En post per träningsdag med arbetsset, e1RM per dag. För cardioövningar returneras tid, distans, puls och tempo i stället för vikt/reps.
 
-## Steg 2 — Guidad rundtur i appen (in-app coachmarks)
+**P2 – skrivverktyg och katalog**
+- `create_planned_workout` — datum, typ, titel, anteckningar, övningar med `sets`, `target_reps` (sträng), `target_weight_kg`, anteckningar. Okänt övningsnamn ger ett tydligt fel med närmaste matchning ur katalogen, aldrig en tyst dubblett. Svarar med skapat id.
+- `update_planned_workout` / `delete_planned_workout` — endast pass med status `planned`. Genomförda pass kan varken ändras eller raderas via MCP.
+- `list_exercises` — katalog med kanoniska id:n, namn, alias, muskelgrupper, utrustning, cardio-flagga.
 
-När användaren trycker "Visa mig runt" stängs onboarding-dialogen, vi navigerar till `/` och en ny komponent `<AppTour />` tar över ovanpå Index-sidan.
+**P3**
+- `get_body_weight` — kroppsviktshistorik i kg för ett datumintervall.
+- `get_week_summary` — volym per muskelgrupp per vecka.
 
-`AppTour` är ett fullskärmsoverlay med:
+Alla verktygsbeskrivningar skrivs i klarspråk med "använd när…", eftersom det är dem coachen väljer verktyg utifrån. Svaren är kompakt JSON, metriska enheter, ISO 8601 med tidszon, paginering på alla listor.
 
-- Mörk backdrop med blur
-- Ett centrerat kort som animerar in (`animate-scale-in`)
-- Stora ikoner (Lucide) som motsvarar varje vy + kort beskrivning
-- Animerad pekare/markering som "hoppar" till motsvarande knapp i `BottomNav` (vi använder absolut positionering relativt nav-baren, eller bara highlightar nav-iconen via en pulsande ring som styrs från Tour-state)
-- Pillerknappar "Hoppa över" och "Nästa"
+## 3. App-UI
 
-Steg i rundturen (5 korta + 1 outro):
+- **Planerade pass i kalender/historik** — planerade pass visas med egen markering, går att öppna, redigera målvärden och starta som ett riktigt pass (mål förifyllda per set).
+- **Planeringsvy** — kommande planerade pass listade från idag och framåt, med skapa/redigera/ta bort.
+- **Under passet** — målvikt och målreps visas som referens vid varje övning när passet kom från en plan.
+- **Kroppsvikt** — snabb inmatning i profilen och en viktkurva på statistiksidan.
+- **Bekräftelse vid orimlig vikt** — om ett set loggas mer än ~50 % över tidigare rekord i övningen krävs en bekräftelse.
+- **Alias-hantering** — vid skapande av egen övning föreslås matchande befintlig övning i stället för dubblett.
 
-1. **Hem** — "Starta pass och se dina mål"
-2. **Kalender** — "All historik på ett ställe"
-3. **Statistik** — "Följ din utveckling och PRs"
-4. **Bibliotek** — "Övningar och färdiga rutiner"
-5. **Profil** — "Mål, foton och inställningar"
-6. **Nu kör vi!** — stor rubrik, konfetti-burst, knapp "Sätt igång" som stänger touren
+## 4. Ordning
 
-Tekniskt:
-- Ny fil: `src/components/onboarding/AppTour.tsx`
-- Persistens: när touren är klar/skippas, sätt `localStorage.setItem('app-tour-completed', '1')` så den aldrig visas igen.
-- Triggning: efter `savePTProfile()` lyckas, sätt ett state `showTour=true` i `OnboardingGate` (eller flytta logiken till en ny `OnboardingFlow`-komponent som äger både stegen och touren).
-- Animationer: ren Tailwind/CSS — fade, scale, pulse på nav-target, samt `celebrate()` på sista steget.
+1. Databasmigrering (status, målvärden, kroppsvikt, alias, cardio-fält, validering)
+2. MCP-server med P1-verktygen + OAuth-inloggning
+3. P2 skrivverktyg + katalog
+4. App-UI för planerade pass och kroppsvikt
+5. P3-verktyg
+6. Acceptanstest: passlista förra veckan, squat-historik utan dubbletter, skapa söndagens benpass, se mål vs utfall efteråt
 
----
+## Tekniska detaljer
 
-## Steg 3 — Rensa upp routing-buggen
-
-I `OnboardingGate.tsx`:
-- Använd `useNavigate()` från react-router.
-- När `savePTProfile` returnerar OK: `navigate('/', { replace: true })` innan dialogen stängs.
-
-I `src/pages/Index.tsx`:
-- Behåll `if (!user) return <AuthForm/>` men säkerställ att den inte triggas under en kort race när session redan finns (auth-loading hanteras redan).
-
-I `src/components/auth/AuthForm.tsx`:
-- När signup lyckas och det redan finns en session (auto-confirm är på) — navigera direkt till `/`. Om e-postverifiering krävs, visa befintlig toast.
-
----
-
-## Filer som ändras / skapas
-
-**Skapas**
-- `src/components/onboarding/AppTour.tsx` — den guidade rundturen
-- `src/components/onboarding/OnboardingFlow.tsx` (valfritt) — wrapper som äger steg + tour
-- ev. `src/components/onboarding/WelcomeStep.tsx`, `AboutYouStep.tsx` etc. om vi splittar
-
-**Ändras**
-- `src/components/pt/PTOnboarding.tsx` — utökat flöde, snyggare animationer, celebration-skärm
-- `src/components/onboarding/OnboardingGate.tsx` — navigera efter klar, trigga AppTour
-- `src/hooks/usePTProfile.ts` — `PTProfileInput` täcker redan kön/ålder/längd/vikt, ingen DB-migration behövs
-- `src/components/auth/AuthForm.tsx` — navigera till `/` när session finns efter signup
-- ev. `src/pages/Index.tsx` — säkerställ tour-mount
-
----
-
-## Vad som INTE ingår
-
-- Ingen DB-migration (alla fält finns redan på `pt_profiles`/`profiles`)
-- Ingen ny dependency (`canvas-confetti` finns redan, allt animeras med Tailwind/CSS)
-- Inga ändringar i resten av appen (workouts, stats etc.)
-
-Säg till om du vill ändra/lägga till något i flödet innan jag bygger.
+- MCP-servern bor i `src/lib/mcp/` (ett verktyg per fil) och byggs automatiskt till en edge function via Vite-pluginen från `@lovable.dev/mcp-js`.
+- Auth: Supabase OAuth 2.1 som authorization server + en consent-sida på `/.lovable/oauth/consent`. Verktygen kör med din användares behörighet, så radnivåsäkerheten gäller precis som i appen.
+- Alias-upplösning delas mellan MCP och appens befintliga `exercise-matcher` så namnmatchningen blir identisk på båda hållen.
+- `status` backfillas från `is_active` och `ended_at` så befintlig historik får rätt värde; `is_active` behålls tills all kod är omskriven.
