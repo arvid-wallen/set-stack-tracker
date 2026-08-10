@@ -13,6 +13,7 @@ import Stats from "./pages/Stats";
 import ExerciseStats from "./pages/ExerciseStats";
 import Profile from "./pages/Profile";
 import { AuthForm } from "./components/auth/AuthForm";
+import OAuthConsent from "./pages/OAuthConsent";
 import NotFound from "./pages/NotFound";
 
 import { ActiveWorkout } from "@/components/workout/ActiveWorkout";
@@ -40,6 +41,8 @@ const App = () => (
                 <Route path="/stats" element={<Stats />} />
                 <Route path="/stats/exercise" element={<ExerciseStats />} />
                 <Route path="/profile" element={<Profile />} />
+                <Route path="/.lovable/oauth/consent" element={<OAuthConsent />} />
+                <Route path="/planning" element={<Planning />} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
               </Routes>
