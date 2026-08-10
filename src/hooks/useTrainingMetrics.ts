@@ -100,7 +100,7 @@ export function useTrainingMetrics(): TrainingMetrics {
         .from('workout_sessions')
         .select('id, started_at, workout_type')
         .eq('user_id', user!.id)
-        .eq('is_active', false)
+        .eq('status', 'completed')
         .gte('started_at', since.toISOString())
         .order('started_at', { ascending: false });
 
@@ -110,7 +110,7 @@ export function useTrainingMetrics(): TrainingMetrics {
         .from('workout_sessions')
         .select('*', { count: 'exact', head: true })
         .eq('user_id', user!.id)
-        .eq('is_active', false);
+        .eq('status', 'completed');
 
       return { sessions: sessions ?? [], total: totalCount ?? 0 };
     },

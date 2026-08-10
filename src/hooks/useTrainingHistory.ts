@@ -97,7 +97,7 @@ export function useTrainingHistory() {
         .from('workout_sessions')
         .select('*')
         .eq('user_id', userId)
-        .eq('is_active', false)
+        .eq('status', 'completed')
         .gte('started_at', thirtyDaysAgo)
         .order('started_at', { ascending: false })
         .limit(10);

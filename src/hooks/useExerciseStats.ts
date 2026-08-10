@@ -73,7 +73,7 @@ export function useExerciseStats(exerciseId: string | null) {
           )
         `)
         .eq('workout_exercises.exercise_id', exerciseId)
-        .eq('workout_exercises.workout_sessions.is_active', false)
+        .eq('workout_exercises.workout_sessions.status', 'completed')
         .eq('is_warmup', false)
         .order('completed_at', { ascending: true });
 

@@ -39,7 +39,7 @@ export function useProgressiveOverload(exerciseId: string | null) {
           )
         `)
         .eq('exercise_id', exerciseId)
-        .eq('workout_sessions.is_active', false)
+        .eq('workout_sessions.status', 'completed')
         .order('workout_sessions(started_at)', { ascending: false })
         .limit(10);
 

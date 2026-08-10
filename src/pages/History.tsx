@@ -11,7 +11,8 @@ import { ImportWorkoutSheet } from '@/components/import/ImportWorkoutSheet';
 import { ExportButton } from '@/components/export/ExportButton';
 import { useWorkoutHistory, WorkoutWithDetails } from '@/hooks/useWorkoutHistory';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Calendar, List, Sparkles } from 'lucide-react';
+import { Calendar, List, Sparkles, CalendarPlus } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 export default function History() {
   const { 
@@ -47,6 +48,12 @@ export default function History() {
               <h1 className="text-lg font-semibold">Historik</h1>
               <div className="flex items-center gap-2">
                 <ExportButton workouts={workouts} disabled={isLoading} />
+                <Button asChild variant="outline" size="sm" className="gap-2 rounded-ios-md">
+                  <Link to="/planning" aria-label="Planerade pass">
+                    <CalendarPlus className="h-4 w-4" aria-hidden="true" />
+                    Planerat
+                  </Link>
+                </Button>
                 <Button
                   variant="outline"
                   size="sm"

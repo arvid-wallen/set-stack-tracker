@@ -14,35 +14,74 @@ export type Database = {
   }
   public: {
     Tables: {
+      body_weight_logs: {
+        Row: {
+          created_at: string
+          id: string
+          logged_at: string
+          notes: string | null
+          updated_at: string
+          user_id: string
+          weight_kg: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          logged_at?: string
+          notes?: string | null
+          updated_at?: string
+          user_id: string
+          weight_kg: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          logged_at?: string
+          notes?: string | null
+          updated_at?: string
+          user_id?: string
+          weight_kg?: number
+        }
+        Relationships: []
+      }
       cardio_logs: {
         Row: {
+          avg_heart_rate: number | null
           calories: number | null
           cardio_type: Database["public"]["Enums"]["cardio_type"]
           created_at: string
           distance_km: number | null
           duration_seconds: number | null
           id: string
+          max_heart_rate: number | null
           notes: string | null
+          pace_sec_per_km: number | null
           workout_exercise_id: string
         }
         Insert: {
+          avg_heart_rate?: number | null
           calories?: number | null
           cardio_type?: Database["public"]["Enums"]["cardio_type"]
           created_at?: string
           distance_km?: number | null
           duration_seconds?: number | null
           id?: string
+          max_heart_rate?: number | null
           notes?: string | null
+          pace_sec_per_km?: number | null
           workout_exercise_id: string
         }
         Update: {
+          avg_heart_rate?: number | null
           calories?: number | null
           cardio_type?: Database["public"]["Enums"]["cardio_type"]
           created_at?: string
           distance_km?: number | null
           duration_seconds?: number | null
           id?: string
+          max_heart_rate?: number | null
           notes?: string | null
+          pace_sec_per_km?: number | null
           workout_exercise_id?: string
         }
         Relationships: [
@@ -51,6 +90,38 @@ export type Database = {
             columns: ["workout_exercise_id"]
             isOneToOne: false
             referencedRelation: "workout_exercises"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      exercise_aliases: {
+        Row: {
+          alias: string
+          created_at: string
+          exercise_id: string
+          id: string
+          normalized_alias: string | null
+        }
+        Insert: {
+          alias: string
+          created_at?: string
+          exercise_id: string
+          id?: string
+          normalized_alias?: string | null
+        }
+        Update: {
+          alias?: string
+          created_at?: string
+          exercise_id?: string
+          id?: string
+          normalized_alias?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "exercise_aliases_exercise_id_fkey"
+            columns: ["exercise_id"]
+            isOneToOne: false
+            referencedRelation: "exercises"
             referencedColumns: ["id"]
           },
         ]
@@ -487,6 +558,9 @@ export type Database = {
           notes: string | null
           order_index: number
           superset_group: number | null
+          target_reps: string | null
+          target_sets: number | null
+          target_weight_kg: number | null
           workout_session_id: string
         }
         Insert: {
@@ -497,6 +571,9 @@ export type Database = {
           notes?: string | null
           order_index?: number
           superset_group?: number | null
+          target_reps?: string | null
+          target_sets?: number | null
+          target_weight_kg?: number | null
           workout_session_id: string
         }
         Update: {
@@ -507,6 +584,9 @@ export type Database = {
           notes?: string | null
           order_index?: number
           superset_group?: number | null
+          target_reps?: string | null
+          target_sets?: number | null
+          target_weight_kg?: number | null
           workout_session_id?: string
         }
         Relationships: [
@@ -535,8 +615,12 @@ export type Database = {
           id: string
           is_active: boolean
           notes: string | null
+          planned_date: string | null
           rating: number | null
+          source: string
           started_at: string
+          status: string
+          title: string | null
           updated_at: string
           user_id: string
           workout_type: Database["public"]["Enums"]["workout_type"]
@@ -549,8 +633,12 @@ export type Database = {
           id?: string
           is_active?: boolean
           notes?: string | null
+          planned_date?: string | null
           rating?: number | null
+          source?: string
           started_at?: string
+          status?: string
+          title?: string | null
           updated_at?: string
           user_id: string
           workout_type?: Database["public"]["Enums"]["workout_type"]
@@ -563,8 +651,12 @@ export type Database = {
           id?: string
           is_active?: boolean
           notes?: string | null
+          planned_date?: string | null
           rating?: number | null
+          source?: string
           started_at?: string
+          status?: string
+          title?: string | null
           updated_at?: string
           user_id?: string
           workout_type?: Database["public"]["Enums"]["workout_type"]

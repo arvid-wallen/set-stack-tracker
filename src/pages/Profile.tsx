@@ -9,6 +9,7 @@ import { PersonalInfoSection } from '@/components/profile/PersonalInfoSection';
 import { AccountSection } from '@/components/profile/AccountSection';
 import { StatsOverview } from '@/components/profile/StatsOverview';
 import { ProgressPhotos } from '@/components/profile/ProgressPhotos';
+import { BodyWeightSection } from '@/components/profile/BodyWeightSection';
 import { SettingsSection } from '@/components/profile/SettingsSection';
 import { PTProfileSettings } from '@/components/profile/PTProfileSettings';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -106,7 +107,10 @@ export default function Profile() {
             />
           )}
 
+          <BodyWeightSection />
+
           <ProgressPhotos userId={user.id} />
+
 
           <PTProfileSettings />
 
