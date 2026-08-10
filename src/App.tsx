@@ -9,6 +9,7 @@ import { ErrorBoundary } from "./components/ErrorBoundary";
 import Index from "./pages/Index";
 import Library from "./pages/Library";
 import History from "./pages/History";
+import Planning from "./pages/Planning";
 import Stats from "./pages/Stats";
 import ExerciseStats from "./pages/ExerciseStats";
 import Profile from "./pages/Profile";
