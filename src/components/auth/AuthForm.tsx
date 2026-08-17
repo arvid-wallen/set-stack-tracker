@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Mail, Lock, Eye, EyeOff, Dumbbell, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -7,6 +7,13 @@ import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@/hooks/useAuth';
+
+/** Only allow same-origin relative paths as post-login destination. */
+function safeNext(raw: string | null): string {
+  if (!raw) return '/';
+  if (!raw.startsWith('/') || raw.startsWith('//')) return '/';
+  return raw;
+}
 
 export function AuthForm() {
   const [isLogin, setIsLogin] = useState(true);
@@ -19,27 +26,39 @@ export function AuthForm() {
   });
 
   const navigate = useNavigate();
+  const [params] = useSearchParams();
+  const next = safeNext(params.get('next'));
   const { signIn, signUp, isLoading, isAuthenticated } = useAuth();
 
   // If a session shows up (e.g. signup with auto-confirm, or already logged in),
   // bounce out of /auth so the user doesn't get stuck on the form.
   useEffect(() => {
     if (isAuthenticated) {
-      navigate('/', { replace: true });
+      if (next.startsWith('/.lovable/')) {
+        window.location.replace(next);
+      } else {
+        navigate(next, { replace: true });
+      }
     }
-  }, [isAuthenticated, navigate]);
+  }, [isAuthenticated, navigate, next]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    const goNext = () => {
+      if (next.startsWith('/.lovable/')) window.location.replace(next);
+      else navigate(next, { replace: true });
+    };
+
     if (isLogin) {
       const result = await signIn(email, password, rememberMe);
-      if (result?.session) navigate('/', { replace: true });
+      if (result?.session) goNext();
     } else {
-      const result = await signUp(email, password, firstName);
-      if (result?.session) navigate('/', { replace: true });
+      const result = await signUp(email, password, firstName, next);
+      if (result?.session) goNext();
     }
   };
+
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4 bg-background">
