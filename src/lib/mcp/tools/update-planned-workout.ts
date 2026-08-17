@@ -7,6 +7,7 @@ const exerciseInput = z.object({
   sets: z.number().int().optional().describe("Number of planned sets."),
   target_reps: z.string().optional().describe("Target reps as text, e.g. '5' or '8-10'."),
   target_weight_kg: z.number().optional().describe("Target working weight in kilograms."),
+  target_rpe: z.number().min(6).max(10).optional().describe("Target RPE for the exercise, 6-10 (half steps allowed)."),
   notes: z.string().optional().describe("Short coaching note for this exercise."),
 });
 
@@ -83,6 +84,7 @@ export default defineTool({
               target_sets: r.input.sets ?? null,
               target_reps: r.input.target_reps ?? null,
               target_weight_kg: r.input.target_weight_kg ?? null,
+        target_rpe: r.input.target_rpe ?? null,
               notes: r.input.notes ?? null,
             })),
           );

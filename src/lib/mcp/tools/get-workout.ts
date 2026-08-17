@@ -21,7 +21,7 @@ export default defineTool({
            duration_seconds, rating, notes,
            workout_exercises (
              id, order_index, superset_group, notes, is_completed,
-             target_sets, target_reps, target_weight_kg,
+             target_sets, target_reps, target_weight_kg, target_rpe,
              exercises ( id, name, muscle_groups, equipment_type, is_cardio ),
              exercise_sets ( id, set_number, weight_kg, reps, is_warmup, is_bodyweight, rpe, rir, notes, completed_at ),
              cardio_logs ( cardio_type, duration_seconds, distance_km, calories, avg_heart_rate, max_heart_rate, pace_sec_per_km, notes )
@@ -53,11 +53,12 @@ export default defineTool({
             is_completed: we.is_completed,
             notes: we.notes,
             target:
-              we.target_sets || we.target_reps || we.target_weight_kg
+              we.target_sets || we.target_reps || we.target_weight_kg || we.target_rpe
                 ? {
                     sets: we.target_sets,
                     reps: we.target_reps,
                     weight_kg: we.target_weight_kg,
+                    rpe: we.target_rpe,
                   }
                 : null,
             sets: sets.map((s) => ({

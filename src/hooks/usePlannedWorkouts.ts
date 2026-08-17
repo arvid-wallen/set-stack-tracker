@@ -10,6 +10,7 @@ export interface PlannedExerciseInput {
   target_sets: number | null;
   target_reps: string | null;
   target_weight_kg: number | null;
+  target_rpe?: number | null;
   notes?: string | null;
 }
 
@@ -28,6 +29,7 @@ export interface PlannedWorkout {
     target_sets: number | null;
     target_reps: string | null;
     target_weight_kg: number | null;
+    target_rpe: number | null;
     notes: string | null;
   }>;
 }
@@ -46,7 +48,7 @@ export function usePlannedWorkouts(includePast = false) {
         .from('workout_sessions')
         .select(
           `id, workout_type, title, notes, planned_date, source,
-           workout_exercises ( id, exercise_id, order_index, target_sets, target_reps, target_weight_kg, notes, exercises ( name ) )`,
+           workout_exercises ( id, exercise_id, order_index, target_sets, target_reps, target_weight_kg, target_rpe, notes, exercises ( name ) )`,
         )
         .eq('status', 'planned')
         .order('planned_date', { ascending: true });
@@ -75,6 +77,7 @@ export function usePlannedWorkouts(includePast = false) {
             target_sets: we.target_sets,
             target_reps: we.target_reps,
             target_weight_kg: we.target_weight_kg,
+            target_rpe: we.target_rpe,
             notes: we.notes,
           })),
       }));
@@ -140,6 +143,7 @@ export function usePlannedWorkouts(includePast = false) {
             target_sets: e.target_sets,
             target_reps: e.target_reps,
             target_weight_kg: e.target_weight_kg,
+            target_rpe: e.target_rpe ?? null,
             notes: e.notes ?? null,
           })),
         );

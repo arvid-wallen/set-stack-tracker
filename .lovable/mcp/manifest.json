@@ -241,6 +241,12 @@
                     "type": "number",
                     "description": "Target working weight in kilograms."
                   },
+                  "target_rpe": {
+                    "type": "number",
+                    "minimum": 6,
+                    "maximum": 10,
+                    "description": "Target RPE for the exercise, 6-10 (half steps allowed)."
+                  },
                   "notes": {
                     "type": "string",
                     "description": "Short coaching note for this exercise."
@@ -326,6 +332,12 @@
                   "target_weight_kg": {
                     "type": "number",
                     "description": "Target working weight in kilograms."
+                  },
+                  "target_rpe": {
+                    "type": "number",
+                    "minimum": 6,
+                    "maximum": 10,
+                    "description": "Target RPE for the exercise, 6-10 (half steps allowed)."
                   },
                   "notes": {
                     "type": "string",
