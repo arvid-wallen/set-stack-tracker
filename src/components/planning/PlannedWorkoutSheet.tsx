@@ -58,6 +58,7 @@ export function PlannedWorkoutSheet({ open, onOpenChange, workout, defaultDate }
         target_sets: e.target_sets,
         target_reps: e.target_reps,
         target_weight_kg: e.target_weight_kg,
+        target_rpe: e.target_rpe ?? null,
         notes: e.notes,
       })),
     );
@@ -73,6 +74,7 @@ export function PlannedWorkoutSheet({ open, onOpenChange, workout, defaultDate }
         target_sets: 3,
         target_reps: '8-10',
         target_weight_kg: null,
+        target_rpe: null,
         notes: null,
       },
     ]);
