@@ -233,7 +233,7 @@ var get_workout_default = defineTool2({
            duration_seconds, rating, notes,
            workout_exercises (
              id, order_index, superset_group, notes, is_completed,
-             target_sets, target_reps, target_weight_kg,
+             target_sets, target_reps, target_weight_kg, target_rpe,
              exercises ( id, name, muscle_groups, equipment_type, is_cardio ),
              exercise_sets ( id, set_number, weight_kg, reps, is_warmup, is_bodyweight, rpe, rir, notes, completed_at ),
              cardio_logs ( cardio_type, duration_seconds, distance_km, calories, avg_heart_rate, max_heart_rate, pace_sec_per_km, notes )
@@ -258,10 +258,11 @@ var get_workout_default = defineTool2({
           superset_group: we.superset_group,
           is_completed: we.is_completed,
           notes: we.notes,
-          target: we.target_sets || we.target_reps || we.target_weight_kg ? {
+          target: we.target_sets || we.target_reps || we.target_weight_kg || we.target_rpe ? {
             sets: we.target_sets,
             reps: we.target_reps,
-            weight_kg: we.target_weight_kg
+            weight_kg: we.target_weight_kg,
+            rpe: we.target_rpe
           } : null,
           sets: sets.map((s) => ({
             set_number: s.set_number,
@@ -473,6 +474,7 @@ var exerciseInput = z5.object({
   sets: z5.number().int().optional().describe("Number of planned sets."),
   target_reps: z5.string().optional().describe("Target reps as text, e.g. '5' or '8-10'."),
   target_weight_kg: z5.number().optional().describe("Target working weight in kilograms."),
+  target_rpe: z5.number().min(6).max(10).optional().describe("Target RPE for the exercise, 6-10 (half steps allowed)."),
   notes: z5.string().optional().describe("Short coaching note for this exercise.")
 });
 var create_planned_workout_default = defineTool5({
@@ -522,6 +524,7 @@ var create_planned_workout_default = defineTool5({
         target_sets: r.input.sets ?? null,
         target_reps: r.input.target_reps ?? null,
         target_weight_kg: r.input.target_weight_kg ?? null,
+        target_rpe: r.input.target_rpe ?? null,
         notes: r.input.notes ?? null
       }));
       const { error: exError } = await db.from("workout_exercises").insert(rows);
@@ -551,6 +554,7 @@ var exerciseInput2 = z6.object({
   sets: z6.number().int().optional().describe("Number of planned sets."),
   target_reps: z6.string().optional().describe("Target reps as text, e.g. '5' or '8-10'."),
   target_weight_kg: z6.number().optional().describe("Target working weight in kilograms."),
+  target_rpe: z6.number().min(6).max(10).optional().describe("Target RPE for the exercise, 6-10 (half steps allowed)."),
   notes: z6.string().optional().describe("Short coaching note for this exercise.")
 });
 var update_planned_workout_default = defineTool6({
@@ -613,6 +617,7 @@ var update_planned_workout_default = defineTool6({
               target_sets: r.input.sets ?? null,
               target_reps: r.input.target_reps ?? null,
               target_weight_kg: r.input.target_weight_kg ?? null,
+              target_rpe: r.input.target_rpe ?? null,
               notes: r.input.notes ?? null
             }))
           );

@@ -200,6 +200,22 @@ export function ExerciseCard({
               </Badge>
             )}
           </div>
+          {(workoutExercise.target_sets ||
+            workoutExercise.target_reps ||
+            workoutExercise.target_weight_kg ||
+            workoutExercise.target_rpe) && (
+            <p className="mt-1 text-xs text-muted-foreground">
+              Mål:{' '}
+              {[
+                workoutExercise.target_sets ? `${workoutExercise.target_sets} set` : null,
+                workoutExercise.target_reps ? `${workoutExercise.target_reps} reps` : null,
+                workoutExercise.target_weight_kg ? `${workoutExercise.target_weight_kg} kg` : null,
+                workoutExercise.target_rpe ? `RPE ${workoutExercise.target_rpe}` : null,
+              ]
+                .filter(Boolean)
+                .join(' · ')}
+            </p>
+          )}
           <div className="flex gap-1 mt-1 flex-wrap">
             {!isCardio && exercise.muscle_groups.slice(0, 2).map(mg => (
               <Badge key={mg} variant="secondary" className="text-xs rounded-full">
