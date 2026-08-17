@@ -215,6 +215,29 @@ export function PlannedWorkoutSheet({ open, onOpenChange, workout, defaultDate }
                       />
                     </div>
                   </div>
+                  <div className="flex items-center gap-1 flex-wrap">
+                    <span className="text-[10px] font-medium text-muted-foreground/70 mr-0.5">
+                      MÅL-RPE
+                    </span>
+                    {[6, 6.5, 7, 7.5, 8, 8.5, 9, 9.5, 10].map((value) => (
+                      <button
+                        key={value}
+                        type="button"
+                        aria-label={`Mål-RPE ${value}`}
+                        aria-pressed={row.target_rpe === value}
+                        onClick={() =>
+                          update(row.key, { target_rpe: row.target_rpe === value ? null : value })
+                        }
+                        className={`h-7 min-w-[30px] px-1.5 rounded-md text-[11px] font-medium transition-colors ${
+                          row.target_rpe === value
+                            ? 'bg-primary text-primary-foreground'
+                            : 'bg-muted text-muted-foreground'
+                        }`}
+                      >
+                        {value}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               ))}
             </div>
