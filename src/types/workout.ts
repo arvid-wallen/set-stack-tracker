@@ -36,6 +36,10 @@ export interface WorkoutExercise {
   superset_group: number | null;
   is_completed: boolean;
   notes: string | null;
+  target_sets?: number | null;
+  target_reps?: string | null;
+  target_weight_kg?: number | null;
+  target_rpe?: number | null;
   exercise?: Exercise;
   sets?: ExerciseSet[];
   cardioLog?: CardioLog;
