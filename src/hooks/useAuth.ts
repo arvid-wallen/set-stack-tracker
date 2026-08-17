@@ -64,15 +64,16 @@ export function useAuth() {
     return () => subscription.unsubscribe();
   }, []);
 
-  const signUp = async (email: string, password: string, firstName: string) => {
+  const signUp = async (email: string, password: string, firstName: string, next?: string) => {
     setIsLoading(true);
     try {
+      const target = next && next.startsWith('/') && !next.startsWith('//') ? next : '/';
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
           data: { first_name: firstName },
-          emailRedirectTo: `${window.location.origin}/`
+          emailRedirectTo: `${window.location.origin}${target}`
         }
       });
 
