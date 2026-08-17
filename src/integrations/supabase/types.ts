@@ -559,6 +559,7 @@ export type Database = {
           order_index: number
           superset_group: number | null
           target_reps: string | null
+          target_rpe: number | null
           target_sets: number | null
           target_weight_kg: number | null
           workout_session_id: string
@@ -572,6 +573,7 @@ export type Database = {
           order_index?: number
           superset_group?: number | null
           target_reps?: string | null
+          target_rpe?: number | null
           target_sets?: number | null
           target_weight_kg?: number | null
           workout_session_id: string
@@ -585,6 +587,7 @@ export type Database = {
           order_index?: number
           superset_group?: number | null
           target_reps?: string | null
+          target_rpe?: number | null
           target_sets?: number | null
           target_weight_kg?: number | null
           workout_session_id?: string
