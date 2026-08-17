@@ -125,6 +125,7 @@ export default function Planning() {
                         e.target_sets ? `${e.target_sets} set` : null,
                         e.target_reps ? `${e.target_reps} reps` : null,
                         e.target_weight_kg ? `${e.target_weight_kg} kg` : null,
+                        e.target_rpe ? `RPE ${e.target_rpe}` : null,
                       ]
                         .filter(Boolean)
                         .join(' · ')}
