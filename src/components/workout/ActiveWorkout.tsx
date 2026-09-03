@@ -84,23 +84,23 @@ export function ActiveWorkout() {
   return (
     <div className="fixed inset-0 bg-background z-50 flex flex-col safe-top safe-bottom">
       {/* iOS Navigation Bar Header */}
-      <header className="flex items-center justify-between px-5 py-4 border-b border-border/30 bg-background/95 backdrop-blur-xl">
+      <header className="flex items-center gap-1 px-3 py-3 border-b border-border/30 bg-background/95 backdrop-blur-xl">
         <Button 
           variant="ghost" 
           size="icon"
-          className="h-12 w-12 rounded-ios-md touch-target"
+          className="h-10 w-10 rounded-ios-md shrink-0"
           onClick={minimizeWorkout}
           aria-label="Minimera pass"
         >
           <Minus className="h-5 w-5" aria-hidden="true" />
         </Button>
         
-        <div className="flex-1 text-center">
-          <h1 className="font-heading font-semibold text-lg">
+        <div className="flex-1 min-w-0 text-center px-1">
+          <h1 className="font-heading font-semibold text-base truncate">
             {activeWorkout.custom_type_name || WORKOUT_TYPE_LABELS[activeWorkout.workout_type]}
           </h1>
-          <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
-            <Clock className="h-3 w-3" />
+          <div className="flex items-center justify-center gap-1.5 text-sm text-muted-foreground">
+            <Clock className="h-3 w-3 shrink-0" />
             <WorkoutTimer
               startedAt={activeWorkout.started_at}
               isPaused={isPaused}
@@ -108,35 +108,23 @@ export function ActiveWorkout() {
               totalPausedMs={totalPausedMs}
               className="text-sm !text-muted-foreground"
             />
+            {isPaused && <span className="text-xs text-warning">· Pausad</span>}
+            {!isOnline && <WifiOff className="h-3 w-3 text-warning" aria-label="Offline" />}
+            <span className="text-xs tabular-nums">· {totalSets} set</span>
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-10 w-10 rounded-full touch-target"
-            onClick={() => (isPaused ? resumeWorkout() : pauseWorkout(false))}
-            aria-label={isPaused ? 'Återuppta pass' : 'Pausa pass'}
-          >
-            {isPaused ? <Play className="h-4 w-4" /> : <Pause className="h-4 w-4" />}
-          </Button>
-          {isPaused && (
-            <Badge variant="outline" className="rounded-full">Pausad</Badge>
-          )}
-          {/* Offline indicator */}
-          {!isOnline && (
-            <Badge variant="outline" className="text-warning border-warning rounded-full">
-              <WifiOff className="h-3 w-3 mr-1" />
-              Offline
-            </Badge>
-          )}
-          <Badge variant="secondary" className="font-mono rounded-full px-3">
-            {totalSets} set
-          </Badge>
-        </div>
-
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-10 w-10 rounded-full shrink-0"
+          onClick={() => (isPaused ? resumeWorkout() : pauseWorkout(false))}
+          aria-label={isPaused ? 'Återuppta pass' : 'Pausa pass'}
+        >
+          {isPaused ? <Play className="h-4 w-4" /> : <Pause className="h-4 w-4" />}
+        </Button>
       </header>
+
 
       {/* Exercise list */}
       <ScrollArea className="flex-1 px-5 py-6">
