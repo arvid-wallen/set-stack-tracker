@@ -2,7 +2,6 @@ import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Minus, Clock, Dumbbell, WifiOff, Pause, Play } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { WorkoutTimer } from './WorkoutTimer';
 import { RestTimer } from './RestTimer';
@@ -127,8 +126,8 @@ export function ActiveWorkout() {
 
 
       {/* Exercise list */}
-      <ScrollArea className="flex-1 px-5 py-6">
-        <div className="space-y-5 pb-36">
+      <ScrollArea className="flex-1 px-4 py-4">
+        <div className="space-y-4 pb-36">
           {workoutExercises.length === 0 ? (
             <div className="text-center py-12">
               <Dumbbell className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
@@ -162,7 +161,7 @@ export function ActiveWorkout() {
 
       {/* Bottom action bar - iOS style */}
       <div className="fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur-xl border-t border-border/30">
-        <div className="flex gap-4 p-5 pb-[calc(1.25rem+env(safe-area-inset-bottom))]">
+        <div className="flex gap-3 p-4 pb-[calc(1rem+env(safe-area-inset-bottom))]">
           <ExerciseSearch 
             onSelect={handleExerciseSelect}
             trigger={
