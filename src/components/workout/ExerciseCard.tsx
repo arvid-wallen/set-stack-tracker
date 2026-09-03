@@ -152,15 +152,15 @@ export function ExerciseCard({
 
   return (
     <Card className={cn(
-      "rounded-2xl overflow-hidden transition-all duration-300 shadow-ios p-4 animate-slide-in-bottom",
-      supersetBadge && "border-l-4 border-l-primary",
+      "rounded-2xl overflow-hidden transition-all duration-300 shadow-ios p-3 sm:p-4 animate-slide-in-bottom",
+      supersetBadge && "border-l-4 border-l-primary pl-2 sm:pl-3",
       isCompleted && "opacity-60 bg-muted/30"
     )}>
       {/* Header */}
-      <div className="flex items-center gap-3">
+      <div className="flex items-start gap-1.5">
         {/* Complete toggle */}
         <button
-          className="touch-target flex items-center justify-center transition-transform active:scale-90"
+          className="h-10 w-8 -ml-1 flex items-center justify-center shrink-0 transition-transform active:scale-90"
           onClick={handleToggleComplete}
           aria-label={isCompleted ? "Markera som ej klar" : "Markera som klar"}
         >
@@ -171,32 +171,26 @@ export function ExerciseCard({
           )}
         </button>
 
-        {supersetBadge && (
-          <Badge variant="outline" className="rounded-full w-6 h-6 p-0 flex items-center justify-center text-xs border-primary text-primary">
-            {supersetBadge}
-          </Badge>
-        )}
-        
         <button
-          className="flex-1 text-left touch-target min-w-0"
+          className="flex-1 min-w-0 text-left py-1"
           onClick={() => setShowHistory(true)}
           aria-label="Visa historik"
         >
-          <div className="flex items-center gap-2 flex-wrap">
+          <div className="flex items-center gap-1.5 min-w-0">
+            {supersetBadge && (
+              <Badge variant="outline" className="shrink-0 rounded-full h-5 px-1.5 text-[10px] font-semibold border-primary text-primary">
+                SS{supersetBadge}
+              </Badge>
+            )}
             {isCardio && <Activity className="h-4 w-4 text-orange-500 shrink-0" />}
             <h3 className={cn(
-              "font-semibold truncate max-w-[180px] sm:max-w-none underline-offset-4 decoration-dotted decoration-muted-foreground/40 hover:decoration-primary",
+              "font-semibold truncate min-w-0 underline-offset-4 decoration-dotted decoration-muted-foreground/40",
               isCompleted && "line-through text-muted-foreground"
             )}>{exercise.name}</h3>
             <LineChart className="h-3.5 w-3.5 text-muted-foreground/60 shrink-0" />
-            {isCardio && (
-              <Badge variant="secondary" className="text-xs bg-orange-500/20 text-orange-500 border-orange-500/30 shrink-0 rounded-full">
-                Cardio
-              </Badge>
-            )}
             {isCompleted && (
-              <Badge variant="secondary" className="text-xs bg-green-500/20 text-green-500 border-green-500/30 shrink-0 rounded-full">
-                ✓ Klar
+              <Badge variant="secondary" className="text-[10px] h-5 px-1.5 bg-green-500/20 text-green-500 border-green-500/30 shrink-0 rounded-full">
+                Klar
               </Badge>
             )}
           </div>
@@ -204,7 +198,7 @@ export function ExerciseCard({
             workoutExercise.target_reps ||
             workoutExercise.target_weight_kg ||
             workoutExercise.target_rpe) && (
-            <p className="mt-1 text-xs text-muted-foreground">
+            <p className="mt-1 text-xs text-muted-foreground truncate">
               Mål:{' '}
               {[
                 workoutExercise.target_sets ? `${workoutExercise.target_sets} set` : null,
@@ -216,80 +210,83 @@ export function ExerciseCard({
                 .join(' · ')}
             </p>
           )}
-          <div className="flex gap-1 mt-1 flex-wrap">
+          <div className="flex items-center gap-1 mt-1 min-w-0 overflow-hidden">
             {!isCardio && exercise.muscle_groups.slice(0, 2).map(mg => (
-              <Badge key={mg} variant="secondary" className="text-xs rounded-full">
+              <Badge key={mg} variant="secondary" className="text-[10px] h-5 px-1.5 rounded-full shrink-0">
                 {MUSCLE_GROUP_LABELS[mg]}
               </Badge>
             ))}
             {isCardio && cardioLog && (
-              <span className="text-xs text-muted-foreground">
+              <span className="text-xs text-muted-foreground truncate">
                 {cardioLog.duration_seconds && `${Math.floor(cardioLog.duration_seconds / 60)} min`}
                 {cardioLog.distance_km && ` · ${cardioLog.distance_km} km`}
               </span>
             )}
             {!isCardio && sets.length > 0 && (
-              <span className="text-xs text-muted-foreground ml-1">
-                {workingSets.length} set{workingSets.length !== 1 ? 's' : ''}
+              <span className="text-xs text-muted-foreground truncate">
+                {workingSets.length} set
                 {warmupSets.length > 0 && ` + ${warmupSets.length} uppv.`}
               </span>
             )}
           </div>
         </button>
 
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-10 w-10 touch-target rounded-ios-md shrink-0"
-          onClick={() => setIsExpanded(!isExpanded)}
-          aria-label={isExpanded ? "Fäll ihop" : "Visa set"}
-        >
-          {isExpanded ? (
-            <ChevronUp className="h-5 w-5 text-muted-foreground" />
-          ) : (
-            <ChevronDown className="h-5 w-5 text-muted-foreground" />
-          )}
-        </Button>
+        <div className="flex items-center shrink-0">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-9 w-9 rounded-ios-md"
+            onClick={() => setIsExpanded(!isExpanded)}
+            aria-label={isExpanded ? "Fäll ihop" : "Visa set"}
+          >
+            {isExpanded ? (
+              <ChevronUp className="h-5 w-5 text-muted-foreground" />
+            ) : (
+              <ChevronDown className="h-5 w-5 text-muted-foreground" />
+            )}
+          </Button>
 
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-10 w-10 touch-target rounded-ios-md" aria-label="Fler val">
-              <MoreVertical className="h-4 w-4" aria-hidden="true" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="rounded-ios-lg">
-            {onLinkSuperset && (
-              <DropdownMenuItem onClick={onLinkSuperset}>
-                <Link2 className="h-4 w-4 mr-2" />
-                Länka till superset
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon" className="h-9 w-9 rounded-ios-md" aria-label="Fler val">
+                <MoreVertical className="h-4 w-4" aria-hidden="true" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="rounded-ios-lg">
+              {onLinkSuperset && (
+                <DropdownMenuItem onClick={onLinkSuperset}>
+                  <Link2 className="h-4 w-4 mr-2" />
+                  Länka till superset
+                </DropdownMenuItem>
+              )}
+              {supersetBadge && onUnlinkSuperset && (
+                <DropdownMenuItem onClick={onUnlinkSuperset}>
+                  <Unlink className="h-4 w-4 mr-2" />
+                  Ta bort från superset
+                </DropdownMenuItem>
+              )}
+              {(onLinkSuperset || supersetBadge) && <DropdownMenuSeparator />}
+              <DropdownMenuItem onClick={() => setShowHistory(true)}>
+                <LineChart className="h-4 w-4 mr-2" />
+                Visa historik & trend
               </DropdownMenuItem>
-            )}
-            {supersetBadge && onUnlinkSuperset && (
-              <DropdownMenuItem onClick={onUnlinkSuperset}>
-                <Unlink className="h-4 w-4 mr-2" />
-                Ta bort från superset
+              <DropdownMenuItem onClick={handleStartEditNote}>
+                <MessageSquare className="h-4 w-4 mr-2" />
+                {exerciseNote ? 'Redigera kommentar' : 'Lägg till kommentar'}
               </DropdownMenuItem>
-            )}
-            {(onLinkSuperset || supersetBadge) && <DropdownMenuSeparator />}
-            <DropdownMenuItem onClick={() => setShowHistory(true)}>
-              <LineChart className="h-4 w-4 mr-2" />
-              Visa historik & trend
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={handleStartEditNote}>
-              <MessageSquare className="h-4 w-4 mr-2" />
-              {exerciseNote ? 'Redigera kommentar' : 'Lägg till kommentar'}
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem 
-              className="text-destructive focus:text-destructive"
-              onClick={onRemoveExercise}
-            >
-              <Trash2 className="h-4 w-4 mr-2" />
-              Ta bort övning
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem 
+                className="text-destructive focus:text-destructive"
+                onClick={onRemoveExercise}
+              >
+                <Trash2 className="h-4 w-4 mr-2" />
+                Ta bort övning
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       </div>
+
 
       {/* Persistent Exercise Note */}
       {(exerciseNote || isEditingNote) && (
