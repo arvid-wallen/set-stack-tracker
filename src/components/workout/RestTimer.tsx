@@ -55,7 +55,7 @@ export function RestTimer({
 
   return (
     <div className={cn(
-      "fixed bottom-20 left-4 right-4 glass rounded-2xl p-4 z-40 animate-slide-up",
+      "fixed left-4 right-4 bottom-[calc(6.5rem+env(safe-area-inset-bottom))] glass rounded-2xl p-4 z-40 animate-slide-up",
       className
     )}>
       <div className="flex items-center justify-between mb-3">
