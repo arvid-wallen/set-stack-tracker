@@ -2,7 +2,6 @@ import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Minus, Clock, Dumbbell, WifiOff, Pause, Play } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { WorkoutTimer } from './WorkoutTimer';
 import { RestTimer } from './RestTimer';
@@ -14,7 +13,6 @@ import { celebrate } from '@/lib/celebrate';
 import { useWorkout } from '@/hooks/useWorkout';
 import { useRoutines } from '@/hooks/useRoutines';
 import { WORKOUT_TYPE_LABELS, Exercise } from '@/types/workout';
-import { cn } from '@/lib/utils';
 
 export function ActiveWorkout() {
   const { 
@@ -84,23 +82,23 @@ export function ActiveWorkout() {
   return (
     <div className="fixed inset-0 bg-background z-50 flex flex-col safe-top safe-bottom">
       {/* iOS Navigation Bar Header */}
-      <header className="flex items-center justify-between px-5 py-4 border-b border-border/30 bg-background/95 backdrop-blur-xl">
+      <header className="flex items-center gap-1 px-3 py-3 border-b border-border/30 bg-background/95 backdrop-blur-xl">
         <Button 
           variant="ghost" 
           size="icon"
-          className="h-12 w-12 rounded-ios-md touch-target"
+          className="h-10 w-10 rounded-ios-md shrink-0"
           onClick={minimizeWorkout}
           aria-label="Minimera pass"
         >
           <Minus className="h-5 w-5" aria-hidden="true" />
         </Button>
         
-        <div className="flex-1 text-center">
-          <h1 className="font-heading font-semibold text-lg">
+        <div className="flex-1 min-w-0 text-center px-1">
+          <h1 className="font-heading font-semibold text-base truncate">
             {activeWorkout.custom_type_name || WORKOUT_TYPE_LABELS[activeWorkout.workout_type]}
           </h1>
-          <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
-            <Clock className="h-3 w-3" />
+          <div className="flex items-center justify-center gap-1.5 text-sm text-muted-foreground">
+            <Clock className="h-3 w-3 shrink-0" />
             <WorkoutTimer
               startedAt={activeWorkout.started_at}
               isPaused={isPaused}
@@ -108,39 +106,27 @@ export function ActiveWorkout() {
               totalPausedMs={totalPausedMs}
               className="text-sm !text-muted-foreground"
             />
+            {isPaused && <span className="text-xs text-warning">· Pausad</span>}
+            {!isOnline && <WifiOff className="h-3 w-3 text-warning" aria-label="Offline" />}
+            <span className="text-xs tabular-nums">· {totalSets} set</span>
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-10 w-10 rounded-full touch-target"
-            onClick={() => (isPaused ? resumeWorkout() : pauseWorkout(false))}
-            aria-label={isPaused ? 'Återuppta pass' : 'Pausa pass'}
-          >
-            {isPaused ? <Play className="h-4 w-4" /> : <Pause className="h-4 w-4" />}
-          </Button>
-          {isPaused && (
-            <Badge variant="outline" className="rounded-full">Pausad</Badge>
-          )}
-          {/* Offline indicator */}
-          {!isOnline && (
-            <Badge variant="outline" className="text-warning border-warning rounded-full">
-              <WifiOff className="h-3 w-3 mr-1" />
-              Offline
-            </Badge>
-          )}
-          <Badge variant="secondary" className="font-mono rounded-full px-3">
-            {totalSets} set
-          </Badge>
-        </div>
-
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-10 w-10 rounded-full shrink-0"
+          onClick={() => (isPaused ? resumeWorkout() : pauseWorkout(false))}
+          aria-label={isPaused ? 'Återuppta pass' : 'Pausa pass'}
+        >
+          {isPaused ? <Play className="h-4 w-4" /> : <Pause className="h-4 w-4" />}
+        </Button>
       </header>
 
+
       {/* Exercise list */}
-      <ScrollArea className="flex-1 px-5 py-6">
-        <div className="space-y-5 pb-36">
+      <ScrollArea className="flex-1 px-4 py-4">
+        <div className="space-y-4 pb-36">
           {workoutExercises.length === 0 ? (
             <div className="text-center py-12">
               <Dumbbell className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
@@ -174,7 +160,7 @@ export function ActiveWorkout() {
 
       {/* Bottom action bar - iOS style */}
       <div className="fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur-xl border-t border-border/30">
-        <div className="flex gap-4 p-5 pb-[calc(1.25rem+env(safe-area-inset-bottom))]">
+        <div className="flex gap-3 p-4 pb-[calc(1rem+env(safe-area-inset-bottom))]">
           <ExerciseSearch 
             onSelect={handleExerciseSelect}
             trigger={
