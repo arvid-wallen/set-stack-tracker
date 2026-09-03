@@ -13,7 +13,6 @@ import { celebrate } from '@/lib/celebrate';
 import { useWorkout } from '@/hooks/useWorkout';
 import { useRoutines } from '@/hooks/useRoutines';
 import { WORKOUT_TYPE_LABELS, Exercise } from '@/types/workout';
-import { cn } from '@/lib/utils';
 
 export function ActiveWorkout() {
   const { 
