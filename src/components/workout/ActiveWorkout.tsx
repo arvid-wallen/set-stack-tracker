@@ -2,7 +2,6 @@ import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Minus, Clock, Dumbbell, WifiOff, Pause, Play } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { WorkoutTimer } from './WorkoutTimer';
 import { RestTimer } from './RestTimer';
 import { ExerciseCard } from './ExerciseCard';
@@ -80,7 +79,7 @@ export function ActiveWorkout() {
   }
 
   return (
-    <div className="fixed inset-0 bg-background z-50 flex flex-col safe-top safe-bottom">
+    <div className="fixed inset-0 bg-background z-50 flex flex-col overflow-x-hidden safe-top safe-bottom">
       {/* iOS Navigation Bar Header */}
       <header className="flex items-center gap-1 px-3 py-3 border-b border-border/30 bg-background/95 backdrop-blur-xl">
         <Button 
@@ -125,8 +124,8 @@ export function ActiveWorkout() {
 
 
       {/* Exercise list */}
-      <ScrollArea className="flex-1 px-4 py-4">
-        <div className="space-y-4 pb-36">
+      <div className="flex-1 overflow-y-auto overflow-x-hidden overscroll-contain px-4 py-4">
+        <div className="w-full min-w-0 space-y-4 pb-36">
           {workoutExercises.length === 0 ? (
             <div className="text-center py-12">
               <Dumbbell className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
@@ -156,7 +155,7 @@ export function ActiveWorkout() {
             ))
           )}
         </div>
-      </ScrollArea>
+      </div>
 
       {/* Bottom action bar - iOS style */}
       <div className="fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur-xl border-t border-border/30">
