@@ -15,6 +15,7 @@ import { SetRow } from './SetRow';
 import { CardioLogRow } from './CardioLogRow';
 import { AISetSuggestionCard } from './AISetSuggestionCard';
 import { ExerciseHistorySheet } from './ExerciseHistorySheet';
+import { RecentHistoryStrip } from './RecentHistoryStrip';
 import { useExerciseNotes } from '@/hooks/useExerciseNotes';
 import { WorkoutExercise, ExerciseSet, CardioLog, MUSCLE_GROUP_LABELS, CardioType } from '@/types/workout';
 import { cn } from '@/lib/utils';
@@ -358,6 +359,15 @@ export function ExerciseCard({
       {/* Content: Cardio or Sets */}
       {isExpanded && (
         <div className="mt-4">
+          {!isCardio && (
+            <div className="mb-3">
+              <RecentHistoryStrip
+                exerciseId={workoutExercise.exercise_id}
+                currentSessionId={workoutExercise.workout_session_id}
+                onOpenFull={() => setShowHistory(true)}
+              />
+            </div>
+          )}
           {/* AI suggestion (accept/reject card — never auto-fills the input) */}
           {!isCardio && !isCompleted && (
             <div className="mb-4">
