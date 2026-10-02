@@ -1,3 +1,4 @@
+import { EmptyState } from '@/components/ui/empty-state';
 import { WorkoutWithDetails } from '@/hooks/useWorkoutHistory';
 import { format } from 'date-fns';
 import { sv } from 'date-fns/locale';
@@ -34,13 +35,11 @@ export function WorkoutHistoryList({ workouts, onWorkoutSelect }: WorkoutHistory
 
   if (workouts.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-12 text-center">
-        <Calendar className="h-12 w-12 text-muted-foreground/50 mb-4" />
-        <p className="text-muted-foreground">Inga pass hittades</p>
-        <p className="text-sm text-muted-foreground/70">
-          Dina avslutade pass kommer visas här
-        </p>
-      </div>
+      <EmptyState
+        icon={Calendar}
+        title="Inga pass hittades"
+        description="Dina avslutade pass visas här. Prova att ändra filtret om du letar efter något särskilt."
+      />
     );
   }
 

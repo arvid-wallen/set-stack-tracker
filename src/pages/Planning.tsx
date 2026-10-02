@@ -11,6 +11,7 @@ import { CalendarPlus, Pencil, Play, Sparkles, Trash2 } from 'lucide-react';
 import { usePlannedWorkouts, PlannedWorkout } from '@/hooks/usePlannedWorkouts';
 import { useWorkout } from '@/hooks/useWorkout';
 import { WORKOUT_TYPE_LABELS } from '@/types/workout';
+import { EmptyState } from '@/components/ui/empty-state';
 import { PlannedWorkoutSheet } from '@/components/planning/PlannedWorkoutSheet';
 
 function dateLabel(date: string | null) {
@@ -64,14 +65,14 @@ export default function Planning() {
           )}
 
           {!isLoading && plannedWorkouts.length === 0 && (
-            <Card className="p-6 text-center space-y-2">
-              <p className="font-medium">Inga planerade pass</p>
-              <p className="text-sm text-muted-foreground">
-                Planera själv, eller låt din AI-coach lägga in pass via MCP-kopplingen.
-              </p>
-              <Button className="mt-2" onClick={openNew}>
-                Planera ett pass
-              </Button>
+            <Card>
+              <EmptyState
+                icon={CalendarPlus}
+                title="Inga planerade pass"
+                description="Planera själv, eller låt din AI-coach lägga in pass åt dig."
+                actionLabel="Planera ett pass"
+                onAction={openNew}
+              />
             </Card>
           )}
 

@@ -8,6 +8,8 @@ import { ExerciseCard } from './ExerciseCard';
 import { ExerciseSearch } from './ExerciseSearch';
 import { EndWorkoutSheet } from './EndWorkoutSheet';
 import { celebrate } from '@/lib/celebrate';
+import { haptic } from '@/lib/haptics';
+import { toast } from 'sonner';
 
 import { useWorkout } from '@/hooks/useWorkout';
 import { useRoutines } from '@/hooks/useRoutines';
@@ -45,10 +47,31 @@ export function ActiveWorkout() {
   const { createRoutine } = useRoutines();
   const [showRestTimer, setShowRestTimer] = useState(false);
   const [showEndSheet, setShowEndSheet] = useState(false);
+  const [hiddenIds, setHiddenIds] = useState<Set<string>>(new Set());
+
+  /** Hide immediately, give 5 s to undo, then actually delete. */
+  const deleteWithUndo = (id: string, label: string, commit: () => void) => {
+    setHiddenIds((prev) => new Set(prev).add(id));
+    haptic('light');
+    let undone = false;
+    const unhide = () => setHiddenIds((prev) => { const n = new Set(prev); n.delete(id); return n; });
+    toast(label, {
+      duration: 5000,
+      action: { label: 'Ångra', onClick: () => { undone = true; unhide(); } },
+      onAutoClose: () => { if (!undone) { commit(); unhide(); } },
+      onDismiss: () => { if (!undone) { commit(); unhide(); } },
+    });
+  };
+
+  const visibleExercises = useMemo(() => {
+    return workoutExercises
+      .filter((ex) => !hiddenIds.has(ex.id))
+      .map((ex) => (ex.sets?.some((s) => hiddenIds.has(s.id)) ? { ...ex, sets: ex.sets!.filter((s) => !hiddenIds.has(s.id)) } : ex));
+  }, [workoutExercises, hiddenIds]);
 
   const totalSets = useMemo(() => {
-    return workoutExercises.reduce((acc, ex) => acc + (ex.sets?.filter(s => !s.is_warmup).length || 0), 0);
-  }, [workoutExercises]);
+    return visibleExercises.reduce((acc, ex) => acc + (ex.sets?.filter(s => !s.is_warmup).length || 0), 0);
+  }, [visibleExercises]);
 
   const handleExerciseSelect = async (exercise: Exercise) => {
     await addExercise(exercise.id);
@@ -126,7 +149,7 @@ export function ActiveWorkout() {
       {/* Exercise list */}
       <div className="flex-1 overflow-y-auto overflow-x-hidden overscroll-contain px-4 py-4">
         <div className="w-full min-w-0 space-y-4 pb-36">
-          {workoutExercises.length === 0 ? (
+          {visibleExercises.length === 0 ? (
             <div className="text-center py-12">
               <Dumbbell className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
               <h3 className="font-medium text-lg mb-2">Lägg till din första övning</h3>
@@ -135,14 +158,14 @@ export function ActiveWorkout() {
               </p>
             </div>
           ) : (
-            workoutExercises.map((workoutExercise, index) => (
+            visibleExercises.map((workoutExercise, index) => (
               <ExerciseCard
                 key={workoutExercise.id}
                 workoutExercise={workoutExercise}
                 onAddSet={(data) => addSet(workoutExercise.id, data)}
                 onUpdateSet={(setId, data) => updateSet(setId, data)}
-                onDeleteSet={(setId) => deleteSet(setId, workoutExercise.id)}
-                onRemoveExercise={() => removeExercise(workoutExercise.id)}
+                onDeleteSet={(setId) => deleteWithUndo(setId, 'Set borttaget', () => deleteSet(setId, workoutExercise.id))}
+                onRemoveExercise={() => deleteWithUndo(workoutExercise.id, `${workoutExercise.exercise?.name ?? 'Övning'} borttagen`, () => removeExercise(workoutExercise.id))}
                 onStartRest={() => setShowRestTimer(true)}
                 onLinkSuperset={index > 0 ? () => linkToSuperset(index) : undefined}
                 onUnlinkSuperset={workoutExercise.superset_group ? () => unlinkFromSuperset(workoutExercise.id) : undefined}

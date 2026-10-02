@@ -19,6 +19,9 @@ import { RecentHistoryStrip } from './RecentHistoryStrip';
 import { useExerciseNotes } from '@/hooks/useExerciseNotes';
 import { WorkoutExercise, ExerciseSet, CardioLog, MUSCLE_GROUP_LABELS, CardioType } from '@/types/workout';
 import { cn } from '@/lib/utils';
+import { useExerciseBest } from '@/hooks/useExerciseBest';
+import { PRMedal } from '@/components/motion/PRMedal';
+import { haptic } from '@/lib/haptics';
 
 interface ExerciseCardProps {
   workoutExercise: WorkoutExercise;
@@ -67,6 +70,19 @@ export function ExerciseCard({
 
   // Fetch persistent exercise notes
   const { note: exerciseNote, saveNote, deleteNote, isLoading: noteLoading } = useExerciseNotes(workoutExercise.exercise_id);
+
+  // Personal record detection
+  const { data: historicBest } = useExerciseBest(isCardio ? null : workoutExercise.exercise_id, workoutExercise.workout_session_id);
+  const currentBest = workingSets.reduce<number | null>((m, s) => (s.weight_kg != null && (m === null || Number(s.weight_kg) > m) ? Number(s.weight_kg) : m), null);
+  const isPR = historicBest != null && historicBest > 0 && currentBest != null && currentBest > historicBest;
+  const [celebratedPR, setCelebratedPR] = useState<number | null>(null);
+  useEffect(() => {
+    if (isPR && currentBest !== celebratedPR) {
+      setCelebratedPR(currentBest);
+      haptic('success');
+    }
+  }, [isPR, currentBest, celebratedPR]);
+
 
   // Auto-collapse when marked complete
   useEffect(() => {
@@ -359,6 +375,7 @@ export function ExerciseCard({
       {/* Content: Cardio or Sets */}
       {isExpanded && (
         <div className="mt-4">
+          <PRMedal show={isPR} weight={currentBest} />
           {!isCardio && (
             <div className="mb-3">
               <RecentHistoryStrip
