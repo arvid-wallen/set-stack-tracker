@@ -1,6 +1,8 @@
 import confetti from 'canvas-confetti';
+import { haptic } from './haptics';
 
 export function celebrate() {
+  haptic("success");
   // Respect reduced motion
   if (typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) {
     return;

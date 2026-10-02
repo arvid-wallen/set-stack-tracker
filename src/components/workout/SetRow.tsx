@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import { ExerciseSet } from '@/types/workout';
+import { haptic } from '@/lib/haptics';
 
 interface SetRowProps {
   set?: ExerciseSet;
@@ -63,7 +64,7 @@ export function SetRow({
     if (!isBodyweight && !weight) return;
     if (!reps) return;
 
-    setShowSaveAnimation(true);
+    setShowSaveAnimation(true); haptic("light");
     setTimeout(() => setShowSaveAnimation(false), 300);
 
     onSave({
