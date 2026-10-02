@@ -32,7 +32,7 @@ export function StatCard({ icon: Icon, label, value, trend, subtitle, className 
           {hasTrend && (
             <div className={cn(
               "flex items-center gap-0.5 text-xs font-medium px-2 py-0.5 rounded-full",
-              isPositive ? "text-green-600 bg-green-500/10" : "text-red-600 bg-red-500/10"
+              isPositive ? "text-trend-up bg-primary/25" : "text-destructive bg-destructive/10"
             )}>
               {isPositive ? (
                 <TrendingUp className="h-3 w-3" />

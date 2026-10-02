@@ -1,4 +1,8 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, lazy, Suspense } from 'react';
+import { motion, useReducedMotion } from 'framer-motion';
+import { HausLoader } from '@/components/motion/HausLoader';
+import { CountUp } from '@/components/motion/CountUp';
+const Hero3D = lazy(() => import('@/components/motion/Hero3D'));
 import { Play, Dumbbell, Flame, Trophy, ChevronRight, MoreHorizontal, Heart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -29,6 +33,7 @@ import { GoalEditorSheet, GoalView } from '@/components/home/GoalEditorSheet';
 
 const Index = () => {
   const { user, profile, isLoading: authLoading, refreshProfile } = useAuth();
+  const reduceMotion = useReducedMotion();
   const { startWorkout, isLoading: workoutLoading } = useWorkout();
   const { workouts: fullWorkouts } = useWorkoutHistory();
   const metrics = useTrainingMetrics();
@@ -101,14 +106,7 @@ const Index = () => {
 
   // Loading
   if (authLoading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-background">
-        <div className="flex flex-col items-center gap-4">
-          <Dumbbell className="h-12 w-12 text-primary animate-pulse" />
-          <p className="text-muted-foreground">Laddar...</p>
-        </div>
-      </div>
-    );
+    return <HausLoader />;
   }
 
   if (!user) return <AuthForm />;
@@ -122,12 +120,24 @@ const Index = () => {
       </header>
 
       <main className="px-5 py-6 space-y-7">
-        {/* Hero greeting */}
-        <div className="w-full text-center py-4">
-          <h1 className="font-display text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold leading-tight">
+        {/* Hero greeting with floating 3D shape */}
+        <div className="relative w-full text-center py-4">
+          {!reduceMotion && (
+            <div className="pointer-events-none absolute left-1/2 top-1/2 -z-0 h-64 w-64 -translate-x-1/2 -translate-y-1/2 opacity-60 animate-fade-in" aria-hidden="true">
+              <Suspense fallback={null}>
+                <Hero3D />
+              </Suspense>
+            </div>
+          )}
+          <motion.h1
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+            className="relative font-display text-3xl sm:text-4xl font-bold leading-tight"
+          >
             Tjena, {profile?.first_name || 'du'}! 👋
             <span className="block mt-3">Redo att slakta gymmet idag?</span>
-          </h1>
+          </motion.h1>
         </div>
 
         {/* Start workout */}
@@ -189,9 +199,7 @@ const Index = () => {
                               )}
                               aria-hidden="true"
                             />
-                            <span className="text-sm font-semibold tabular-nums">
-                              {metrics.currentWeekStreak}
-                            </span>
+                            <CountUp value={metrics.currentWeekStreak} className="text-sm font-semibold tabular-nums" />
                             <span className="text-xs text-muted-foreground">v streak</span>
                           </div>
                           <div className="h-3 w-px bg-border" aria-hidden="true" />
@@ -369,20 +377,13 @@ function ProgressRing({ progress, label }: { progress: number; label: string }) 
   const stroke = 7;
   const radius = (size - stroke) / 2;
   const circumference = 2 * Math.PI * radius;
-  const offset = circumference * (1 - Math.min(Math.max(progress, 0), 1));
+  const clamped = Math.min(Math.max(progress, 0), 1);
+  const done = clamped >= 1;
   return (
-    <div className="relative shrink-0" style={{ width: size, height: size }}>
+    <div className={cn('relative shrink-0', done && 'animate-ring-glow')} style={{ width: size, height: size }}>
       <svg width={size} height={size} className="-rotate-90" aria-hidden="true">
-        <circle
-          cx={size / 2}
-          cy={size / 2}
-          r={radius}
-          fill="none"
-          strokeWidth={stroke}
-          className="text-muted/60"
-          stroke="currentColor"
-        />
-        <circle
+        <circle cx={size / 2} cy={size / 2} r={radius} fill="none" strokeWidth={stroke} className="text-muted/60" stroke="currentColor" />
+        <motion.circle
           cx={size / 2}
           cy={size / 2}
           r={radius}
@@ -390,9 +391,10 @@ function ProgressRing({ progress, label }: { progress: number; label: string }) 
           strokeWidth={stroke}
           strokeLinecap="round"
           strokeDasharray={circumference}
-          strokeDashoffset={offset}
-          className="text-primary transition-[stroke-dashoffset] duration-700 ease-out"
-          stroke="currentColor"
+          initial={{ strokeDashoffset: circumference }}
+          animate={{ strokeDashoffset: circumference * (1 - clamped) }}
+          transition={{ duration: 1.1, ease: [0.16, 1, 0.3, 1], delay: 0.15 }}
+          stroke="hsl(var(--primary))"
         />
       </svg>
       <div className="absolute inset-0 flex items-center justify-center">
