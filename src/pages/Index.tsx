@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo, lazy, Suspense } from 'react';
 import { motion, useReducedMotion } from 'framer-motion';
+import { EmptyState } from '@/components/ui/empty-state';
 import { HausLoader } from '@/components/motion/HausLoader';
 import { CountUp } from '@/components/motion/CountUp';
 const Hero3D = lazy(() => import('@/components/motion/Hero3D'));
@@ -300,9 +301,13 @@ const Index = () => {
           </CardHeader>
           <CardContent className="space-y-3">
             {recentWorkouts.length === 0 ? (
-              <p className="text-center text-muted-foreground py-6">
-                Inga tidigare pass ännu. Starta ditt första pass!
-              </p>
+              <EmptyState
+                icon={Dumbbell}
+                title="Inga pass ännu"
+                description="Ditt första pass hamnar här när du är klar."
+                actionLabel="Starta första passet"
+                onAction={() => setShowTypeSelector(true)}
+              />
             ) : (
               recentWorkouts.map((workout) => (
                 <button

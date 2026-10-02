@@ -1,3 +1,4 @@
+import { EmptyState } from '@/components/ui/empty-state';
 import { useState } from 'react';
 import { Plus, Star, Folder, ChevronDown, ChevronRight, Play, Trash2, MoreVertical } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -177,11 +178,11 @@ export function RoutineLibrary() {
       </Button>
 
       {routines.length === 0 ? (
-        <div className="text-center text-muted-foreground py-12">
-          <Folder className="h-12 w-12 mx-auto mb-4 opacity-50" />
-          <p>Inga rutiner skapade ännu</p>
-          <p className="text-sm mt-1">Skapa din första rutin för snabbare pass!</p>
-        </div>
+        <EmptyState
+          icon={Folder}
+          title="Inga rutiner ännu"
+          description="Spara ett pass som rutin så startar du det med ett tryck nästa gång."
+        />
       ) : (
         <>
           {/* Favorites */}

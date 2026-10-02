@@ -165,7 +165,7 @@ export function EndWorkoutSheet({
                   </ul>
                 </div>
               )}
-            </div>
+            </motion.div>
           )}
 
           {/* Rating */}
