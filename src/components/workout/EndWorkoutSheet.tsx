@@ -27,6 +27,8 @@ import { cn } from '@/lib/utils';
 import { DurationInput } from '@/components/ui/duration-input';
 import { useWorkoutSummary } from '@/hooks/useWorkoutSummary';
 import { WorkoutExercise } from '@/types/workout';
+import { motion } from 'framer-motion';
+import { CountUp } from '@/components/motion/CountUp';
 
 interface EndWorkoutSheetProps {
   isOpen: boolean;
@@ -123,18 +125,23 @@ export function EndWorkoutSheet({
         <div className="space-y-6 pb-8">
           {/* Workout summary: volume + new PRs */}
           {(summary.workingSetsCount > 0 || summary.newPRs.length > 0) && (
-            <div className="rounded-xl bg-muted/40 border border-border p-4 space-y-3">
+            <motion.div
+              initial={{ opacity: 0, rotateX: -70, y: 20 }}
+              animate={{ opacity: 1, rotateX: 0, y: 0 }}
+              transition={{ type: 'spring', stiffness: 220, damping: 20, delay: 0.1 }}
+              style={{ transformPerspective: 800, transformOrigin: 'top center' }}
+              className="rounded-xl bg-muted/40 border border-border p-4 space-y-3">
               <div className="flex items-center gap-2 text-sm font-semibold">
                 <TrendingUp className="h-4 w-4 text-primary" aria-hidden="true" />
                 Sammanfattning
               </div>
               <div className="grid grid-cols-2 gap-3 text-center">
                 <div>
-                  <p className="text-2xl font-bold tabular-nums">{summary.totalVolumeKg.toLocaleString('sv-SE')}</p>
+                  <p className="text-2xl font-bold tabular-nums"><CountUp value={summary.totalVolumeKg} /></p>
                   <p className="text-[11px] uppercase tracking-wide text-muted-foreground">kg total volym</p>
                 </div>
                 <div>
-                  <p className="text-2xl font-bold tabular-nums">{summary.workingSetsCount}</p>
+                  <p className="text-2xl font-bold tabular-nums"><CountUp value={summary.workingSetsCount} /></p>
                   <p className="text-[11px] uppercase tracking-wide text-muted-foreground">arbetsset</p>
                 </div>
               </div>
