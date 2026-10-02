@@ -12,7 +12,6 @@ import { usePlannedWorkouts, PlannedWorkout } from '@/hooks/usePlannedWorkouts';
 import { useWorkout } from '@/hooks/useWorkout';
 import { WORKOUT_TYPE_LABELS } from '@/types/workout';
 import { EmptyState } from '@/components/ui/empty-state';
-import { CalendarPlus } from 'lucide-react';
 import { PlannedWorkoutSheet } from '@/components/planning/PlannedWorkoutSheet';
 
 function dateLabel(date: string | null) {
