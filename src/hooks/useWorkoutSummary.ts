@@ -41,6 +41,7 @@ export function useWorkoutSummary(
         .from('workout_exercises')
         .select('id, exercise_id, workout_session_id, workout_sessions!inner(started_at)')
         .in('exercise_id', exerciseIds)
+        .eq('workout_sessions.status', 'completed')
         .lt('workout_sessions.started_at', workoutStartedAt!);
 
       if (weErr) throw weErr;
