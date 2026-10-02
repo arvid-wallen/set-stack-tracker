@@ -44,14 +44,14 @@ export default function History() {
       <div className="min-h-screen bg-background pb-32">
         <header className="ios-nav-bar sticky top-0 z-30">
           <div className="px-5 py-4">
-            <div className="flex items-center justify-between">
-              <h1 className="text-lg font-semibold">Historik</h1>
-              <div className="flex items-center gap-2">
+            <div className="flex items-center justify-between gap-2">
+              <h1 className="text-lg font-semibold shrink-0">Historik</h1>
+              <div className="flex items-center gap-1.5 min-w-0">
                 <ExportButton workouts={workouts} disabled={isLoading} />
                 <Button asChild variant="outline" size="sm" className="gap-2 rounded-ios-md">
                   <Link to="/planning" aria-label="Planerade pass">
                     <CalendarPlus className="h-4 w-4" aria-hidden="true" />
-                    Planerat
+                    <span className="hidden min-[400px]:inline">Planerat</span>
                   </Link>
                 </Button>
                 <Button
@@ -59,9 +59,10 @@ export default function History() {
                   size="sm"
                   onClick={() => setImportOpen(true)}
                   className="gap-2 rounded-ios-md"
+                  aria-label="AI Import"
                 >
                   <Sparkles className="h-4 w-4" />
-                  AI Import
+                  <span className="hidden min-[400px]:inline">AI Import</span>
                 </Button>
               </div>
             </div>

@@ -76,11 +76,7 @@ export function PTChatFAB() {
   const handleTouchEnd = () => {
     setIsDragging(false);
     localStorage.setItem(STORAGE_KEY, position.toString());
-    
-    // Open sheet if it wasn't a drag
-    if (!hasDraggedRef.current) {
-      setIsOpen(true);
-    }
+    // Opening is handled by onClick (fires after touchend) to avoid double-open
   };
 
   const handleClick = () => {

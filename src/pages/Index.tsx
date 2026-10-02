@@ -68,7 +68,7 @@ const Index = () => {
         .from('workout_sessions')
         .select('*')
         .eq('user_id', user.id)
-        .eq('is_active', false)
+        .eq('status', 'completed')
         .order('started_at', { ascending: false })
         .limit(5);
       if (data) setRecentWorkouts(data);
