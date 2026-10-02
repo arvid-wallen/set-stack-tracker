@@ -96,16 +96,16 @@ export function WorkoutTypeSelector({ open, onOpenChange, onSelect }: WorkoutTyp
             {WORKOUT_TYPES.map(({ type, icon, color }) => (
               <button
                 key={type}
-                className="flex items-center gap-3 p-3.5 min-w-0 rounded-xl bg-card border border-border hover:border-primary/50 transition-all active:scale-[0.98]"
+                className="flex items-center gap-2.5 px-3 py-3.5 min-w-0 rounded-xl bg-card border border-border hover:border-primary/50 transition-all active:scale-[0.98]"
                 onClick={() => handleSelect(type)}
               >
                 <div className={cn("shrink-0", color)}>
                   {icon}
                 </div>
-                <span className="font-medium flex-1 min-w-0 truncate text-left">
+                <span className="font-medium flex-1 min-w-0 text-left text-[15px] leading-tight break-words">
                   {WORKOUT_TYPE_LABELS[type]}
                 </span>
-                <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
+                <ChevronRight className="h-4 w-4 -mr-1 shrink-0 text-muted-foreground" />
               </button>
             ))}
           </div>
