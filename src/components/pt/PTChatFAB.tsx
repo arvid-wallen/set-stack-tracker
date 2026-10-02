@@ -16,6 +16,16 @@ export function PTChatFAB() {
   const [isDragging, setIsDragging] = useState(false);
   const dragStartRef = useRef({ y: 0, startPos: 0 });
   const hasDraggedRef = useRef(false);
+  // Hide the tab while any other sheet/dialog is open so it never covers it
+  const [otherDialogOpen, setOtherDialogOpen] = useState(false);
+  useEffect(() => {
+    const check = () =>
+      setOtherDialogOpen(!!document.querySelector('[role="dialog"][data-state="open"]'));
+    const obs = new MutationObserver(check);
+    obs.observe(document.body, { subtree: true, childList: true, attributes: true, attributeFilter: ['data-state'] });
+    check();
+    return () => obs.disconnect();
+  }, []);
 
   // Mouse drag handlers
   useEffect(() => {
@@ -117,7 +127,7 @@ export function PTChatFAB() {
           // Prevent text selection during drag
           "select-none touch-none",
           // Hide when sheet is open
-          isOpen && "opacity-0 pointer-events-none"
+          (isOpen || otherDialogOpen) && "opacity-0 pointer-events-none"
         )}
         style={{ 
           top: `${position}%`, 
