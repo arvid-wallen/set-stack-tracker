@@ -52,25 +52,80 @@ interface SheetContentProps
     VariantProps<typeof sheetVariants> {}
 
 const SheetContent = React.forwardRef<React.ElementRef<typeof SheetPrimitive.Content>, SheetContentProps>(
-  ({ side = "right", className, children, ...props }, ref) => (
-    <SheetPortal>
-      <SheetOverlay />
-      <SheetPrimitive.Content ref={ref} className={cn(sheetVariants({ side }), className)} {...props}>
-        {/* iOS-style drag handle for bottom sheets */}
-        {side === "bottom" && (
-          <div className="mx-auto mb-4 h-1.5 w-12 rounded-full bg-muted-foreground/30" />
-        )}
-        {children}
-        {/* Only show close button for non-bottom sheets */}
-        {side !== "bottom" && (
-          <SheetPrimitive.Close className="absolute right-4 top-4 rounded-ios-sm p-2 opacity-70 ring-offset-background transition-opacity bg-secondary/50 hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none">
-            <X className="h-4 w-4" />
-            <span className="sr-only">Close</span>
-          </SheetPrimitive.Close>
-        )}
-      </SheetPrimitive.Content>
-    </SheetPortal>
-  ),
+  ({ side = "right", className, children, ...props }, ref) => {
+    const innerRef = React.useRef<HTMLDivElement | null>(null);
+    const closeRef = React.useRef<HTMLButtonElement>(null);
+    const drag = React.useRef<{ startY: number; dy: number; active: boolean } | null>(null);
+
+    const setRefs = (node: HTMLDivElement | null) => {
+      innerRef.current = node;
+      if (typeof ref === "function") ref(node);
+      else if (ref) (ref as React.MutableRefObject<HTMLDivElement | null>).current = node;
+    };
+
+    const onPointerDown = (e: React.PointerEvent) => {
+      if (side !== "bottom") return;
+      const el = innerRef.current;
+      // Only start a drag from the top area, or when the sheet is scrolled to top
+      const fromTop = el ? e.clientY - el.getBoundingClientRect().top < 56 : false;
+      if (!fromTop && (el?.scrollTop ?? 0) > 0) return;
+      const target = e.target as HTMLElement;
+      if (!fromTop && target.closest("input,textarea,select,button,[role=slider],[data-no-drag]")) return;
+      drag.current = { startY: e.clientY, dy: 0, active: fromTop };
+    };
+    const onPointerMove = (e: React.PointerEvent) => {
+      const d = drag.current;
+      const el = innerRef.current;
+      if (!d || !el) return;
+      d.dy = Math.max(0, e.clientY - d.startY);
+      if (!d.active && d.dy > 12) d.active = true;
+      if (d.active) {
+        el.style.transition = "none";
+        el.style.transform = `translateY(${d.dy}px)`;
+      }
+    };
+    const onPointerEnd = () => {
+      const d = drag.current;
+      const el = innerRef.current;
+      drag.current = null;
+      if (!d || !el || !d.active) return;
+      el.style.transition = "transform 0.25s cubic-bezier(0.16,1,0.3,1)";
+      if (d.dy > 110) {
+        closeRef.current?.click();
+      }
+      el.style.transform = "";
+    };
+
+    return (
+      <SheetPortal>
+        <SheetOverlay />
+        <SheetPrimitive.Content
+          ref={setRefs}
+          className={cn(sheetVariants({ side }), className)}
+          onPointerDown={onPointerDown}
+          onPointerMove={onPointerMove}
+          onPointerUp={onPointerEnd}
+          onPointerCancel={onPointerEnd}
+          {...props}
+        >
+          {side === "bottom" && (
+            <div className="mx-auto mb-4 h-1.5 w-12 rounded-full bg-muted-foreground/30 touch-none" aria-hidden="true" />
+          )}
+          {children}
+          {side !== "bottom" ? (
+            <SheetPrimitive.Close className="absolute right-4 top-4 rounded-ios-sm p-2 opacity-70 ring-offset-background transition-opacity bg-secondary/50 hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none">
+              <X className="h-4 w-4" />
+              <span className="sr-only">Close</span>
+            </SheetPrimitive.Close>
+          ) : (
+            <SheetPrimitive.Close ref={closeRef} className="sr-only" tabIndex={-1}>
+              Stäng
+            </SheetPrimitive.Close>
+          )}
+        </SheetPrimitive.Content>
+      </SheetPortal>
+    );
+  },
 );
 SheetContent.displayName = SheetPrimitive.Content.displayName;
 
