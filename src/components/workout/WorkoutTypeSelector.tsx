@@ -27,14 +27,14 @@ interface WorkoutTypeSelectorProps {
 }
 
 const WORKOUT_TYPES: { type: WorkoutType; icon: React.ReactNode; color: string }[] = [
-  { type: 'push', icon: <ArrowUp className="h-6 w-6" />, color: 'text-red-500' },
-  { type: 'pull', icon: <ArrowDown className="h-6 w-6" />, color: 'text-blue-500' },
-  { type: 'legs', icon: <Footprints className="h-6 w-6" />, color: 'text-green-500' },
-  { type: 'upper', icon: <User className="h-6 w-6" />, color: 'text-purple-500' },
-  { type: 'lower', icon: <Footprints className="h-6 w-6" />, color: 'text-orange-500' },
-  { type: 'full_body', icon: <Activity className="h-6 w-6" />, color: 'text-yellow-500' },
-  { type: 'cardio', icon: <Heart className="h-6 w-6" />, color: 'text-pink-500' },
-  { type: 'custom', icon: <Dumbbell className="h-6 w-6" />, color: 'text-muted-foreground' },
+  { type: 'push', icon: <ArrowUp className="h-5 w-5" />, color: 'text-red-500' },
+  { type: 'pull', icon: <ArrowDown className="h-5 w-5" />, color: 'text-blue-500' },
+  { type: 'legs', icon: <Footprints className="h-5 w-5" />, color: 'text-green-500' },
+  { type: 'upper', icon: <User className="h-5 w-5" />, color: 'text-purple-500' },
+  { type: 'lower', icon: <Footprints className="h-5 w-5" />, color: 'text-orange-500' },
+  { type: 'full_body', icon: <Activity className="h-5 w-5" />, color: 'text-yellow-500' },
+  { type: 'cardio', icon: <Heart className="h-5 w-5" />, color: 'text-pink-500' },
+  { type: 'custom', icon: <Dumbbell className="h-5 w-5" />, color: 'text-muted-foreground' },
 ];
 
 export function WorkoutTypeSelector({ open, onOpenChange, onSelect }: WorkoutTypeSelectorProps) {
@@ -102,7 +102,7 @@ export function WorkoutTypeSelector({ open, onOpenChange, onSelect }: WorkoutTyp
                 <div className={cn("shrink-0", color)}>
                   {icon}
                 </div>
-                <span className="font-medium flex-1 min-w-0 text-left text-[15px] leading-tight break-words">
+                <span className="font-medium flex-1 min-w-0 text-left text-sm min-[380px]:text-[15px] leading-tight">
                   {WORKOUT_TYPE_LABELS[type]}
                 </span>
                 <ChevronRight className="h-4 w-4 -mr-1 shrink-0 text-muted-foreground" />
