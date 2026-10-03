@@ -27,7 +27,7 @@ export function HistoryFilters({ filters, onFiltersChange, onClear }: HistoryFil
           <SelectValue placeholder="Passtyp" />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="all">Alla typer</SelectItem>
+          <SelectItem value="all">Alla pass</SelectItem>
           {Object.entries(WORKOUT_TYPE_LABELS).map(([key, label]) => (
             <SelectItem key={key} value={key}>{label}</SelectItem>
           ))}
@@ -42,7 +42,7 @@ export function HistoryFilters({ filters, onFiltersChange, onClear }: HistoryFil
           <SelectValue placeholder="Muskelgrupp" />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="all">Alla muskler</SelectItem>
+          <SelectItem value="all">Muskler</SelectItem>
           {Object.entries(MUSCLE_GROUP_LABELS).map(([key, label]) => (
             <SelectItem key={key} value={key}>{label}</SelectItem>
           ))}
@@ -57,7 +57,7 @@ export function HistoryFilters({ filters, onFiltersChange, onClear }: HistoryFil
           <SelectValue placeholder="Betyg" />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="all">Alla betyg</SelectItem>
+          <SelectItem value="all">Betyg</SelectItem>
           {[5, 4, 3, 2, 1].map((rating) => (
             <SelectItem key={rating} value={String(rating)}>
               {'★'.repeat(rating)}{'☆'.repeat(5 - rating)}

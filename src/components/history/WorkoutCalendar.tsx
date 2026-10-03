@@ -55,10 +55,10 @@ export function WorkoutCalendar({ workoutDates, workoutsByDate, onWorkoutSelect 
           nav_button_previous: 'absolute left-0',
           nav_button_next: 'absolute right-0',
           head_cell: 'flex-1 text-muted-foreground font-normal text-xs',
-          cell: 'flex-1 text-center text-sm p-0 relative focus-within:z-20',
-          day: 'mx-auto flex h-11 w-11 items-center justify-center rounded-full text-sm font-normal transition-colors hover:bg-muted aria-selected:opacity-100',
+          cell: 'flex-1 min-w-0 text-center text-sm p-0 relative focus-within:z-20',
+          day: 'mx-auto flex h-9 w-9 min-[360px]:h-10 min-[360px]:w-10 items-center justify-center rounded-full text-sm font-normal transition-colors hover:bg-muted aria-selected:opacity-100',
           day_selected: 'bg-primary text-primary-foreground hover:bg-primary',
-          day_today: 'ring-1 ring-primary font-semibold',
+          table: 'w-full border-collapse', row: 'flex w-full mt-1.5', day_today: 'ring-1 ring-primary font-semibold',
         }}
         modifiers={{
           workout: workoutDates,
