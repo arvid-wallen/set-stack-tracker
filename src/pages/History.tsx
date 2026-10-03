@@ -45,24 +45,24 @@ export default function History() {
         <header className="ios-nav-bar sticky top-0 z-30">
           <div className="px-5 py-4">
             <div className="flex items-center justify-between gap-2">
-              <h1 className="text-lg font-semibold shrink-0">Historik</h1>
-              <div className="flex items-center gap-1.5 min-w-0">
+              <h1 className="text-xl font-semibold truncate">Historik</h1>
+              <div className="flex items-center gap-2 shrink-0">
                 <ExportButton workouts={workouts} disabled={isLoading} />
-                <Button asChild variant="outline" size="sm" className="gap-2 rounded-ios-md">
+                <Button asChild variant="outline" size="icon" className="h-9 w-9 rounded-full shrink-0">
                   <Link to="/planning" aria-label="Planerade pass">
                     <CalendarPlus className="h-4 w-4" aria-hidden="true" />
-                    <span className="hidden min-[400px]:inline">Planerat</span>
+                    
                   </Link>
                 </Button>
                 <Button
                   variant="outline"
-                  size="sm"
+                  size="icon"
                   onClick={() => setImportOpen(true)}
-                  className="gap-2 rounded-ios-md"
+                  className="h-9 w-9 rounded-full shrink-0"
                   aria-label="AI Import"
                 >
-                  <Sparkles className="h-4 w-4" />
-                  <span className="hidden min-[400px]:inline">AI Import</span>
+                  <Sparkles className="h-4 w-4" aria-hidden="true" />
+                  
                 </Button>
               </div>
             </div>
@@ -71,7 +71,7 @@ export default function History() {
 
         <div className="px-5 py-4 space-y-4">
           <Tabs defaultValue="calendar" className="w-full">
-            <TabsList className="grid w-full grid-cols-2 mb-4">
+            <TabsList className="grid w-full grid-cols-2 mb-3">
               <TabsTrigger value="calendar" className="flex items-center gap-2">
                 <Calendar className="h-4 w-4" />
                 Kalender
@@ -83,7 +83,7 @@ export default function History() {
             </TabsList>
 
             {/* Filters */}
-            <div className="mb-4">
+            <div className="mb-3">
               <HistoryFilters 
                 filters={filters}
                 onFiltersChange={setFilters}

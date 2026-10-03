@@ -34,9 +34,8 @@ export function ExportButton({ workouts, disabled }: ExportButtonProps) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="outline" size="sm" disabled={disabled} className="gap-2" aria-label="Exportera">
+        <Button variant="outline" size="icon" disabled={disabled} className="h-9 w-9 rounded-full shrink-0" aria-label="Exportera">
           <Download className="h-4 w-4" />
-          <span className="hidden min-[400px]:inline">Export</span>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
