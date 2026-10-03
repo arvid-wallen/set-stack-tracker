@@ -1,9 +1,8 @@
-import { useState, useEffect, useMemo, lazy, Suspense } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { motion, useReducedMotion } from 'framer-motion';
 import { EmptyState } from '@/components/ui/empty-state';
 import { HausLoader } from '@/components/motion/HausLoader';
 import { CountUp } from '@/components/motion/CountUp';
-const Hero3D = lazy(() => import('@/components/motion/Hero3D'));
 import { Play, Dumbbell, Flame, Trophy, ChevronRight, MoreHorizontal, Heart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -123,13 +122,6 @@ const Index = () => {
       <main className="px-5 py-6 space-y-7">
         {/* Hero greeting with floating 3D shape */}
         <div className="relative w-full text-center py-4">
-          {!reduceMotion && (
-            <div className="pointer-events-none absolute left-1/2 top-1/2 -z-0 h-64 w-64 -translate-x-1/2 -translate-y-1/2 opacity-60 animate-fade-in" aria-hidden="true">
-              <Suspense fallback={null}>
-                <Hero3D />
-              </Suspense>
-            </div>
-          )}
           <motion.h1
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}

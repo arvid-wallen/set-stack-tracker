@@ -8,13 +8,13 @@ export function AnimatedRoutes({ children }: { children: ReactNode }) {
   const reduce = useReducedMotion();
 
   return (
-    <AnimatePresence mode="wait" initial={false}>
+    <AnimatePresence mode="popLayout" initial={false}>
       <motion.div
         key={location.pathname}
-        initial={reduce ? { opacity: 0 } : { opacity: 0, y: 8 }}
-        animate={{ opacity: 1, y: 0 }}
-        exit={reduce ? { opacity: 0 } : { opacity: 0, y: -4 }}
-        transition={{ duration: DURATION.normal, ease: EASE_OUT }}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0, transition: { duration: 0 } }}
+        transition={{ duration: 0.15, ease: EASE_OUT }}
       >
         <Routes location={location}>{children}</Routes>
       </motion.div>
