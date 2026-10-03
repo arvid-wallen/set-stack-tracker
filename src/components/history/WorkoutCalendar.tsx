@@ -47,7 +47,19 @@ export function WorkoutCalendar({ workoutDates, workoutsByDate, onWorkoutSelect 
         selected={selectedDate}
         onSelect={setSelectedDate}
         locale={sv}
-        className="rounded-xl border border-border bg-card p-4 pointer-events-auto"
+        className="w-full rounded-2xl border border-border bg-card p-3 pointer-events-auto"
+        classNames={{
+          months: 'w-full',
+          month: 'w-full space-y-3',
+          caption_label: 'text-base font-semibold capitalize',
+          nav_button_previous: 'absolute left-0',
+          nav_button_next: 'absolute right-0',
+          head_cell: 'flex-1 text-muted-foreground font-normal text-xs',
+          cell: 'flex-1 text-center text-sm p-0 relative focus-within:z-20',
+          day: 'mx-auto flex h-11 w-11 items-center justify-center rounded-full text-sm font-normal transition-colors hover:bg-muted aria-selected:opacity-100',
+          day_selected: 'bg-primary text-primary-foreground hover:bg-primary',
+          day_today: 'ring-1 ring-primary font-semibold',
+        }}
         modifiers={{
           workout: workoutDates,
         }}
@@ -64,9 +76,9 @@ export function WorkoutCalendar({ workoutDates, workoutsByDate, onWorkoutSelect 
 
             return (
               <div className="relative flex flex-col items-center">
-                <span>{date.getDate()}</span>
+                <span className="leading-none">{date.getDate()}</span>
                 {hasWorkouts && (
-                  <div className="flex gap-0.5 mt-0.5">
+                  <div className="absolute -bottom-2 flex gap-0.5">
                     {dayWorkouts.slice(0, 3).map((workout, i) => (
                       <div
                         key={i}
@@ -109,7 +121,7 @@ export function WorkoutCalendar({ workoutDates, workoutsByDate, onWorkoutSelect 
                         <Badge 
                           variant="secondary" 
                           className={cn(
-                            'text-white border-0',
+                            'text-background border-0',
                             WORKOUT_TYPE_COLORS[workout.workout_type]
                           )}
                         >
@@ -130,7 +142,7 @@ export function WorkoutCalendar({ workoutDates, workoutsByDate, onWorkoutSelect 
                     </div>
 
                     {workout.rating && (
-                      <div className="flex items-center gap-0.5 text-yellow-500">
+                      <div className="flex items-center gap-0.5 text-warning">
                         <Star className="h-4 w-4 fill-current" />
                         <span className="text-sm font-medium">{workout.rating}</span>
                       </div>
