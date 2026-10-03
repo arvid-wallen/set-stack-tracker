@@ -1,4 +1,5 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, lazy, Suspense } from 'react';
+const Hero3D = lazy(() => import('@/components/motion/Hero3D'));
 import { motion, useReducedMotion } from 'framer-motion';
 import { EmptyState } from '@/components/ui/empty-state';
 import { HausLoader } from '@/components/motion/HausLoader';
@@ -122,6 +123,13 @@ const Index = () => {
       <main className="px-5 py-6 space-y-7">
         {/* Hero greeting with floating 3D shape */}
         <div className="relative w-full text-center py-4">
+          {!reduceMotion && (
+            <div className="pointer-events-none absolute left-[62%] top-[38%] h-48 w-48 -translate-x-1/2 -translate-y-1/2 opacity-40 blur-[2px] animate-fade-in" aria-hidden="true">
+              <Suspense fallback={null}>
+                <Hero3D />
+              </Suspense>
+            </div>
+          )}
           <motion.h1
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
